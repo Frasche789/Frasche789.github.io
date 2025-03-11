@@ -324,33 +324,127 @@ async function scrapeWilma() {
           const tables = document.querySelectorAll('table');
           console.log(`Found ${tables.length} tables on page`);
           
-          // Look for tables with date-like content in first column
-          for (const table of tables) {
-            const rows = table.querySelectorAll('tr');
-            if (rows.length <= 1) continue; // Skip tables with only headers
+          let allResults = [];
+          let isKotitehtavatSection = false;
+          
+          // First, try to find the dedicated "Kotitehtävät" section
+          const kotitehtavatSections = Array.from(document.querySelectorAll('*')).filter(el => 
+            el.textContent && 
+            (el.textContent.includes('Kotitehtävät') || el.textContent.includes('Homework'))
+          );
+          
+          // Process homework from dedicated sections first
+          for (const section of kotitehtavatSections) {
+            console.log('Found Kotitehtävät section');
+            isKotitehtavatSection = true;
             
-            const results = [];
-            
-            // Check for tables with date-like content
-            for (let i = 1; i < rows.length; i++) {
-              const cells = rows[i].querySelectorAll('td');
-              if (cells.length >= 2) {
-                const date = cells[0].textContent.trim();
-                const homework = cells[1].textContent.trim();
+            // Look for nearby tables or lists within a reasonable ancestor distance
+            let container = section;
+            // Try to find parent container
+            for (let i = 0; i < 3; i++) {
+              if (!container.parentElement) break;
+              container = container.parentElement;
+              
+              // Check tables within this container
+              const sectionTables = container.querySelectorAll('table');
+              for (const table of sectionTables) {
+                const rows = table.querySelectorAll('tr');
+                if (rows.length <= 1) continue;
                 
-                // Check if this looks like a date
-                if (date && homework && /\d+\.\d+/.test(date)) {
-                  results.push({ date, homework });
+                const tableResults = [];
+                // Process each row
+                for (let i = 1; i < rows.length; i++) {
+                  const cells = rows[i].querySelectorAll('td');
+                  // Try different column patterns
+                  if (cells.length >= 2) {
+                    // Check if first column contains a date
+                    let date = cells[0].textContent.trim();
+                    let homework = cells[1].textContent.trim();
+                    
+                    // If first column doesn't look like a date, try other columns
+                    if (!(/\d+\.\d+/.test(date)) && cells.length >= 3) {
+                      // Try second column as date
+                      const possibleDate = cells[1].textContent.trim();
+                      if (/\d+\.\d+/.test(possibleDate)) {
+                        date = possibleDate;
+                        homework = cells[2].textContent.trim();
+                      }
+                    }
+                    
+                    // Only accept entries with reasonable homework descriptions (more than just a number)
+                    if (date && homework && 
+                        /\d+\.\d+/.test(date) && 
+                        !/^\d+$/.test(homework) && // Exclude entries that are just numbers
+                        homework.length > 1) {     // Must be more than a single character
+                      tableResults.push({ date, homework });
+                    }
+                  }
+                }
+                
+                if (tableResults.length > 0) {
+                  console.log(`Found ${tableResults.length} homework items in Kotitehtävät section`);
+                  allResults = allResults.concat(tableResults);
                 }
               }
             }
-            
-            if (results.length > 0) {
-              return results;
+          }
+          
+          // If we didn't find anything in the dedicated homework sections, fall back to table scanning
+          // but be more strict about what we consider valid homework
+          if (allResults.length === 0 && !isKotitehtavatSection) {
+            // Look for tables with date-like content in first column
+            for (const table of tables) {
+              const rows = table.querySelectorAll('tr');
+              if (rows.length <= 1) continue; // Skip tables with only headers
+              
+              // Check the table headers to see if it looks like a homework table
+              const headerRow = rows[0];
+              const headerCells = headerRow.querySelectorAll('th, td');
+              let isHomeworkTable = false;
+              
+              // Check if any header contains homework-related text
+              for (const cell of headerCells) {
+                const headerText = cell.textContent.trim().toLowerCase();
+                if (headerText.includes('kotitehtävä') || 
+                    headerText.includes('homework') || 
+                    headerText.includes('tehtävä') ||
+                    headerText.includes('assignment')) {
+                  isHomeworkTable = true;
+                  break;
+                }
+              }
+              
+              // If not clearly a homework table, apply stricter filtering
+              const tableResults = [];
+              
+              // Check for tables with date-like content
+              for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].querySelectorAll('td');
+                if (cells.length >= 2) {
+                  const date = cells[0].textContent.trim();
+                  const homework = cells[1].textContent.trim();
+                  
+                  // Apply stricter criteria for non-homework tables
+                  if (date && homework && 
+                      /\d+\.\d+/.test(date) && 
+                      !/^\d+$/.test(homework) &&  // Not just a number
+                      homework.length > 3 &&      // Must have some substance
+                      (isHomeworkTable || 
+                       /teht|koti|läksy|harjoit|homework/i.test(homework))) { // Must contain homework-related words
+                    tableResults.push({ date, homework });
+                  }
+                }
+              }
+              
+              if (tableResults.length > 0) {
+                console.log(`Found ${tableResults.length} homework items in table`);
+                allResults = allResults.concat(tableResults);
+              }
             }
           }
           
-          return [];
+          console.log(`Total homework items collected: ${allResults.length}`);
+          return allResults;
         });
         
         console.log(`Found ${homeworkData.length} homework items for ${subject.name}`);
