@@ -83,7 +83,7 @@
     let appData = {
       students: [],
       tasks: [],
-      activeFilter: 'all'
+      activeFilter: 'all'  // Initialize filter to 'all'
     };
     
     // DOM elements
@@ -98,25 +98,59 @@
       renderTasks();
     });
     
-    // Load data from the JSON file
+    // Load data from Firestore
     async function loadData() {
       try {
-        const response = await fetch('./data/quests.json');
+        // Get Firebase modules from the global scope
+        const { collection, getDocs } = window.firebaseModules;
         
-        // If file not found, initialize with empty data
-        if (!response.ok) {
-          console.log('No data file found, initializing with empty data');
-          appData = {
-            students: [{ id: 1, name: 'Nuno', points: 0 }],
-            tasks: []
-          };
-          return;
+        // Initialize with default data structure
+        appData = {
+          students: [],
+          tasks: []
+        };
+        
+        // Load students collection
+        const studentsSnapshot = await getDocs(collection(window.db, "students"));
+        if (!studentsSnapshot.empty) {
+          studentsSnapshot.forEach((doc) => {
+            const studentData = doc.data();
+            appData.students.push({ 
+              id: doc.id, 
+              name: studentData.name,
+              points: studentData.points
+            });
+          });
+        } else {
+          // If no students found, initialize with default student
+          console.log('No students found in Firestore, initializing with default student');
+          appData.students = [{ id: 1, name: 'Nuno', points: 0 }];
         }
         
-        const data = await response.json();
-        console.log('Loaded data:', data); // Debug log
-        appData.students = data.students || [];
-        appData.tasks = data.tasks || [];
+        // Load quests collection (instead of tasks)
+        const questsSnapshot = await getDocs(collection(window.db, "quests"));
+        if (!questsSnapshot.empty) {
+          questsSnapshot.forEach((doc) => {
+            const questData = doc.data();
+            // Ensure the status field is set to 'open' if it's undefined
+            const status = questData.status || 'open';
+            // Ensure type is set to a default value if it's undefined
+            const type = questData.type || 'homework';
+            
+            appData.tasks.push({ 
+              id: doc.id,
+              date: questData.date,
+              subject: questData.subject,
+              description: questData.description,
+              type: type,
+              status: status,
+              student_id: questData.student_id,
+              points: questData.points || 5
+            });
+          });
+        }
+        
+        console.log('Loaded data from Firestore:', appData); // Debug log
         
         // Set student info
         const student = appData.students[0];
@@ -129,7 +163,18 @@
         renderTasks();
         
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('Error loading data from Firestore:', error);
+        // Initialize with empty data in case of connection issues
+        appData = {
+          students: [{ id: 1, name: 'Nuno', points: 0 }],
+          tasks: []
+        };
+        
+        // Show a notification to the user about the connection issue
+        alert('Could not connect to the database. Please check your internet connection and try again.');
+        
+        // Render empty task list
+        renderTasks();
       }
     }
     
@@ -288,6 +333,12 @@
       
       console.log('Rendering tasks. Total tasks:', appData.tasks.length);
       console.log('Current filter:', appData.activeFilter);
+      console.log('Task status values:', appData.tasks.map(task => task.status));
+      
+      // Ensure activeFilter has a valid value
+      if (!appData.activeFilter) {
+        appData.activeFilter = 'all';
+      }
       
       // Filter tasks
       let filteredTasks = [];
@@ -339,5 +390,28 @@
       });
     }
   </script>
+  <!-- Add before your closing </body> tag -->
+<script type="module">
+  // Import Firebase modules
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
+    authDomain: "questboard-17337.firebaseapp.com",
+    projectId: "questboard-17337",
+    storageBucket: "questboard-17337.firebasestorage.app",
+    messagingSenderId: "427884628874",
+    appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  
+  // Initialize Firestore
+  window.db = getFirestore(app);
+  window.firebaseModules = { collection, getDocs, doc, getDoc, setDoc, updateDoc };
+</script>
 </body>
 </html>

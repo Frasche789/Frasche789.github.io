@@ -3,6 +3,9 @@ require('dotenv').config();
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+// Import Firebase modules
+const { initializeApp } = require('firebase/app');
+const { getFirestore, collection, getDocs, doc, getDoc, setDoc, addDoc, query, where } = require('firebase/firestore');
 
 // CONFIGURATION
 const WILMA_USERNAME = process.env.WILMA_USERNAME;
@@ -10,7 +13,6 @@ const WILMA_PASSWORD = process.env.WILMA_PASSWORD;
 
 // File paths
 const DATA_DIR = path.join(__dirname, 'data');
-const DATA_FILE = path.join(DATA_DIR, 'quests.json');
 const COOKIES_FILE = path.join(DATA_DIR, 'cookies.json');
 
 // Request delay to prevent rate limiting (ms)
@@ -21,44 +23,116 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR);
 }
 
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
+  authDomain: "questboard-17337.firebaseapp.com",
+  projectId: "questboard-17337",
+  storageBucket: "questboard-17337.firebasestorage.app",
+  messagingSenderId: "427884628874",
+  appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 // Helper function for controlled delays
 async function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Helper function to load existing data
-function loadExistingData() {
-  if (fs.existsSync(DATA_FILE)) {
-    try {
-      const data = fs.readFileSync(DATA_FILE, 'utf8');
-      return JSON.parse(data);
-    } catch (error) {
-      console.error('Error reading existing data file:', error);
-      return { students: [{ id: 1, name: 'Nuno', points: 0 }], tasks: [] };
+// Helper function to load existing data from Firestore
+async function loadExistingData() {
+  try {
+    // Default data structure
+    let data = { students: [{ id: 1, name: 'Nuno', points: 0 }], tasks: [] };
+    
+    // Get students
+    const studentsSnapshot = await getDocs(collection(db, 'students'));
+    if (!studentsSnapshot.empty) {
+      data.students = studentsSnapshot.docs.map(doc => ({
+        id: parseInt(doc.id, 10) || doc.id,
+        ...doc.data()
+      }));
     }
-  } else {
+    
+    // Get tasks
+    const tasksSnapshot = await getDocs(collection(db, 'quests'));
+    if (!tasksSnapshot.empty) {
+      data.tasks = tasksSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    }
+    
+    console.log(`Loaded ${data.students.length} students and ${data.tasks.length} tasks from Firestore`);
+    return data;
+  } catch (error) {
+    console.error('Error reading existing data from Firestore:', error);
     return { students: [{ id: 1, name: 'Nuno', points: 0 }], tasks: [] };
   }
 }
 
-// Function to save data
-function saveData(data) {
+// Function to save data to Firestore
+async function saveData(data) {
   try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
-    console.log('Data saved successfully');
+    // Save students
+    for (const student of data.students) {
+      await setDoc(doc(db, 'students', student.id.toString()), {
+        name: student.name,
+        points: student.points
+      });
+    }
+    
+    // Save tasks
+    for (const task of data.tasks) {
+      // Check if this task already exists in Firestore
+      // We only need to check tasks that were newly added during this run
+      if (!task.firestore_id) {
+        // Check if task with same properties already exists
+        const q = query(
+          collection(db, 'quests'), 
+          where('date', '==', task.date),
+          where('subject', '==', task.subject),
+          where('description', '==', task.description)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+          // Task doesn't exist yet, add it
+          const docRef = await addDoc(collection(db, 'quests'), {
+            date: task.date,
+            description: task.description,
+            subject: task.subject,
+            type: task.type,
+            status: task.status,
+            student_id: task.student_id,
+            points: task.points,
+            completed: false
+          });
+          console.log(`Added new task to Firestore with ID: ${docRef.id}`);
+        } else {
+          console.log(`Task already exists in Firestore, skipping: ${task.description}`);
+        }
+      }
+    }
+    console.log('Data saved successfully to Firestore');
   } catch (error) {
-    console.error('Error saving data:', error);
+    console.error('Error saving data to Firestore:', error);
+    // Fallback to local JSON file if Firestore fails
+    try {
+      const DATA_FILE = path.join(DATA_DIR, 'quests.json');
+      fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+      console.log('Data saved to local JSON file as fallback');
+    } catch (fallbackError) {
+      console.error('Error saving fallback data to JSON:', fallbackError);
+    }
   }
 }
 
-// Function to save cookies
-async function saveCookies(page) {
-  const cookies = await page.cookies();
-  fs.writeFileSync(COOKIES_FILE, JSON.stringify(cookies, null, 2));
-  console.log(`Saved ${cookies.length} cookies to ${COOKIES_FILE}`);
-}
-
-// Function to load cookies
+// Helper function to load existing cookies
 async function loadCookies(page) {
   try {
     if (fs.existsSync(COOKIES_FILE)) {
@@ -75,6 +149,13 @@ async function loadCookies(page) {
     console.error('Error loading cookies:', error);
   }
   return false;
+}
+
+// Helper function to save cookies
+async function saveCookies(page) {
+  const cookies = await page.cookies();
+  fs.writeFileSync(COOKIES_FILE, JSON.stringify(cookies, null, 2));
+  console.log(`Saved ${cookies.length} cookies to ${COOKIES_FILE}`);
 }
 
 // Function to check if login was successful
@@ -200,7 +281,7 @@ async function scrapeWilma() {
     ];
     
     // Load existing data
-    const data = loadExistingData();
+    const data = await loadExistingData();
     let newTasksFound = 0;
     
     // Process all subjects
@@ -315,7 +396,7 @@ async function scrapeWilma() {
     console.log(`\nFound ${newTasksFound} new homework tasks`);
     
     // Save updated data
-    saveData(data);
+    await saveData(data);
     console.log('Scraping completed successfully');
   } catch (error) {
     console.error('Scraping error:', error);
@@ -410,7 +491,7 @@ scrapeWilma().catch(console.error);
 /*
 To run this:
 1. Install Node.js if not already installed
-2. Run: npm install puppeteer dotenv
+2. Run: npm install puppeteer dotenv firebase
 3. Update your WILMA_USERNAME and WILMA_PASSWORD in .env file
 4. Run: node scraper.js
 */
