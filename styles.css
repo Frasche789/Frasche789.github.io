@@ -115,13 +115,33 @@ body {
   font-size: 0.9rem;
 }
 
-/* 3.2 Quest Types - Different styling for quest categories */
-.quest.homework {
-  border-left-color: #28a745; /* Green border for homework */
+/* Subject-based styling for quest items */
+.quest.subject-history {
+  border-left-color: #ecdd57; 
 }
 
-.quest.chore {
-  border-left-color: #007bff; /* Blue border for chores */
+.quest.subject-math {
+  border-left-color: #1d4fe6; 
+}
+
+.quest.subject-aidinkieli {
+  border-left-color: #f12626; 
+}
+
+.quest.subject-english {
+  border-left-color: #e9511a; 
+}
+
+.quest.subject-ethics {
+  border-left-color: #77a38a; 
+}
+
+.quest.subject-yhteiskuntaoppi {
+  border-left-color: #4fd34b; 
+}
+
+.quest.subject-ymparistooppi {
+  border-left-color: #1791c9; 
 }
 
 /* 3.3 Quest States - Different styles for quest states */

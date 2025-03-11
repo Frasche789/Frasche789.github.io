@@ -531,7 +531,21 @@
         console.log('Rendering task:', task);
         const taskElement = document.createElement('div');
         taskElement.id = `task-${task.id}`;
-        taskElement.className = `quest ${task.type} ${task.status === 'completed' ? 'completed' : ''}`;
+        
+        // Generate subject class name by converting to lowercase and removing special characters
+        let subjectClass = '';
+        if (task.subject) {
+          // Convert subject name to lowercase and normalize Finnish characters
+          let normalizedSubject = task.subject.toLowerCase()
+            .replace(/ä/g, 'a')  // Replace ä with a
+            .replace(/ö/g, 'o')  // Replace ö with o
+            .replace(/å/g, 'a')  // Replace å with a
+            .replace(/\s+/g, ''); // Remove spaces
+          
+          subjectClass = `subject-${normalizedSubject}`;
+        }
+        
+        taskElement.className = `quest ${task.type} ${task.status === 'completed' ? 'completed' : ''} ${subjectClass}`;
         
         taskElement.innerHTML = `
           <div class="d-flex justify-content-between align-items-start">
