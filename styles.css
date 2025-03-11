@@ -1,0 +1,194 @@
+/* 
+ * QUEST BOARD STYLES
+ * A comprehensive stylesheet for the Quest Board application
+ * 
+ * Table of Contents:
+ * 1. Global Styles
+ * 2. Layout Components
+ *    2.1 Quest Board
+ *    2.2 Student Information
+ *    2.3 Quest Filter
+ * 3. Quest Items
+ *    3.1 Quest Cards
+ *    3.2 Quest Types
+ *    3.3 Quest States
+ * 4. Form Elements
+ * 5. Buttons
+ * 6. Animations
+ */
+
+/* ====================================
+   1. GLOBAL STYLES
+   ==================================== */
+body {
+  background-color: #f8f5e6; /* Light parchment background */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ====================================
+   2. LAYOUT COMPONENTS
+   ==================================== */
+
+/* 2.1 Quest Board - Main container for quest items */
+.quest-board {
+  background-color: #e0d3b3; /* Aged paper look */
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  padding: 20px;
+  margin-top: 20px;
+  /* Decorative background pattern */
+  background-image: url('./white-paper-texture-background.jpg');
+  background-size: 100px;
+  background-repeat: repeat;
+}
+
+.board-title {
+  text-align: center;
+  color: #5e3a14; /* Brown wooden text */
+  font-weight: bold;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+/* 2.2 Student Information - Player stats display */
+.student-info {
+  background-color: #5e3a14; /* Dark wood panel */
+  color: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.student-name {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.student-points {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ffc107; /* Gold color for points */
+}
+
+/* 2.3 Quest Filter - Filter buttons for quest types */
+.quest-filter {
+  margin-bottom: 20px;
+}
+
+/* ====================================
+   3. QUEST ITEMS
+   ==================================== */
+
+/* 3.1 Quest Cards - Individual quest display */
+.quest {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  padding: 15px;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+  border-left: 5px solid #6c5b33; /* Default border color */
+}
+
+.quest:hover {
+  transform: translateY(-5px); /* Slight lift effect on hover */
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.quest-title {
+  font-weight: bold;
+  color: #5e3a14;
+  font-size: 1.2rem;
+}
+
+.quest-description {
+  color: #666;
+}
+
+.quest-points {
+  background-color: #ffc107; /* Gold background */
+  color: #5e3a14;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* 3.2 Quest Types - Different styling for quest categories */
+.quest.homework {
+  border-left-color: #28a745; /* Green border for homework */
+}
+
+.quest.chore {
+  border-left-color: #007bff; /* Blue border for chores */
+}
+
+/* 3.3 Quest States - Different styles for quest states */
+.quest.completed {
+  opacity: 0.6;
+  background-color: #e9ffe9; /* Light green background for completed quests */
+}
+
+/* ====================================
+   4. FORM ELEMENTS
+   ==================================== */
+.add-chore-form {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+/* ====================================
+   5. BUTTONS
+   ==================================== */
+.btn-custom {
+  background-color: #6c5b33; /* Brown button */
+  color: white;
+}
+
+.btn-custom:hover {
+  background-color: #5e3a14; /* Darker brown on hover */
+  color: white;
+}
+
+/* ====================================
+   6. ANIMATIONS
+   ==================================== */
+
+/* Completion animation for quests */
+@keyframes complete {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); background-color: #c8f7c5; }
+  100% { transform: scale(1); }
+}
+
+.completion-animation {
+  animation: complete 1s ease-in-out;
+}
+
+/* Confetti animation for quest completion */
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background-color: #f00;
+  opacity: 0;
+  top: 0;
+  animation: fall 3s ease-in-out forwards;
+}
+
+@keyframes fall {
+  0% {
+    top: -10px;
+    opacity: 1;
+    transform: translateX(0) rotate(0);
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+    transform: translateX(calc(50px - 100px * var(--rand))) rotate(calc(360deg * var(--rand)));
+  }
+}

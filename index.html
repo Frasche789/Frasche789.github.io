@@ -1,7 +1,343 @@
+<!-- index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quest Board</title>
+  <!-- Bootstrap for styling -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom styles -->
+  <link href="styles.css" rel="stylesheet">
+</head>
 <body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+  <div class="container">
+    <div id="app" class="mt-4">
+      <h1 class="text-center mb-4">Quest Board</h1>
+      
+      <div class="student-info d-flex justify-content-between align-items-center">
+        <div>
+          <div class="student-name" id="studentName">Loading...</div>
+          <div>Mighty Adventurer</div>
+        </div>
+        <div class="text-center">
+          <div>Total Points</div>
+          <div class="student-points" id="studentPoints">0</div>
+        </div>
+      </div>
+      
+      <div class="quest-filter btn-group w-100">
+        <button onclick="filterTasks('all')" 
+                id="filter-all"
+                class="btn btn-custom">
+          All Quests
+        </button>
+        <button onclick="filterTasks('homework')"
+                id="filter-homework"
+                class="btn btn-outline-secondary">
+          Homework
+        </button>
+        <button onclick="filterTasks('chore')"
+                id="filter-chore"
+                class="btn btn-outline-secondary">
+          Chores
+        </button>
+        <button onclick="filterTasks('completed')"
+                id="filter-completed"
+                class="btn btn-outline-secondary">
+          Completed
+        </button>
+      </div>
+      
+      <div class="quest-board">
+        <h2 class="board-title">Active Quests</h2>
+        
+        <div id="no-quests" class="text-center p-5" style="display: none;">
+          <h3>No quests available</h3>
+          <p>All quests have been completed. Great job!</p>
+        </div>
+        
+        <div id="quest-container">
+          <!-- Quests will be inserted here -->
+        </div>
+      </div>
+      
+      <div class="add-chore-form">
+        <h3>Add New Chore</h3>
+        <div class="mb-3">
+          <label for="choreDescription" class="form-label">Chore Description</label>
+          <input type="text" class="form-control" id="choreDescription" 
+                 placeholder="Clean your room, Take out trash...">
+        </div>
+        <div class="mb-3">
+          <label for="chorePoints" class="form-label">Reward Points</label>
+          <input type="number" class="form-control" id="chorePoints" value="5" min="1" max="20">
+        </div>
+        <button onclick="addChore()" class="btn btn-custom">Add Chore</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Global data
+    let appData = {
+      students: [],
+      tasks: [],
+      activeFilter: 'all'
+    };
+    
+    // DOM elements
+    const questContainer = document.getElementById('quest-container');
+    const noQuestsMessage = document.getElementById('no-quests');
+    const studentNameEl = document.getElementById('studentName');
+    const studentPointsEl = document.getElementById('studentPoints');
+    
+    // Load data on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadData();
+      renderTasks();
+    });
+    
+    // Load data from the JSON file
+    async function loadData() {
+      try {
+        const response = await fetch('./data/quests.json');
+        
+        // If file not found, initialize with empty data
+        if (!response.ok) {
+          console.log('No data file found, initializing with empty data');
+          appData = {
+            students: [{ id: 1, name: 'Nuno', points: 0 }],
+            tasks: []
+          };
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('Loaded data:', data); // Debug log
+        appData.students = data.students || [];
+        appData.tasks = data.tasks || [];
+        
+        // Set student info
+        const student = appData.students[0];
+        if (student) {
+          studentNameEl.textContent = student.name;
+          studentPointsEl.textContent = student.points;
+        }
+        
+        // Render tasks after loading data
+        renderTasks();
+        
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    }
+    
+    // Save data to localStorage
+    function saveData() {
+      try {
+        localStorage.setItem('questData', JSON.stringify(appData));
+      } catch (error) {
+        console.error('Error saving data to localStorage:', error);
+      }
+    }
+    
+    // Filter tasks
+    function filterTasks(filter) {
+      // Update active filter
+      appData.activeFilter = filter;
+      
+      // Update filter button styles
+      document.querySelectorAll('.quest-filter .btn').forEach(btn => {
+        btn.classList.remove('btn-custom');
+        btn.classList.add('btn-outline-secondary');
+      });
+      document.getElementById(`filter-${filter}`).classList.remove('btn-outline-secondary');
+      document.getElementById(`filter-${filter}`).classList.add('btn-custom');
+      
+      // Re-render tasks
+      renderTasks();
+    }
+    
+    // Add a new chore
+    function addChore() {
+      const description = document.getElementById('choreDescription').value.trim();
+      const points = parseInt(document.getElementById('chorePoints').value) || 5;
+      
+      if (!description) {
+        alert('Please enter a chore description');
+        return;
+      }
+      
+      // Create new chore
+      const newChore = {
+        id: Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        subject: 'Chore',
+        description: description,
+        type: 'chore',
+        status: 'open',
+        student_id: 1,
+        points: points
+      };
+      
+      // Add to tasks array
+      appData.tasks.push(newChore);
+      
+      // Save data
+      saveData();
+      
+      // Reset form
+      document.getElementById('choreDescription').value = '';
+      document.getElementById('chorePoints').value = '5';
+      
+      // Re-render tasks
+      renderTasks();
+    }
+    
+    // Complete a task
+    function completeTask(taskId) {
+      // Find task
+      const taskIndex = appData.tasks.findIndex(task => task.id === taskId);
+      if (taskIndex === -1) return;
+      
+      // Update task status
+      appData.tasks[taskIndex].status = 'completed';
+      appData.tasks[taskIndex].completed_at = new Date().toISOString();
+      
+      // Update student points
+      const taskPoints = appData.tasks[taskIndex].points;
+      appData.students[0].points += taskPoints;
+      studentPointsEl.textContent = appData.students[0].points;
+      
+      // Save data
+      saveData();
+      
+      // Animate the quest completion
+      const taskElement = document.getElementById(`task-${taskId}`);
+      if (taskElement) {
+        taskElement.classList.add('completion-animation');
+        
+        // Create confetti effect
+        createConfetti();
+        
+        // After animation, re-render
+        setTimeout(() => {
+          renderTasks();
+        }, 1000);
+      }
+    }
+    
+    // Create confetti effect
+    function createConfetti() {
+      const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+      
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.setProperty('--rand', Math.random());
+        
+        document.body.appendChild(confetti);
+        
+        // Remove confetti after animation
+        setTimeout(() => {
+          confetti.remove();
+        }, 3000);
+      }
+    }
+    
+    // Format date for display
+    function formatDate(dateString) {
+      // Handle Finnish date format (DD.MM.YYYY)
+      if (dateString && dateString.includes('.')) {
+        // No need to convert - the date is already in the desired format
+        return dateString;
+      }
+      // For other formats, use the Date object (ISO strings, etc.)
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('fi-FI').format(date);
+    }
+    
+    // Format completed date for display
+    function formatCompletedDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('fi-FI', {
+        day: 'numeric',
+        month: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    }
+    
+    // Get quest title based on task type and subject
+    function getQuestTitle(task) {
+      if (task.type === 'homework') {
+        return `${task.subject} Quest`;
+      } else {
+        return 'House Quest';
+      }
+    }
+    
+    // Render tasks based on current filter
+    function renderTasks() {
+      // Clear container
+      questContainer.innerHTML = '';
+      
+      console.log('Rendering tasks. Total tasks:', appData.tasks.length);
+      console.log('Current filter:', appData.activeFilter);
+      
+      // Filter tasks
+      let filteredTasks = [];
+      
+      if (appData.activeFilter === 'all') {
+        filteredTasks = appData.tasks;
+      } else if (appData.activeFilter === 'completed') {
+        filteredTasks = appData.tasks.filter(task => task.status === 'completed');
+      } else {
+        filteredTasks = appData.tasks.filter(task => 
+          task.type === appData.activeFilter && task.status !== 'completed'
+        );
+      }
+      
+      console.log('Filtered tasks:', filteredTasks.length);
+      
+      // Show/hide no quests message
+      if (filteredTasks.length === 0) {
+        noQuestsMessage.style.display = 'block';
+      } else {
+        noQuestsMessage.style.display = 'none';
+      }
+      
+      // Render each task
+      filteredTasks.forEach(task => {
+        console.log('Rendering task:', task);
+        const taskElement = document.createElement('div');
+        taskElement.id = `task-${task.id}`;
+        taskElement.className = `quest ${task.type} ${task.status === 'completed' ? 'completed' : ''}`;
+        
+        taskElement.innerHTML = `
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="quest-title">${getQuestTitle(task)}</div>
+              <div class="quest-description">${task.description}</div>
+              <div class="text-muted mt-2">${formatDate(task.date)}</div>
+            </div>
+            <div class="d-flex flex-column align-items-end">
+              <span class="quest-points mb-2">+${task.points} points</span>
+              ${task.status !== 'completed' 
+                ? `<button onclick="completeTask(${task.id})" class="btn btn-sm btn-custom">Complete</button>`
+                : `<small class="text-success">Completed ${formatCompletedDate(task.completed_at)}</small>`
+              }
+            </div>
+          </div>
+        `;
+        
+        questContainer.appendChild(taskElement);
+      });
+    }
+  </script>
 </body>
 </html>

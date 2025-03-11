@@ -1,0 +1,181 @@
+{
+  "students": [
+    {
+      "id": 1,
+      "name": "Nuno",
+      "points": 0
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1741694684983,
+      "date": "21.01.2025",
+      "subject": "History",
+      "description": "Kivi-, pronssi- ja rautakausi Pohjolassa",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694691459,
+      "date": "20.01.2025",
+      "subject": "Math",
+      "description": "Aukeama loppuun ja mökki 5",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694690973,
+      "date": "13.01.2025",
+      "subject": "Math",
+      "description": "kpl 3  Aukeama loppuun ja mökki",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694691299,
+      "date": "02.09.2024",
+      "subject": "Math",
+      "description": "Kpl 9 ei erikseen läksyä",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694691569,
+      "date": "12.08.2024",
+      "subject": "Math",
+      "description": "Harjoiteltiin pohdintatehtäviä, miten niitä tehdään.  ei läksyä",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697763,
+      "date": "07.03.2025",
+      "subject": "Äidinkieli",
+      "description": "Verbit taipuvat aikamuodoissa. Opettele s. 34  Tee tehtävä s.43 teht. 4 Tee lisäksi vihkoon: Taivuta mennä-verbiä  kieltomuodossa eri aika- ja persoonamuodoissa. Eli sama tehtävä kieltomuodossa.",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697037,
+      "date": "06.03.2025",
+      "subject": "Äidinkieli",
+      "description": "Verbit taipuvat aikamuodossa tehtäväkirja s. 34 ja s.35 teht. 1 ja 3.",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697684,
+      "date": "20.02.2025",
+      "subject": "Äidinkieli",
+      "description": "Tee tehtäväkirjasta s. 30-31",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697113,
+      "date": "19.02.2025",
+      "subject": "Äidinkieli",
+      "description": "Tehtäväkirjasta s.26 - 29 teht. 1-5",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697390,
+      "date": "14.02.2025",
+      "subject": "Äidinkieli",
+      "description": "s. 32-34 teht. 2 vihkoon Tehtävä on myös Veeran ryhmäläisille.",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697922,
+      "date": "05.02.2025",
+      "subject": "Äidinkieli",
+      "description": "Vuoropuhelu  Moniste kotona loppuun.",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697969,
+      "date": "22.01.2025",
+      "subject": "Äidinkieli",
+      "description": "Ei läksyä",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697044,
+      "date": "16.01.2025",
+      "subject": "Äidinkieli",
+      "description": "tehtäväkirja s. 76 loppuun.",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697448,
+      "date": "15.01.2025",
+      "subject": "Äidinkieli",
+      "description": "Asiateksti s.74-75 j   teht. 1 ja 2",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697679,
+      "date": "10.01.2025",
+      "subject": "Äidinkieli",
+      "description": "s. 98-100 ja teht. 1 vihkoon.",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697239,
+      "date": "09.01.2025",
+      "subject": "Äidinkieli",
+      "description": "s.73 tiivistelmä",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    },
+    {
+      "id": 1741694697965,
+      "date": "08.01.2025",
+      "subject": "Äidinkieli",
+      "description": "Näin teet muistiinpanot Tehtäväkirja s. 72",
+      "type": "homework",
+      "status": "open",
+      "student_id": 1,
+      "points": 5
+    }
+  ]
+}
