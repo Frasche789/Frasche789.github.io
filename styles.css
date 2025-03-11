@@ -169,6 +169,17 @@ body {
   animation: complete 1s ease-in-out;
 }
 
+/* Undo completion animation for quests */
+@keyframes undo {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); background-color: #f7e6c5; }
+  100% { transform: scale(1); }
+}
+
+.undo-animation {
+  animation: undo 1s ease-in-out;
+}
+
 /* Confetti animation for quest completion */
 .confetti {
   position: fixed;
