@@ -1,5 +1,5 @@
-Monday: Math, Ympäristöoppi, Käsityö, Liikunta  
-Tuesday: Math, Äidinkieli, History, Musiikki, Liikunta  
-Wednesday: Äidinkieli, Math, English, Ethics, Liikunta  
-Thursday: English, Math, Ympäristöoppi, Äidinkieli  
-Friday: Kuvataide, Yhteiskuntaoppi, Äidinkieli, Digitaidot  
+Monday: Math, Eco, Crafts, PE  
+Tuesday: Math, Finnish, History, Music, PE  
+Wednesday: Finnish, Math, English, Ethics, PE  
+Thursday: English, Math, Eco, Finnish  
+Friday: Art, Civics, Finnish, Digi 

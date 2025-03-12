@@ -101,83 +101,7 @@ async function saveData(data) {
         const querySnapshot = await getDocs(q);
         
         if (querySnapshot.empty) {
-          // Task doesn't exist yet, calculate due date
-          
-          // Calculate due date based on subject and creation date
-          let dueDate;
-          let dueDateCalculationMethod = "schedule";
-          
-          try {
-            // Find the next class occurrence for the subject
-            // Assuming we have the scheduleConfig collection set up
-            const scheduleConfigRef = doc(db, "scheduleConfig", task.subject);
-            const scheduleConfigSnap = await getDoc(scheduleConfigRef);
-            
-            if (scheduleConfigSnap.exists()) {
-              const scheduleConfig = scheduleConfigSnap.data();
-              const classDays = scheduleConfig.classDays || [];
-              const defaultDueInterval = scheduleConfig.defaultDueInterval || 7;
-              
-              // Convert task.date to a Date object
-              const createDate = new Date(task.date);
-              
-              // Get the day of week (0 = Sunday, 1 = Monday, etc.)
-              const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-              
-              if (classDays.length > 0) {
-                // Find the next class day after the creation date
-                let nextClassDay = null;
-                let daysToAdd = 1;
-                
-                // Check up to 14 days forward to find the next class
-                while (!nextClassDay && daysToAdd <= 14) {
-                  // Calculate the next day
-                  const nextDate = new Date(createDate);
-                  nextDate.setDate(createDate.getDate() + daysToAdd);
-                  const nextDayNum = nextDate.getDay();
-                  const nextDayName = dayNames[nextDayNum];
-                  
-                  // Check if this is a class day for the subject
-                  if (classDays.includes(nextDayName)) {
-                    nextClassDay = nextDate;
-                    break;
-                  }
-                  
-                  daysToAdd++;
-                }
-                
-                if (nextClassDay) {
-                  // Format the date in ISO format
-                  dueDate = nextClassDay.toISOString().split('T')[0];
-                } else {
-                  // Fallback: use default due interval from config
-                  const dueDateObj = new Date(createDate);
-                  dueDateObj.setDate(createDate.getDate() + defaultDueInterval);
-                  dueDate = dueDateObj.toISOString().split('T')[0];
-                }
-              } else {
-                // No class days configured, use default interval
-                const dueDateObj = new Date(createDate);
-                dueDateObj.setDate(createDate.getDate() + defaultDueInterval);
-                dueDate = dueDateObj.toISOString().split('T')[0];
-              }
-            } else {
-              // No schedule config found for subject, use default 7 days
-              const dueDateObj = new Date(task.date);
-              dueDateObj.setDate(dueDateObj.getDate() + 7);
-              dueDate = dueDateObj.toISOString().split('T')[0];
-              dueDateCalculationMethod = "default";
-            }
-          } catch (error) {
-            console.error(`Error calculating due date for task: ${task.description}`, error);
-            // Fallback to 7 days from creation date
-            const dueDateObj = new Date(task.date);
-            dueDateObj.setDate(dueDateObj.getDate() + 7);
-            dueDate = dueDateObj.toISOString().split('T')[0];
-            dueDateCalculationMethod = "default";
-          }
-          
-          // Add task with due date
+          // Task doesn't exist yet, add it
           const docRef = await addDoc(collection(db, 'quests'), {
             date: task.date,
             description: task.description,
@@ -186,11 +110,9 @@ async function saveData(data) {
             status: task.status,
             student_id: task.student_id,
             points: task.points,
-            completed: false,
-            dueDate: dueDate,
-            dueDateCalculationMethod: dueDateCalculationMethod
+            completed: false
           });
-          console.log(`Added new task to Firestore with ID: ${docRef.id}, due date: ${dueDate}`);
+          console.log(`Added new task to Firestore with ID: ${docRef.id}`);
         } else {
           console.log(`Task already exists in Firestore, skipping: ${task.description}`);
         }

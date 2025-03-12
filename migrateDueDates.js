@@ -1,14 +1,10 @@
-// migrateDueDates.js - One-time script to calculate due dates for all existing quests
+// migrateDueDates.js - Script to update existing quests with calculated due dates
+
+// Import required modules
 require('dotenv').config();
 const { initializeApp } = require('firebase/app');
-const { 
-  getFirestore, 
-  collection, 
-  getDocs, 
-  doc, 
-  getDoc, 
-  updateDoc 
-} = require('firebase/firestore');
+const { getFirestore, collection, getDocs, doc, updateDoc } = require('firebase/firestore');
+const dueDateUtil = require('./duedate');
 
 // Firebase configuration
 const firebaseConfig = {
@@ -24,140 +20,70 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Function to calculate due date based on subject and schedule
-async function calculateDueDate(subject, creationDate) {
+/**
+ * Migrate all quests to have calculated due dates
+ */
+async function migrateDueDates() {
   try {
-    // Default to 7 days if calculation fails
-    let defaultDueInterval = 7;
+    console.log('Starting migration of due dates for existing quests...');
     
-    // Convert creation date to a Date object if it's a string
-    const createDate = typeof creationDate === 'string' 
-      ? new Date(creationDate) 
-      : creationDate;
+    // Get all quests
+    const questsRef = collection(db, 'quests');
+    const questsSnapshot = await getDocs(questsRef);
     
-    // Get the day of week (0 = Sunday, 1 = Monday, etc.)
-    const creationDayNum = createDate.getDay();
-    // Convert to day name
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const creationDay = dayNames[creationDayNum];
+    console.log(`Found ${questsSnapshot.size} quests to process`);
     
-    console.log(`Calculating due date for ${subject} created on ${creationDay}`);
-    
-    // Fetch schedule configuration from Firestore
-    const scheduleConfigRef = doc(db, "scheduleConfig", subject);
-    const scheduleConfigSnap = await getDoc(scheduleConfigRef);
-    
-    if (scheduleConfigSnap.exists()) {
-      const scheduleConfig = scheduleConfigSnap.data();
-      const classDays = scheduleConfig.classDays || [];
-      defaultDueInterval = scheduleConfig.defaultDueInterval || 7;
-      
-      console.log(`Class days for ${subject}: ${classDays.join(', ')}`);
-      
-      if (classDays.length > 0) {
-        // Find the next class day after the creation date
-        let nextClassDay = null;
-        let daysToAdd = 1;
-        
-        // Check up to 14 days forward to find the next class
-        while (!nextClassDay && daysToAdd <= 14) {
-          // Calculate the next day
-          const nextDate = new Date(createDate);
-          nextDate.setDate(createDate.getDate() + daysToAdd);
-          const nextDayNum = nextDate.getDay();
-          const nextDayName = dayNames[nextDayNum];
-          
-          // Check if this is a class day for the subject
-          if (classDays.includes(nextDayName)) {
-            nextClassDay = nextDate;
-            break;
-          }
-          
-          daysToAdd++;
-        }
-        
-        if (nextClassDay) {
-          console.log(`Next ${subject} class is on ${nextClassDay.toDateString()}`);
-          // Format the date in ISO format
-          return nextClassDay.toISOString().split('T')[0];
-        }
-      }
-    } else {
-      console.log(`No schedule configuration found for ${subject}, using default interval of ${defaultDueInterval} days`);
-    }
-    
-    // Fallback: use default due interval from config or 7 days
-    const dueDate = new Date(createDate);
-    dueDate.setDate(createDate.getDate() + defaultDueInterval);
-    return dueDate.toISOString().split('T')[0];
-    
-  } catch (error) {
-    console.error('Error calculating due date:', error);
-    // Fallback to one week from creation
-    const dueDate = new Date(creationDate);
-    dueDate.setDate(dueDate.getDate() + 7);
-    return dueDate.toISOString().split('T')[0];
-  }
-}
-
-// Main migration function
-async function migrateExistingQuests() {
-  try {
-    console.log('Starting migration to add due dates to existing quests...');
-    
-    // Get all quests from Firestore
-    const questsSnapshot = await getDocs(collection(db, "quests"));
-    
-    if (questsSnapshot.empty) {
-      console.log('No quests found in database. Migration complete.');
-      return;
-    }
-    
-    console.log(`Found ${questsSnapshot.size} quests to process.`);
-    
-    let updatedCount = 0;
-    let skippedCount = 0;
-    let errorCount = 0;
+    let updated = 0;
+    let skipped = 0;
+    let errors = 0;
     
     // Process each quest
-    for (const docSnapshot of questsSnapshot.docs) {
+    for (const questDoc of questsSnapshot.docs) {
+      const quest = questDoc.data();
+      const questId = questDoc.id;
+      
       try {
-        const questData = docSnapshot.data();
-        const questId = docSnapshot.id;
-        
-        // Skip quests that already have a due date
-        if (questData.dueDate) {
-          console.log(`Quest ${questId} already has a due date: ${questData.dueDate}. Skipping.`);
-          skippedCount++;
+        // Skip quests that already have a due date and calculationMethod
+        if (quest.dueDate && quest.dueDateCalculationMethod) {
+          console.log(`Skipping quest "${quest.title}" (${questId}) - already has due date calculation method: ${quest.dueDateCalculationMethod}`);
+          skipped++;
           continue;
         }
         
-        console.log(`Processing quest: ${questId} - ${questData.subject}: ${questData.description}`);
+        // Only calculate for quests with a subject
+        if (!quest.subject) {
+          console.log(`Skipping quest "${quest.title}" (${questId}) - no subject`);
+          skipped++;
+          continue;
+        }
         
         // Calculate due date based on subject and creation date
-        const dueDate = await calculateDueDate(questData.subject, questData.date);
+        const creationDate = quest.createdAt ? new Date(quest.createdAt) : new Date();
+        const { dueDate, calculationMethod, nextClassInfo } = 
+          await dueDateUtil.calculateDueDate(db, quest.subject, creationDate);
         
-        // Update the quest with the calculated due date
-        await updateDoc(doc(db, "quests", questId), {
-          dueDate: dueDate,
-          dueDateCalculationMethod: "schedule"
+        console.log(`Calculated due date for "${quest.title}" (${questId}): ${dueDate} (${calculationMethod})`);
+        
+        // Update the quest document
+        const questRef = doc(db, 'quests', questId);
+        await updateDoc(questRef, {
+          dueDate,
+          dueDateCalculationMethod: calculationMethod,
+          nextClassInfo: nextClassInfo || ''
         });
         
-        console.log(`Updated quest ${questId} with due date: ${dueDate}`);
-        updatedCount++;
-        
+        console.log(`Updated quest "${quest.title}" (${questId})`);
+        updated++;
       } catch (error) {
-        console.error(`Error processing quest ${docSnapshot.id}:`, error);
-        errorCount++;
+        console.error(`Error processing quest ${questId}:`, error);
+        errors++;
       }
     }
     
-    console.log('\nMigration summary:');
-    console.log(`Total quests: ${questsSnapshot.size}`);
-    console.log(`Updated: ${updatedCount}`);
-    console.log(`Skipped (already had due date): ${skippedCount}`);
-    console.log(`Errors: ${errorCount}`);
-    console.log('Migration complete!');
+    console.log('Migration completed:');
+    console.log(` - Updated: ${updated}`);
+    console.log(` - Skipped: ${skipped}`);
+    console.log(` - Errors: ${errors}`);
     
   } catch (error) {
     console.error('Migration failed:', error);
@@ -165,12 +91,6 @@ async function migrateExistingQuests() {
 }
 
 // Run the migration
-migrateExistingQuests()
-  .then(() => {
-    console.log('Due date migration finished.');
-    process.exit(0);
-  })
-  .catch(error => {
-    console.error('Fatal error during migration:', error);
-    process.exit(1);
-  });
+migrateDueDates()
+  .then(() => console.log('Due date migration complete.'))
+  .catch(error => console.error('Migration failed:', error));

@@ -9,8 +9,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Custom styles -->
   <link href="styles.css" rel="stylesheet">
-  <!-- Due Date Calculation System -->
-  <script src="duedate.js" defer></script>
 </head>
 <body>
   <div class="container">
@@ -225,7 +223,7 @@
     }
     
     // Add a new chore
-    async function addChore() {
+    function addChore() {
       const description = document.getElementById('choreDescription').value.trim();
       const points = parseInt(document.getElementById('chorePoints').value) || 5;
       
@@ -234,41 +232,30 @@
         return;
       }
       
-      try {
-        // Get today's date in ISO format (YYYY-MM-DD)
-        const today = new Date();
-        const dateString = today.toISOString().split('T')[0];
-        
-        // Create new chore object
-        let newChore = {
-          date: dateString,
-          subject: 'Chore',
-          description: description,
-          type: 'chore',
-          status: 'open',
-          student_id: appData.students[0].id,
-          points: points
-        };
-        
-        // Add due date to the chore using our dueDate utility
-        newChore = await window.dueDate.addDueDateToQuest(newChore);
-        
-        // Add to Firestore
-        const { addDoc, collection } = window.firebaseModules;
-        const docRef = await addDoc(collection(window.db, "quests"), newChore);
-        console.log('New chore added with ID:', docRef.id);
-        
-        // Reset form
-        document.getElementById('choreDescription').value = '';
-        document.getElementById('chorePoints').value = '5';
-        
-        // Reload data and render tasks
-        await loadData();
-        renderTasks();
-      } catch (error) {
-        console.error('Error adding chore:', error);
-        alert('Error adding chore: ' + error.message);
-      }
+      // Create new chore
+      const newChore = {
+        id: Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        subject: 'Chore',
+        description: description,
+        type: 'chore',
+        status: 'open',
+        student_id: 1,
+        points: points
+      };
+      
+      // Add to tasks array
+      appData.tasks.push(newChore);
+      
+      // Save data
+      saveData();
+      
+      // Reset form
+      document.getElementById('choreDescription').value = '';
+      document.getElementById('chorePoints').value = '5';
+      
+      // Re-render tasks
+      renderTasks();
     }
     
     // Complete a task
@@ -458,92 +445,15 @@
     // Format completed date for display
     function formatCompletedDate(dateString) {
       if (!dateString) return '';
-      
       const date = new Date(dateString);
-      const day = date.getDate().toString().padStart(2, '0');
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const year = date.getFullYear();
-      
-      return `${day}.${month}.${year}`;
+      return new Intl.DateTimeFormat('fi-FI', {
+        day: 'numeric',
+        month: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
     }
     
-    // Calculate due date based on subject and schedule
-    async function calculateDueDate(subject, creationDate) {
-      try {
-        // Default to 7 days if calculation fails
-        let defaultDueInterval = 7;
-        
-        // Convert creation date to a Date object if it's a string
-        const createDate = typeof creationDate === 'string' 
-          ? new Date(creationDate) 
-          : creationDate;
-        
-        // Get the day of week (0 = Sunday, 1 = Monday, etc.)
-        const creationDayNum = createDate.getDay();
-        // Convert to day name
-        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const creationDay = dayNames[creationDayNum];
-        
-        console.log(`Calculating due date for ${subject} created on ${creationDay}`);
-        
-        // Fetch schedule configuration from Firestore
-        const { doc, getDoc } = window.firebaseModules;
-        const scheduleConfigRef = doc(window.db, "scheduleConfig", subject);
-        const scheduleConfigSnap = await getDoc(scheduleConfigRef);
-        
-        if (scheduleConfigSnap.exists()) {
-          const scheduleConfig = scheduleConfigSnap.data();
-          const classDays = scheduleConfig.classDays || [];
-          defaultDueInterval = scheduleConfig.defaultDueInterval || 7;
-          
-          console.log(`Class days for ${subject}: ${classDays.join(', ')}`);
-          
-          if (classDays.length > 0) {
-            // Find the next class day after the creation date
-            let nextClassDay = null;
-            let daysToAdd = 1;
-            
-            // Check up to 14 days forward to find the next class
-            while (!nextClassDay && daysToAdd <= 14) {
-              // Calculate the next day
-              const nextDate = new Date(createDate);
-              nextDate.setDate(createDate.getDate() + daysToAdd);
-              const nextDayNum = nextDate.getDay();
-              const nextDayName = dayNames[nextDayNum];
-              
-              // Check if this is a class day for the subject
-              if (classDays.includes(nextDayName)) {
-                nextClassDay = nextDate;
-                break;
-              }
-              
-              daysToAdd++;
-            }
-            
-            if (nextClassDay) {
-              console.log(`Next ${subject} class is on ${nextClassDay.toDateString()}`);
-              // Format the date in ISO format
-              return nextClassDay.toISOString().split('T')[0];
-            }
-          }
-        } else {
-          console.log(`No schedule configuration found for ${subject}, using default interval of ${defaultDueInterval} days`);
-        }
-        
-        // Fallback: use default due interval from config or 7 days
-        const dueDate = new Date(createDate);
-        dueDate.setDate(createDate.getDate() + defaultDueInterval);
-        return dueDate.toISOString().split('T')[0];
-        
-      } catch (error) {
-        console.error('Error calculating due date:', error);
-        // Fallback to one week from creation
-        const dueDate = new Date(creationDate);
-        dueDate.setDate(dueDate.getDate() + 7);
-        return dueDate.toISOString().split('T')[0];
-      }
-    }
-
     // Get quest title based on task type and subject
     function getQuestTitle(task) {
       if (task.type === 'homework') {
@@ -555,139 +465,108 @@
     
     // Render tasks based on current filter
     function renderTasks() {
-      // Clear the container
+      // Clear container
       questContainer.innerHTML = '';
       
-      // Check if there are any tasks
-      if (!appData.tasks || appData.tasks.length === 0) {
-        noQuestsMessage.style.display = 'block';
-        return;
+      console.log('Rendering tasks. Total tasks:', appData.tasks.length);
+      console.log('Current filter:', appData.activeFilter);
+      console.log('Show recent only:', appData.showRecentOnly);
+      
+      // Ensure activeFilter has a valid value
+      if (!appData.activeFilter) {
+        appData.activeFilter = 'all';
       }
       
-      // Get the filtered list or filter now
-      let tasksToRender = appData.filteredLists[appData.activeFilter];
+      // Apply filters
+      let filteredTasks = [];
       
-      if (!tasksToRender) {
-        // Apply filtering if it wasn't done before
-        tasksToRender = appData.tasks.filter(task => {
-          // Filter by type
-          if (appData.activeFilter === 'homework' && task.type !== 'homework') {
-            return false;
-          }
+      // Check if we already have this filtered list cached
+      const cacheKey = `${appData.activeFilter}_${appData.showRecentOnly}`;
+      if (appData.filteredLists[cacheKey]) {
+        filteredTasks = appData.filteredLists[cacheKey];
+      } else {
+        // Basic type filtering
+        if (appData.activeFilter === 'all') {
+          filteredTasks = [...appData.tasks];
+        } else if (appData.activeFilter === 'completed') {
+          filteredTasks = appData.tasks.filter(task => task.status === 'completed');
+        } else {
+          filteredTasks = appData.tasks.filter(task => 
+            task.type === appData.activeFilter && task.status !== 'completed'
+          );
+        }
+        
+        // Apply recent filter (2 weeks) if enabled
+        if (appData.showRecentOnly) {
+          filteredTasks = filteredTasks.filter(task => isWithinTwoWeeks(task.date));
+        }
+        
+        // Sort by date (newest first)
+        filteredTasks.sort((a, b) => {
+          const dateA = parseFinDate(a.date);
+          const dateB = parseFinDate(b.date);
           
-          if (appData.activeFilter === 'chore' && task.type !== 'chore') {
-            return false;
-          }
+          // If we can't parse either date, maintain original order
+          if (!dateA || !dateB) return 0;
           
-          if (appData.activeFilter === 'completed' && task.status !== 'completed') {
-            return false;
-          }
-          
-          if (appData.activeFilter !== 'completed' && task.status === 'completed') {
-            return false;
-          }
-          
-          // Apply "recent" filter if enabled
-          if (appData.showRecentOnly && !isWithinTwoWeeks(task.date)) {
-            return false;
-          }
-          
-          return true;
+          // Sort descending (newest first)
+          return dateB - dateA;
         });
         
         // Cache the filtered list
-        appData.filteredLists[appData.activeFilter] = tasksToRender;
+        appData.filteredLists[cacheKey] = filteredTasks;
       }
       
-      // Sort tasks by due date (if available), then by creation date
-      tasksToRender.sort((a, b) => {
-        // First sort by status (open before completed)
-        if (a.status !== b.status) {
-          return a.status === 'completed' ? 1 : -1;
-        }
-        
-        // For open tasks, sort by due date if available
-        if (a.status !== 'completed') {
-          if (a.dueDate && b.dueDate) {
-            return new Date(a.dueDate) - new Date(b.dueDate);
-          } else if (a.dueDate) {
-            return -1; // a has due date, b doesn't - a comes first
-          } else if (b.dueDate) {
-            return 1; // b has due date, a doesn't - b comes first
-          }
-        }
-        
-        // Otherwise, sort by creation date (newest first)
-        return new Date(b.date) - new Date(a.date);
-      });
+      console.log('Filtered tasks:', filteredTasks.length);
       
       // Show/hide no quests message
-      noQuestsMessage.style.display = tasksToRender.length === 0 ? 'block' : 'none';
+      if (filteredTasks.length === 0) {
+        noQuestsMessage.style.display = 'block';
+      } else {
+        noQuestsMessage.style.display = 'none';
+      }
       
-      // Create task elements
-      tasksToRender.forEach(task => {
+      // Render each task
+      filteredTasks.forEach(task => {
+        console.log('Rendering task:', task);
         const taskElement = document.createElement('div');
-        taskElement.className = `quest-item ${task.status === 'completed' ? 'completed' : ''}`;
+        taskElement.id = `task-${task.id}`;
         
-        // Format the date for display
-        const dateDisplay = formatDate(task.date);
+        // Generate subject class name by converting to lowercase and removing special characters
+        let subjectClass = '';
+        if (task.subject) {
+          // Convert subject name to lowercase and normalize Finnish characters
+          let normalizedSubject = task.subject.toLowerCase()
+            .replace(/ä/g, 'a')  // Replace ä with a
+            .replace(/ö/g, 'o')  // Replace ö with o
+            .replace(/å/g, 'a')  // Replace å with a
+            .replace(/\s+/g, ''); // Remove spaces
+          
+          subjectClass = `subject-${normalizedSubject}`;
+        }
         
-        // Format due date for display if available
-        const dueDateDisplay = task.dueDate ? window.dueDate.formatDueDate(task.dueDate) : '';
+        taskElement.className = `quest ${task.type} ${task.status === 'completed' ? 'completed' : ''} ${subjectClass}`;
         
-        // Create an HTML template for the task
-        const questTitle = getQuestTitle(task);
-        
-        // Create an HTML structure with due date
-        let taskHTML = `
-          <div class="quest-header">
-            <div class="quest-title">${questTitle}</div>
-            <div class="quest-date">${dateDisplay}</div>
+        taskElement.innerHTML = `
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="quest-title">${getQuestTitle(task)}</div>
+              <div class="quest-description">${task.description}</div>
+              <div class="text-muted mt-2">${formatDate(task.date)}</div>
+            </div>
+            <div class="d-flex flex-column align-items-end">
+              <span class="quest-points mb-2">+${task.points} points</span>
+              ${task.status !== 'completed' 
+                ? `<button onclick="completeTask('${task.id}')" class="btn btn-sm btn-custom">Complete</button>`
+                : `<div>
+                     <small class="text-success">Completed ${formatCompletedDate(task.completed_at)}</small>
+                     <button onclick="completeTask('${task.id}')" class="btn btn-sm btn-outline-secondary mt-1">Undo</button>
+                   </div>`
+              }
+            </div>
           </div>
-          <div class="quest-description">${task.description}</div>
         `;
         
-        // Add due date section if available
-        if (dueDateDisplay) {
-          // Determine if task is overdue (due date is in the past)
-          const isOverdue = task.status !== 'completed' && 
-                          task.dueDate && 
-                          new Date(task.dueDate) < new Date() && 
-                          new Date(task.dueDate).toDateString() !== new Date().toDateString();
-          
-          taskHTML += `
-            <div class="quest-duedate ${isOverdue ? 'overdue' : ''}">
-              <strong>Due:</strong> ${dueDateDisplay}
-              ${isOverdue ? '<span class="overdue-label">OVERDUE</span>' : ''}
-            </div>
-          `;
-        }
-        
-        // Add completion section for completed tasks
-        if (task.status === 'completed' && task.completedDate) {
-          taskHTML += `
-            <div class="quest-completed-date">
-              <strong>Completed:</strong> ${formatCompletedDate(task.completedDate)}
-            </div>
-          `;
-        }
-        
-        // Add points and complete button for open tasks
-        if (task.status !== 'completed') {
-          taskHTML += `
-            <div class="quest-footer">
-              <div class="quest-points">+${task.points} points</div>
-              <button class="btn btn-custom" onclick="completeTask('${task.id}')">
-                Complete
-              </button>
-            </div>
-          `;
-        }
-        
-        // Set the HTML content
-        taskElement.innerHTML = taskHTML;
-        
-        // Add to the quest container
         questContainer.appendChild(taskElement);
       });
     }
