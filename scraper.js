@@ -25,12 +25,12 @@ if (!fs.existsSync(DATA_DIR)) {
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
-  authDomain: "questboard-17337.firebaseapp.com",
-  projectId: "questboard-17337",
-  storageBucket: "questboard-17337.firebasestorage.app",
-  messagingSenderId: "427884628874",
-  appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID
 };
 
 // Initialize Firebase
