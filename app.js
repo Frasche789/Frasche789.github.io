@@ -18,6 +18,24 @@ const appState = {
     count: 0,
     target: 7, // Target for a complete streak (e.g., 7 days)
     lastActive: null
+  },
+  // Schedule mapping: maps subjects to the days of the week they occur
+  schedule: {
+    main: {
+      "Math": [1, 2, 3, 4], // Monday, Tuesday, Wednesday, Thursday (1-based index, 1=Monday)
+      "Eco": [1, 4], // Monday, Thursday
+      "Crafts": [1], // Monday
+      "PE": [1, 2, 3], // Monday, Tuesday, Wednesday
+      "Finnish": [2, 3, 4, 5], // Tuesday, Wednesday, Thursday, Friday
+      "History": [2], // Tuesday
+      "Music": [2], // Tuesday
+      "English": [3, 4], // Wednesday, Thursday
+      "Ethics": [3], // Wednesday
+      "Art": [5], // Friday
+      "Civics": [5], // Friday
+      "Digi": [5]  // Friday
+    },
+    alternative: {} // Can be expanded for a second child's schedule
   }
 };
 
@@ -405,61 +423,214 @@ function renderTasks() {
   } else {
     elements.noQuestsMessage.style.display = 'none';
     
-    // Sort tasks by date (most recent first for completed, chronological for others)
+    // For completed tasks, use the existing sort logic
     if (appState.activeFilter === 'completed') {
       filteredTasks.sort((a, b) => {
         const dateA = parseFinDate(a.completedDate || a.date);
         const dateB = parseFinDate(b.completedDate || b.date);
         return dateB - dateA; // Descending order for completed tasks
       });
+      
+      // Group tasks by completion date
+      const tasksByDate = {};
+      filteredTasks.forEach(task => {
+        const dateKey = task.completedDate || task.date;
+        if (!tasksByDate[dateKey]) {
+          tasksByDate[dateKey] = [];
+        }
+        tasksByDate[dateKey].push(task);
+      });
+      
+      // Render completed tasks by date groups
+      renderTasksByDateGroups(tasksByDate, todayFormatted);
     } else {
+      // For active tasks, sort and group by next class occurrence
+      
+      // Calculate next class information for each task
+      filteredTasks.forEach(task => {
+        const nextClassInfo = calculateNextClassDay(task.subject);
+        task.nextClassInfo = nextClassInfo;
+        
+        // For tasks without a scheduled class, use due date for sorting
+        if (nextClassInfo.daysUntilNextClass === null) {
+          const dueDate = parseFinDate(task.date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          // Calculate days until due
+          const diffTime = dueDate - today;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          task.nextClassInfo.daysUntilNextClass = diffDays;
+        }
+      });
+      
+      // Sort by next class occurrence, then by due date within the same day
       filteredTasks.sort((a, b) => {
+        // First sort by next class occurrence
+        const daysUntilA = a.nextClassInfo.daysUntilNextClass;
+        const daysUntilB = b.nextClassInfo.daysUntilNextClass;
+        
+        if (daysUntilA !== daysUntilB) {
+          return daysUntilA - daysUntilB;
+        }
+        
+        // If same next class day, sort by due date
         const dateA = parseFinDate(a.date);
         const dateB = parseFinDate(b.date);
-        return dateA - dateB; // Ascending order for open tasks
+        return dateA - dateB;
       });
+      
+      // Group tasks by days until next class day
+      const tasksByNextClass = {};
+      filteredTasks.forEach(task => {
+        // Create a key for the group (days until next class)
+        let groupKey;
+        
+        if (task.nextClassInfo.hasClassToday) {
+          groupKey = 'today';
+        } else if (task.nextClassInfo.hasClassTomorrow) {
+          groupKey = 'tomorrow';
+        } else if (task.nextClassInfo.daysUntilNextClass !== null) {
+          const daysUntil = task.nextClassInfo.daysUntilNextClass;
+          const date = new Date();
+          date.setDate(date.getDate() + daysUntil);
+          // Format as YYYY-MM-DD (for sorting purposes)
+          groupKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        } else {
+          // No scheduled class, group by due date
+          const dueDate = parseFinDate(task.date);
+          groupKey = `due-${dueDate.getFullYear()}-${(dueDate.getMonth() + 1).toString().padStart(2, '0')}-${dueDate.getDate().toString().padStart(2, '0')}`;
+        }
+        
+        if (!tasksByNextClass[groupKey]) {
+          tasksByNextClass[groupKey] = [];
+        }
+        
+        tasksByNextClass[groupKey].push(task);
+      });
+      
+      // Render the task groups
+      renderTasksByNextClassGroups(tasksByNextClass, todayFormatted);
     }
-    
-    // Group tasks by date
-    const tasksByDate = {};
-    filteredTasks.forEach(task => {
-      const dateKey = appState.activeFilter === 'completed' ? (task.completedDate || task.date) : task.date;
-      if (!tasksByDate[dateKey]) {
-        tasksByDate[dateKey] = [];
-      }
-      tasksByDate[dateKey].push(task);
-    });
-    
-    // Render tasks by date groups
-    elements.questContainer.innerHTML = '';
-    Object.keys(tasksByDate).forEach(date => {
-      const tasks = tasksByDate[date];
-      const dateObj = parseFinDate(date);
-      
-      // Add day separator
-      const daySeparator = document.createElement('div');
-      daySeparator.className = 'day-separator';
-      daySeparator.innerHTML = `
-        <div class="day-line"></div>
-        <div class="day-label">${formatDate(date)}</div>
-      `;
-      elements.questContainer.appendChild(daySeparator);
-      
-      // Create quest list for this day
-      const questList = document.createElement('div');
-      questList.className = 'quest-list';
-      
-      // Add tasks for this day
-      tasks.forEach(task => {
-        const taskElement = createTaskElement(task, date === todayFormatted);
-        questList.appendChild(taskElement);
-      });
-      
-      elements.questContainer.appendChild(questList);
-    });
   }
   
   // Render today's tasks separately in the fixed header
+  renderTodayTasks(todayFormatted);
+}
+
+// Render tasks grouped by next class day
+function renderTasksByNextClassGroups(taskGroups, todayFormatted) {
+  elements.questContainer.innerHTML = '';
+  
+  // Sort the group keys for proper display order
+  const sortedGroupKeys = Object.keys(taskGroups).sort((a, b) => {
+    // Special handling for 'today' and 'tomorrow'
+    if (a === 'today') return -1;
+    if (b === 'today') return 1;
+    if (a === 'tomorrow') return -1;
+    if (b === 'tomorrow') return 1;
+    
+    // For other keys, sort normally
+    return a.localeCompare(b);
+  });
+  
+  // Render each group
+  sortedGroupKeys.forEach(groupKey => {
+    const tasks = taskGroups[groupKey];
+    
+    // Create appropriate label for each group
+    let groupLabel;
+    if (groupKey === 'today') {
+      groupLabel = 'Today\'s Classes';
+    } else if (groupKey === 'tomorrow') {
+      groupLabel = 'Tomorrow\'s Classes';
+    } else if (groupKey.startsWith('due-')) {
+      // Tasks grouped by due date (no scheduled class)
+      const dateString = groupKey.substring(4); // Remove 'due-' prefix
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      
+      // Format the date (use existing formatDate function with a Finnish format date)
+      const finDate = `${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
+      groupLabel = `Due ${formatDate(finDate)}`;
+    } else {
+      // Regular next class date
+      const [year, month, day] = groupKey.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      
+      // Get day name and format date
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayName = dayNames[date.getDay()];
+      
+      // Format the date (use existing formatDate function with a Finnish format date)
+      const finDate = `${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
+      groupLabel = `${dayName}'s Classes (${formatDate(finDate)})`;
+    }
+    
+    // Add day separator
+    const daySeparator = document.createElement('div');
+    daySeparator.className = 'day-separator';
+    
+    // Add appropriate class for today and tomorrow for styling
+    if (groupKey === 'today') {
+      daySeparator.classList.add('class-today');
+    } else if (groupKey === 'tomorrow') {
+      daySeparator.classList.add('class-tomorrow');
+    }
+    
+    daySeparator.innerHTML = `
+      <div class="day-line"></div>
+      <div class="day-label">${groupLabel}</div>
+    `;
+    elements.questContainer.appendChild(daySeparator);
+    
+    // Create quest list for this group
+    const questList = document.createElement('div');
+    questList.className = 'quest-list';
+    
+    // Add tasks for this group
+    tasks.forEach(task => {
+      const isToday = task.date === todayFormatted;
+      const taskElement = createTaskElement(task, isToday);
+      questList.appendChild(taskElement);
+    });
+    
+    elements.questContainer.appendChild(questList);
+  });
+}
+
+// Render tasks grouped by date (for completed tasks)
+function renderTasksByDateGroups(tasksByDate, todayFormatted) {
+  elements.questContainer.innerHTML = '';
+  
+  Object.keys(tasksByDate).forEach(date => {
+    const tasks = tasksByDate[date];
+    const dateObj = parseFinDate(date);
+    
+    // Add day separator
+    const daySeparator = document.createElement('div');
+    daySeparator.className = 'day-separator';
+    daySeparator.innerHTML = `
+      <div class="day-line"></div>
+      <div class="day-label">${formatDate(date)}</div>
+    `;
+    elements.questContainer.appendChild(daySeparator);
+    
+    // Create quest list for this day
+    const questList = document.createElement('div');
+    questList.className = 'quest-list';
+    
+    // Add tasks for this day
+    tasks.forEach(task => {
+      const taskElement = createTaskElement(task, date === todayFormatted);
+      questList.appendChild(taskElement);
+    });
+    
+    elements.questContainer.appendChild(questList);
+  });
+}
+
+// Render today's tasks in the fixed header
+function renderTodayTasks(todayFormatted) {
   const todayTasks = appState.tasks.filter(task => 
     task.date === todayFormatted && task.status !== 'completed'
   );
@@ -484,9 +655,21 @@ function createTaskElement(task, isToday) {
   taskElement.className = `quest-card subject-${task.subject.toLowerCase()} ${task.status === 'completed' ? 'completed-quest' : ''}`;
   taskElement.dataset.taskId = task.id;
   
+  // Add next-class indicators if task isn't completed and has next class info
+  if (task.status !== 'completed' && task.nextClassInfo) {
+    if (task.nextClassInfo.hasClassToday) {
+      taskElement.classList.add('next-class-today');
+    } else if (task.nextClassInfo.hasClassTomorrow) {
+      taskElement.classList.add('next-class-tomorrow');
+    }
+  }
+  
   // Determine time indicator
   let timeIndicator = '';
+  let nextClassIndicator = '';
+  
   if (task.status !== 'completed') {
+    // Due date indicator
     const taskDate = parseFinDate(task.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -502,6 +685,20 @@ function createTaskElement(task, isToday) {
       timeIndicator = '<span class="time-indicator due-tomorrow">Due Tomorrow</span>';
     } else {
       timeIndicator = '<span class="time-indicator due-later">Coming Up</span>';
+    }
+    
+    // Next class indicator
+    if (task.nextClassInfo) {
+      if (task.nextClassInfo.hasClassToday) {
+        nextClassIndicator = '<span class="class-indicator class-today">Class Today</span>';
+      } else if (task.nextClassInfo.hasClassTomorrow) {
+        nextClassIndicator = '<span class="class-indicator class-tomorrow">Class Tomorrow</span>';
+      } else if (task.nextClassInfo.daysUntilNextClass !== null) {
+        // For classes later in the week
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const nextClassDay = task.nextClassInfo.nextClassDate.getDay();
+        nextClassIndicator = `<span class="class-indicator class-upcoming">Class ${dayNames[nextClassDay]}</span>`;
+      }
     }
   }
   
@@ -519,7 +716,7 @@ function createTaskElement(task, isToday) {
       <div class="quest-date">
         ${task.status === 'completed' 
           ? `Completed on ${formatCompletedDate(task.completedDate || task.date)}` 
-          : `Due: ${formatDate(task.date)}`}
+          : `Due: ${formatDate(task.date)}${nextClassIndicator ? ' • ' + nextClassIndicator : ''}`}
       </div>
     </div>
     
@@ -595,6 +792,67 @@ function updateStreak() {
     count: streak,
     target: 7,
     lastActive: today
+  };
+}
+
+// Function to calculate days until next class for a subject
+function calculateNextClassDay(subject) {
+  // Get current day of the week (1-7, where 1 is Monday)
+  const today = new Date();
+  const currentDayOfWeek = today.getDay() === 0 ? 7 : today.getDay(); // Convert Sunday (0) to 7
+  
+  // Default to the main schedule
+  const schedule = appState.schedule.main;
+  
+  // If subject is not in schedule, return null (no scheduled class)
+  if (!schedule[subject]) {
+    return {
+      daysUntilNextClass: null,
+      nextClassDate: null,
+      hasClassToday: false,
+      hasClassTomorrow: false
+    };
+  }
+  
+  // Find the next occurrence of this subject
+  const classDays = schedule[subject];
+  
+  // Check if subject has class today
+  const hasClassToday = classDays.includes(currentDayOfWeek);
+  
+  // Check if subject has class tomorrow
+  const tomorrowDayOfWeek = currentDayOfWeek === 7 ? 1 : currentDayOfWeek + 1;
+  const hasClassTomorrow = classDays.includes(tomorrowDayOfWeek);
+  
+  // Find the next class day
+  let nextClassDay = null;
+  let daysUntil = Infinity;
+  
+  for (const classDay of classDays) {
+    // Calculate days until this class day
+    let daysDiff = classDay - currentDayOfWeek;
+    
+    // If it's negative, it means the class is next week
+    if (daysDiff <= 0) {
+      daysDiff += 7;
+    }
+    
+    // If this class day is sooner than what we've found so far, update
+    if (daysDiff < daysUntil) {
+      daysUntil = daysDiff;
+      nextClassDay = classDay;
+    }
+  }
+  
+  // Calculate the actual date of the next class
+  const nextClassDate = new Date(today);
+  nextClassDate.setDate(today.getDate() + daysUntil);
+  
+  return {
+    daysUntilNextClass: daysUntil,
+    nextClassDate,
+    hasClassToday,
+    hasClassTomorrow
   };
 }
 
@@ -688,5 +946,5 @@ export {
   renderTasks,
   completeTask,
   addChore,
-  toggleRecentFilter
+  calculateNextClassDay
 };

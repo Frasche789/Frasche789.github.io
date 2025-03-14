@@ -31,6 +31,11 @@
   --subject-chore: #795548;
   --subject-other: #607d8b;
   
+  /* Class timing indicators */
+  --class-today: #ff5252;
+  --class-tomorrow: #ff9800;
+  --class-upcoming: #4caf50;
+  
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -279,49 +284,57 @@ p {
 
 /* Day separator */
 .day-separator {
-  position: relative;
-  margin: var(--spacing-md) 0;
   display: flex;
   align-items: center;
-  width: 100%;
-}
-
-.day-label {
-  background-color: var(--background-color);
-  padding: 0 var(--spacing-md);
-  font-weight: 700;
-  color: var(--text-secondary);
-  font-size: 1rem;
+  margin: var(--spacing-md) 0;
   position: relative;
-  z-index: 1;
 }
 
 .day-line {
-  position: absolute;
-  width: 100%;
+  flex-grow: 1;
   height: 1px;
   background-color: var(--border-color);
-  top: 50%;
-  z-index: 0;
+}
+
+.day-label {
+  padding: 0 var(--spacing-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.day-separator.class-today .day-label {
+  color: var(--class-today);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.day-separator.class-tomorrow .day-label {
+  color: var(--class-tomorrow);
+  font-weight: 700;
 }
 
 /* Quest cards */
-.quest-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
 .quest-card {
   background-color: var(--card-background);
   border-radius: var(--card-radius);
   box-shadow: 0 2px 8px var(--shadow-color);
+  margin-bottom: var(--spacing-md);
   padding: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  border-left: 4px solid var(--subject-other);
-  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.quest-card.next-class-today {
+  border-left: 5px solid var(--class-today);
+  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.1);
+}
+
+.quest-card.next-class-tomorrow {
+  border-left: 5px solid var(--class-tomorrow);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1);
 }
 
 .quest-card:active {
@@ -629,32 +642,57 @@ p {
 
 /* Time indicators */
 .time-indicator {
-  display: inline-block;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
   font-size: 0.75rem;
-  font-weight: 700;
-  margin-left: var(--spacing-sm);
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 0.5rem;
+  font-weight: 600;
+  display: inline-block;
+  vertical-align: middle;
 }
 
-.due-today {
-  background-color: #ffecb3;
-  color: #e65100;
+.class-indicator {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: inline-block;
+  vertical-align: middle;
 }
 
-.due-tomorrow {
-  background-color: #e3f2fd;
-  color: #0277bd;
+.class-today {
+  background-color: rgba(255, 82, 82, 0.1);
+  color: var(--class-today);
 }
 
-.due-later {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+.class-tomorrow {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: var(--class-tomorrow);
 }
 
-.overdue {
-  background-color: #ffebee;
-  color: #c62828;
+.class-upcoming {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: var(--class-upcoming);
+}
+
+.time-indicator.overdue {
+  background-color: rgba(255, 82, 82, 0.1);
+  color: #ff5252;
+}
+
+.time-indicator.due-today {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+}
+
+.time-indicator.due-tomorrow {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.time-indicator.due-later {
+  background-color: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
 }
 
 /* Completed tasks */
