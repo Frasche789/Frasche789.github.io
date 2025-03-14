@@ -7,6 +7,17 @@ const path = require('path');
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, getDocs, doc, getDoc, setDoc, addDoc, query, where } = require('firebase/firestore');
 
+// Define subject URLs globally so they're accessible to all functions
+const subjects = [
+  { name: 'History', url: 'https://opetustampere.inschool.fi/!0466066/groups/137349' },
+  { name: 'Math', url: 'https://opetustampere.inschool.fi/!0466066/groups/137359' },
+  { name: 'Finnish', url: 'https://opetustampere.inschool.fi/!0466066/groups/137358' },
+  { name: 'English', url: 'https://opetustampere.inschool.fi/!0466066/groups/137348' },
+  { name: 'Ethics', url: 'https://opetustampere.inschool.fi/!0466066/groups/137338' },
+  { name: 'Civics', url: 'https://opetustampere.inschool.fi/!0466066/groups/137356' },
+  { name: 'Eco', url: 'https://opetustampere.inschool.fi/!0466066/groups/137357' }
+];
+
 // CONFIGURATION
 const WILMA_USERNAME = process.env.WILMA_USERNAME;
 const WILMA_PASSWORD = process.env.WILMA_PASSWORD;
@@ -48,25 +59,31 @@ async function loadExistingData() {
     // Default data structure
     let data = { students: [{ id: 1, name: 'Nuno', points: 0 }], tasks: [] };
     
-    // Get students
-    const studentsSnapshot = await getDocs(collection(db, 'students'));
-    if (!studentsSnapshot.empty) {
-      data.students = studentsSnapshot.docs.map(doc => ({
-        id: parseInt(doc.id, 10) || doc.id,
-        ...doc.data()
-      }));
+    try {
+      // Get students
+      const studentsSnapshot = await getDocs(collection(db, 'students'));
+      if (!studentsSnapshot.empty) {
+        data.students = studentsSnapshot.docs.map(doc => ({
+          id: parseInt(doc.id, 10) || doc.id,
+          ...doc.data()
+        }));
+      }
+      
+      // Get tasks
+      const tasksSnapshot = await getDocs(collection(db, 'quests'));
+      if (!tasksSnapshot.empty) {
+        data.tasks = tasksSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      }
+      
+      console.log(`Loaded ${data.students.length} students and ${data.tasks.length} tasks from Firestore`);
+    } catch (firestoreError) {
+      console.error('Firestore connection error. Using default data:', firestoreError);
+      // Continue with default data structure already defined
     }
     
-    // Get tasks
-    const tasksSnapshot = await getDocs(collection(db, 'quests'));
-    if (!tasksSnapshot.empty) {
-      data.tasks = tasksSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-    }
-    
-    console.log(`Loaded ${data.students.length} students and ${data.tasks.length} tasks from Firestore`);
     return data;
   } catch (error) {
     console.error('Error reading existing data from Firestore:', error);
@@ -74,51 +91,162 @@ async function loadExistingData() {
   }
 }
 
+// Subject name translation mapping
+const subjectTranslations = {
+  // Direct matches (case insensitive)
+  'historia': 'History',
+  'matematiikka': 'Math',
+  'äidinkieli': 'Finnish',
+  'englanti': 'English',
+  'elämänkatsomustieto': 'Ethics',
+  'yhteiskuntaoppi': 'Civics',
+  'ympäristöoppi': 'Eco',
+  
+  // Partial matches and variants
+  'suomi': 'Finnish',
+  'finska': 'Finnish',
+  'suomen kieli': 'Finnish',
+  'mat': 'Math',
+  'eng': 'English',
+  'et': 'Ethics',
+  'yht': 'Civics',
+  'ymp': 'Eco',
+  'hist': 'History'
+};
+
+// Function to translate Finnish subject names to English
+function translateSubjectName(finnishName) {
+  if (!finnishName) return 'Unknown';
+  
+  // Check for direct match (case insensitive)
+  const lowerName = finnishName.toLowerCase().trim();
+  
+  // First try direct match
+  if (subjectTranslations[lowerName]) {
+    return subjectTranslations[lowerName];
+  }
+  
+  // Then try partial matches
+  for (const [finnish, english] of Object.entries(subjectTranslations)) {
+    if (lowerName.includes(finnish.toLowerCase())) {
+      return english;
+    }
+  }
+  
+  // If no match found, check if it's already one of our standard English subject names
+  // This prevents "Unknown subject: English" or "Unknown subject: Finnish" messages
+  const standardSubjects = subjects.map(s => s.name.toLowerCase());
+  if (standardSubjects.includes(lowerName)) {
+    // Return the properly capitalized version from our subjects array
+    for (const subject of subjects) {
+      if (subject.name.toLowerCase() === lowerName) {
+        return subject.name;
+      }
+    }
+    // If we don't find it in our array (unlikely), return the original
+    return finnishName;
+  }
+  
+  // Check the predefined subjects array for URLs
+  // This is a fallback if the site returns unexpected subject names
+  for (const subject of subjects) {
+    if (finnishName.includes(subject.url)) {
+      return subject.name;
+    }
+  }
+  
+  // If all else fails, return as is but log it for debugging
+  console.log(`Unknown subject: ${finnishName}`);
+  return finnishName;
+}
+
 // Function to save data to Firestore
 async function saveData(data) {
   try {
     // Save students
     for (const student of data.students) {
-      await setDoc(doc(db, 'students', student.id.toString()), {
-        name: student.name,
-        points: student.points
-      });
+      try {
+        const studentData = {
+          name: student.name || '',
+          points: Number(student.points) || 0
+        };
+        
+        await setDoc(doc(db, 'students', student.id.toString()), studentData);
+      } catch (error) {
+        console.error(`Error saving student ${student.id}:`, error);
+      }
     }
     
     // Save tasks
+    let successCount = 0;
     for (const task of data.tasks) {
       // Check if this task already exists in Firestore
       // We only need to check tasks that were newly added during this run
       if (!task.firestore_id) {
-        // Check if task with same properties already exists
-        const q = query(
-          collection(db, 'quests'), 
-          where('date', '==', task.date),
-          where('subject', '==', task.subject),
-          where('description', '==', task.description)
-        );
+        // Translate subject name for consistency
+        let normalizedSubject = translateSubjectName(task.subject);
         
-        const querySnapshot = await getDocs(q);
+        // Ensure date is in correct format (DD.MM.YYYY)
+        let normalizedDate = task.date;
+        if (normalizedDate && typeof normalizedDate === 'string') {
+          // Add year if missing
+          if (/^\d{1,2}\.\d{1,2}$/.test(normalizedDate)) {
+            normalizedDate = `${normalizedDate}.${new Date().getFullYear()}`;
+          }
+          
+          // Convert DD.MM.YY to DD.MM.YYYY
+          if (/^\d{1,2}\.\d{1,2}\.\d{2}$/.test(normalizedDate)) {
+            const parts = normalizedDate.split('.');
+            if (parts.length === 3) {
+              const year = parseInt(parts[2], 10);
+              const fullYear = year < 50 ? 2000 + year : 1900 + year;
+              normalizedDate = `${parts[0]}.${parts[1]}.${fullYear}`;
+            }
+          }
+        }
         
-        if (querySnapshot.empty) {
-          // Task doesn't exist yet, add it
-          const docRef = await addDoc(collection(db, 'quests'), {
-            date: task.date,
-            description: task.description,
-            subject: task.subject,
-            type: task.type,
-            status: task.status,
-            student_id: task.student_id,
-            points: task.points,
-            completed: false
+        try {
+          // Prepare data with sanitized values - ensure no undefined or invalid values
+          const taskData = {
+            date: normalizedDate || '',
+            description: task.description || '',
+            subject: normalizedSubject || 'Unknown',
+            type: task.type || 'homework',
+            status: task.status || 'open',
+            student_id: Number(task.student_id) || 1,
+            points: Number(task.points) || 5,
+            completed: Boolean(task.completed) || false
+          };
+          
+          // Check if task with same properties already exists - more restrictive query
+          // Only query by subject and description to reduce complexity
+          const q = query(
+            collection(db, 'quests'), 
+            where('subject', '==', taskData.subject),
+            where('description', '==', taskData.description)
+          );
+          
+          const querySnapshot = await getDocs(q);
+          
+          if (querySnapshot.empty) {
+            // Task doesn't exist yet, add it
+            const docRef = await addDoc(collection(db, 'quests'), taskData);
+            console.log(`Added new task to Firestore with ID: ${docRef.id}`);
+            successCount++;
+          } else {
+            console.log(`Task already exists in Firestore, skipping: ${task.description?.substring(0, 30)}...`);
+          }
+        } catch (error) {
+          console.error('Error adding specific task to Firestore:', error);
+          console.error('Problematic task data:', { 
+            date: normalizedDate, 
+            subject: normalizedSubject,
+            description: task.description?.substring(0, 50) || 'undefined'
           });
-          console.log(`Added new task to Firestore with ID: ${docRef.id}`);
-        } else {
-          console.log(`Task already exists in Firestore, skipping: ${task.description}`);
         }
       }
     }
-    console.log('Data saved successfully to Firestore');
+    console.log(`Data saved successfully to Firestore. Added ${successCount} new tasks.`);
   } catch (error) {
     console.error('Error saving data to Firestore:', error);
     // Fallback to local JSON file if Firestore fails
@@ -270,15 +398,7 @@ async function scrapeWilma() {
     await saveCookies(page);
     
     // 3. Process each subject page
-    const subjects = [
-      { name: 'History', url: 'https://opetustampere.inschool.fi/!0466066/groups/137349' },
-      { name: 'Math', url: 'https://opetustampere.inschool.fi/!0466066/groups/137359' },
-      { name: 'Finnish', url: 'https://opetustampere.inschool.fi/!0466066/groups/137358' },
-      { name: 'English', url: 'https://opetustampere.inschool.fi/!0466066/groups/137348' },
-      { name: 'Ethics', url: 'https://opetustampere.inschool.fi/!0466066/groups/137338' },
-      { name: 'Civics', url: 'https://opetustampere.inschool.fi/!0466066/groups/137356' },
-      { name: 'Eco', url: 'https://opetustampere.inschool.fi/!0466066/groups/137357' }
-    ];
+    // NOTE: subjects array is now defined globally at the top of the file
     
     // Load existing data
     const data = await loadExistingData();
@@ -325,120 +445,174 @@ async function scrapeWilma() {
           console.log(`Found ${tables.length} tables on page`);
           
           let allResults = [];
-          let isKotitehtavatSection = false;
+          let kotitehtavatSectionFound = false;
           
-          // First, try to find the dedicated "Kotitehtävät" section
-          const kotitehtavatSections = Array.from(document.querySelectorAll('*')).filter(el => 
-            el.textContent && 
-            (el.textContent.includes('Kotitehtävät') || el.textContent.includes('Homework'))
-          );
+          // More precise targeting of the Kotitehtävät section
+          // Look for section headers with exact text "Kotitehtävät"
+          const kotitehtavatSections = Array.from(document.querySelectorAll('h3, h2, h4, div.otsikko, strong, span.otsikko'))
+            .filter(el => {
+              const text = el.textContent.trim();
+              return text === 'Kotitehtävät' || 
+                     text === 'Homework' || 
+                     /^kotitehtävät$/i.test(text);
+            });
           
-          // Process homework from dedicated sections first
+          console.log(`Found ${kotitehtavatSections.length} Kotitehtävät section headers`);
+          
+          // Process homework from dedicated sections
           for (const section of kotitehtavatSections) {
-            console.log('Found Kotitehtävät section');
-            isKotitehtavatSection = true;
+            console.log(`Processing Kotitehtävät section: "${section.textContent.trim()}"`);
+            kotitehtavatSectionFound = true;
             
-            // Look for nearby tables or lists within a reasonable ancestor distance
-            let container = section;
-            // Try to find parent container
-            for (let i = 0; i < 3; i++) {
-              if (!container.parentElement) break;
-              container = container.parentElement;
+            // Try multiple approaches to find the associated table
+            
+            // Approach 1: Look for the next sibling elements that contain tables
+            let currentElement = section;
+            let targetTable = null;
+            
+            // Check up to 5 next siblings to find a table
+            for (let i = 0; i < 5; i++) {
+              currentElement = currentElement.nextElementSibling;
+              if (!currentElement) break;
               
-              // Check tables within this container
-              const sectionTables = container.querySelectorAll('table');
-              for (const table of sectionTables) {
-                const rows = table.querySelectorAll('tr');
-                if (rows.length <= 1) continue;
-                
-                const tableResults = [];
-                // Process each row
-                for (let i = 1; i < rows.length; i++) {
-                  const cells = rows[i].querySelectorAll('td');
-                  // Try different column patterns
-                  if (cells.length >= 2) {
-                    // Check if first column contains a date
-                    let date = cells[0].textContent.trim();
-                    let homework = cells[1].textContent.trim();
-                    
-                    // If first column doesn't look like a date, try other columns
-                    if (!(/\d+\.\d+/.test(date)) && cells.length >= 3) {
-                      // Try second column as date
-                      const possibleDate = cells[1].textContent.trim();
-                      if (/\d+\.\d+/.test(possibleDate)) {
-                        date = possibleDate;
-                        homework = cells[2].textContent.trim();
-                      }
-                    }
-                    
-                    // Only accept entries with reasonable homework descriptions (more than just a number)
-                    if (date && homework && 
-                        /\d+\.\d+/.test(date) && 
-                        !/^\d+$/.test(homework) && // Exclude entries that are just numbers
-                        homework.length > 1) {     // Must be more than a single character
-                      tableResults.push({ date, homework });
-                    }
-                  }
-                }
-                
-                if (tableResults.length > 0) {
-                  console.log(`Found ${tableResults.length} homework items in Kotitehtävät section`);
-                  allResults = allResults.concat(tableResults);
-                }
+              // Check if this element is a table or contains tables
+              if (currentElement.tagName === 'TABLE') {
+                targetTable = currentElement;
+                break;
+              } else if (currentElement.querySelector('table')) {
+                targetTable = currentElement.querySelector('table');
+                break;
               }
             }
-          }
-          
-          // If we didn't find anything in the dedicated homework sections, fall back to table scanning
-          // but be more strict about what we consider valid homework
-          if (allResults.length === 0 && !isKotitehtavatSection) {
-            // Look for tables with date-like content in first column
-            for (const table of tables) {
-              const rows = table.querySelectorAll('tr');
-              if (rows.length <= 1) continue; // Skip tables with only headers
-              
-              // Check the table headers to see if it looks like a homework table
-              const headerRow = rows[0];
-              const headerCells = headerRow.querySelectorAll('th, td');
-              let isHomeworkTable = false;
-              
-              // Check if any header contains homework-related text
-              for (const cell of headerCells) {
-                const headerText = cell.textContent.trim().toLowerCase();
-                if (headerText.includes('kotitehtävä') || 
-                    headerText.includes('homework') || 
-                    headerText.includes('tehtävä') ||
-                    headerText.includes('assignment')) {
-                  isHomeworkTable = true;
+            
+            // Approach 2: If no table found, try parent containers
+            if (!targetTable) {
+              // Look for nearby tables within parent containers
+              let container = section;
+              // Try to find parent container
+              for (let i = 0; i < 4; i++) {
+                if (!container.parentElement) break;
+                container = container.parentElement;
+                
+                // Check tables within this container
+                const sectionTables = container.querySelectorAll('table');
+                if (sectionTables.length > 0) {
+                  targetTable = sectionTables[0]; // Use the first table found
                   break;
                 }
               }
+            }
+            
+            // Process the target table if found
+            if (targetTable) {
+              console.log('Found table for Kotitehtävät section');
+              const rows = targetTable.querySelectorAll('tr');
+              if (rows.length <= 1) continue; // Skip tables with only headers
               
-              // If not clearly a homework table, apply stricter filtering
               const tableResults = [];
-              
-              // Check for tables with date-like content
+              // Process each row
               for (let i = 1; i < rows.length; i++) {
                 const cells = rows[i].querySelectorAll('td');
-                if (cells.length >= 2) {
-                  const date = cells[0].textContent.trim();
-                  const homework = cells[1].textContent.trim();
-                  
-                  // Apply stricter criteria for non-homework tables
-                  if (date && homework && 
-                      /\d+\.\d+/.test(date) && 
-                      !/^\d+$/.test(homework) &&  // Not just a number
-                      homework.length > 3 &&      // Must have some substance
-                      (isHomeworkTable || 
-                       /teht|koti|läksy|harjoit|homework/i.test(homework))) { // Must contain homework-related words
-                    tableResults.push({ date, homework });
-                  }
+                if (cells.length < 2) continue;
+                
+                // Check if first column contains a date
+                let date = cells[0].textContent.trim();
+                let homework = '';
+                
+                // Look for date and homework text
+                if (/\d+\.\d+/.test(date)) {
+                  // First column is date, second is homework
+                  homework = cells[1].textContent.trim();
+                } else if (cells.length >= 3 && /\d+\.\d+/.test(cells[1].textContent.trim())) {
+                  // Second column is date
+                  date = cells[1].textContent.trim();
+                  homework = cells[2].textContent.trim();
+                } else {
+                  // No date found in expected columns
+                  continue;
+                }
+                
+                // Normalize date format to DD.MM.YYYY
+                if (/^\d{1,2}\.\d{1,2}$/.test(date)) {
+                  // Add current year if missing
+                  date = `${date}.${new Date().getFullYear()}`;
+                } else if (/^\d{1,2}\.\d{1,2}\.\d{2}$/.test(date)) {
+                  // Convert 2-digit year to 4-digit
+                  const parts = date.split('.');
+                  const year = parseInt(parts[2], 10);
+                  const fullYear = year < 50 ? 2000 + year : 1900 + year;
+                  date = `${parts[0]}.${parts[1]}.${fullYear}`;
+                }
+                
+                // Only accept entries with reasonable homework descriptions
+                if (date && homework && 
+                    /\d+\.\d+/.test(date) && 
+                    !/^\d+$/.test(homework) && // Exclude entries that are just numbers
+                    homework.length > 1) {     // Must be more than a single character
+                  tableResults.push({ date, homework });
                 }
               }
               
               if (tableResults.length > 0) {
-                console.log(`Found ${tableResults.length} homework items in table`);
+                console.log(`Found ${tableResults.length} homework items in Kotitehtävät section`);
                 allResults = allResults.concat(tableResults);
+              }
+            } else {
+              console.log('Could not find a table for this Kotitehtävät section');
+            }
+          }
+          
+          // If we didn't find anything in the dedicated homework sections, 
+          // try specifically looking for tables with the Kotitehtävät header
+          if (allResults.length === 0) {
+            console.log('No results from section headers, trying table scanning...');
+            
+            for (const table of tables) {
+              // First check if this table or any parent contains the word "Kotitehtävät"
+              let isKotitehtavatTable = false;
+              let currentEl = table;
+              
+              // Check the content of the table for Kotitehtävät
+              if (table.textContent.toLowerCase().includes('kotitehtävät')) {
+                isKotitehtavatTable = true;
+              }
+              
+              // Check up to 3 parent elements for Kotitehtävät
+              for (let i = 0; i < 3; i++) {
+                if (!currentEl.parentElement) break;
+                currentEl = currentEl.parentElement;
+                if (currentEl.textContent.toLowerCase().includes('kotitehtävät')) {
+                  isKotitehtavatTable = true;
+                  break;
+                }
+              }
+              
+              if (isKotitehtavatTable) {
+                console.log('Found table with Kotitehtävät in content or parent');
+                const rows = table.querySelectorAll('tr');
+                const tableResults = [];
+                
+                // Skip first row if it has headers
+                const startRow = rows[0].querySelectorAll('th').length > 0 ? 1 : 0;
+                
+                for (let i = startRow; i < rows.length; i++) {
+                  const cells = rows[i].querySelectorAll('td');
+                  if (cells.length < 2) continue;
+                  
+                  let date = cells[0].textContent.trim();
+                  let homework = cells[1].textContent.trim();
+                  
+                  // Look for date pattern
+                  if (/\d+\.\d+/.test(date) && homework && homework.length > 1) {
+                    tableResults.push({ date, homework });
+                  }
+                }
+                
+                if (tableResults.length > 0) {
+                  console.log(`Found ${tableResults.length} homework items in Kotitehtävät table`);
+                  allResults = allResults.concat(tableResults);
+                  break; // Stop after finding one valid table
+                }
               }
             }
           }
@@ -451,21 +625,54 @@ async function scrapeWilma() {
         
         // 5. Add new homework to data
         for (const hw of homeworkData) {
+          // Get the subject name from the current subject being processed
+          // Use the translated/normalized English name from subjects array
+          const normalizedSubject = subject.name;
+          
+          // Normalize date format
+          let normalizedDate = hw.date;
+          if (normalizedDate && typeof normalizedDate === 'string') {
+            // Add year if missing
+            if (/^\d{1,2}\.\d{1,2}$/.test(normalizedDate)) {
+              normalizedDate = `${normalizedDate}.${new Date().getFullYear()}`;
+            }
+            
+            // Convert DD.MM.YY to DD.MM.YYYY
+            if (/^\d{1,2}\.\d{1,2}\.\d{2}$/.test(normalizedDate)) {
+              const parts = normalizedDate.split('.');
+              if (parts.length === 3) {
+                const year = parseInt(parts[2], 10);
+                const fullYear = year < 50 ? 2000 + year : 1900 + year;
+                normalizedDate = `${parts[0]}.${parts[1]}.${fullYear}`;
+              }
+            }
+          }
+          
+          // Clean description - remove any problematic characters or content
+          const cleanDescription = hw.homework ? 
+            hw.homework.trim().replace(/\s+/g, ' ').substring(0, 1000) : 
+            '';
+            
+          if (!cleanDescription) {
+            console.log('Skipping homework item with empty description');
+            continue;
+          }
+          
           // Check if this homework already exists in the data
           const exists = data.tasks.some(task => 
-            task.date === hw.date && 
-            task.subject === subject.name && 
-            task.description === hw.homework && 
+            task.date === normalizedDate && 
+            task.subject === normalizedSubject && 
+            task.description === cleanDescription && 
             task.student_id === 1
           );
           
           if (!exists) {
-            // Add new task
+            // Add new task with sanitized values
             const newTask = {
               id: Date.now() + Math.floor(Math.random() * 1000),
-              date: hw.date,
-              subject: subject.name,
-              description: hw.homework,
+              date: normalizedDate,
+              subject: normalizedSubject,
+              description: cleanDescription,
               type: 'homework',
               status: 'open',
               student_id: 1,
@@ -474,7 +681,7 @@ async function scrapeWilma() {
             
             data.tasks.push(newTask);
             newTasksFound++;
-            console.log(`Added new homework for ${subject.name}: ${hw.homework}`);
+            console.log(`Added new homework for ${normalizedSubject}: ${cleanDescription.substring(0, 50)}${cleanDescription.length > 50 ? '...' : ''}`);
           }
         }
         
@@ -584,8 +791,5 @@ scrapeWilma().catch(console.error);
 
 /*
 To run this:
-1. Install Node.js if not already installed
-2. Run: npm install puppeteer dotenv firebase
-3. Update your WILMA_USERNAME and WILMA_PASSWORD in .env file
-4. Run: node scraper.js
+node scraper.js
 */
