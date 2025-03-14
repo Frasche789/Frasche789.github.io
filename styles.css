@@ -1,225 +1,728 @@
 /* 
- * QUEST BOARD STYLES
- * A comprehensive stylesheet for the Quest Board application
- * 
- * Table of Contents:
- * 1. Global Styles
- * 2. Layout Components
- *    2.1 Quest Board
- *    2.2 Student Information
- *    2.3 Quest Filter
- * 3. Quest Items
- *    3.1 Quest Cards
- *    3.2 Quest Types
- *    3.3 Quest States
- * 4. Form Elements
- * 5. Buttons
- * 6. Animations
+ * styles.css - Quest Board ADHD-Optimized UI
+ * Mobile-first responsive design with neurologically-optimized visual hierarchy
  */
 
-/* ====================================
-   1. GLOBAL STYLES
-   ==================================== */
+/* Base variables and resets */
+:root {
+  /* Color palette - based on cognitive accessibility research */
+  --primary-color: #4361ee;
+  --primary-light: #4895ef;
+  --primary-dark: #3a0ca3;
+  --secondary-color: #f72585;
+  --success-color: #4cc9f0;
+  --background-color: #fcfcfc;
+  --card-background: #ffffff;
+  --text-primary: #2b2d42;
+  --text-secondary: #5a5c69;
+  --text-light: #7b7d8c;
+  --border-color: #e2e8f0;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+  
+  /* Subject colors - maintained from legacy implementation */
+  --subject-math: #ff5252;
+  --subject-english: #4caf50;
+  --subject-science: #2196f3;
+  --subject-history: #ff9800;
+  --subject-art: #9c27b0;
+  --subject-music: #e91e63;
+  --subject-pe: #00bcd4;
+  --subject-language: #8bc34a;
+  --subject-chore: #795548;
+  --subject-other: #607d8b;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 3rem;
+  
+  /* Sizing */
+  --header-height: auto;
+  --filter-height: 4rem;
+  --border-radius: 12px;
+  --card-radius: 16px;
+  --button-radius: 10px;
+  
+  /* Touch targets */
+  --touch-target: 48px;
+  
+  /* Animation */
+  --transition-speed: 0.2s;
+}
+
+/* Base styles and typography */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
 body {
-  background-color: #f8f5e6; /* Light parchment background */
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Nunito', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
-/* ====================================
-   2. LAYOUT COMPONENTS
-   ==================================== */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.2;
+}
 
-/* 2.1 Quest Board - Main container for quest items */
+h1 {
+  font-size: 1.75rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+p {
+  margin-bottom: var(--spacing-md);
+}
+
+/* Layout containers */
+.app-container {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Today's header section - fixed at top */
+.today-header {
+  background-color: var(--card-background);
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 10px var(--shadow-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.profile-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.profile-info h2 {
+  margin-bottom: 0;
+  color: var(--primary-dark);
+}
+
+.level-badge {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.points-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.points-label {
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+.points-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.today-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  color: var(--primary-dark);
+}
+
+.icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--spacing-sm);
+  color: var(--primary-color);
+}
+
+/* Streak tracker */
+.streak-tracker {
+  background-color: rgba(67, 97, 238, 0.05);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.streak-label {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-bottom: var(--spacing-xs);
+}
+
+.streak-count {
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.streak-progress {
+  height: 8px;
+  background-color: rgba(67, 97, 238, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.streak-bar {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 4px;
+  transition: width var(--transition-speed) ease-in-out;
+}
+
+/* Filter section */
+.filter-container {
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: var(--header-height);
+  z-index: 9;
+  width: 100%;
+  height: var(--filter-height);
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.filter-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding: var(--spacing-sm) var(--spacing-md);
+  width: 100%;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
+}
+
+.filter-scroll::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari and Opera */
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  margin-right: var(--spacing-sm);
+  border-radius: var(--button-radius);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  transition: all var(--transition-speed) ease;
+}
+
+.filter-btn i {
+  margin-right: var(--spacing-xs);
+}
+
+.filter-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Main quest board */
 .quest-board {
-  background-color: #e0d3b3; /* Aged paper look */
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  padding: 20px;
-  margin-top: 20px;
-  /* Decorative background pattern */
-  background-image: url('./white-paper-texture-background.jpg');
-  background-size: 100px;
-  background-repeat: repeat;
+  flex: 1;
+  padding: var(--spacing-md);
+  overflow-x: hidden;
 }
 
-.board-title {
-  text-align: center;
-  color: #5e3a14; /* Brown wooden text */
-  font-weight: bold;
-  font-size: 2.5rem;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
+.quest-days-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
-/* 2.2 Student Information - Player stats display */
-.student-info {
-  background-color: #5e3a14; /* Dark wood panel */
-  color: #fff;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
+/* Day separator */
+.day-separator {
+  position: relative;
+  margin: var(--spacing-md) 0;
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
-.student-name {
-  font-size: 1.8rem;
-  font-weight: bold;
+.day-label {
+  background-color: var(--background-color);
+  padding: 0 var(--spacing-md);
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  position: relative;
+  z-index: 1;
 }
 
-.student-points {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #ffc107; /* Gold color for points */
+.day-line {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background-color: var(--border-color);
+  top: 50%;
+  z-index: 0;
 }
 
-/* 2.3 Quest Filter - Filter buttons for quest types */
-.quest-filter {
-  margin-bottom: 20px;
+/* Quest cards */
+.quest-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
-/* ====================================
-   3. QUEST ITEMS
-   ==================================== */
-
-/* 3.1 Quest Cards - Individual quest display */
-.quest {
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  padding: 15px;
-  margin-bottom: 15px;
-  transition: all 0.3s ease;
-  border-left: 5px solid #6c5b33; /* Default border color */
+.quest-card {
+  background-color: var(--card-background);
+  border-radius: var(--card-radius);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  border-left: 4px solid var(--subject-other);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
 
-.quest:hover {
-  transform: translateY(-5px); /* Slight lift effect on hover */
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+.quest-card:active {
+  transform: scale(0.98);
+}
+
+.quest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .quest-title {
-  font-weight: bold;
-  color: #5e3a14;
-  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0;
 }
 
-.quest-description {
-  color: #666;
+.quest-subject {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: var(--spacing-xs);
 }
 
 .quest-points {
-  background-color: #ffc107; /* Gold background */
-  color: #5e3a14;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-light);
+  color: white;
+  font-weight: 700;
   font-size: 0.9rem;
+  border-radius: 50%;
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  padding: 0.3rem;
 }
 
-/* Subject-based styling for quest items */
-.quest.subject-history {
-  border-left-color: #ecdd57; 
+.quest-description {
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
 }
 
-.quest.subject-math {
-  border-left-color: #1d4fe6; 
+.quest-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.quest.subject-aidinkieli {
-  border-left-color: #f12626; 
+.quest-date {
+  font-size: 0.8rem;
+  color: var(--text-light);
 }
 
-.quest.subject-english {
-  border-left-color: #e9511a; 
+.quest-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.9rem;
+  color: var(--text-light);
 }
 
-.quest.subject-ethics {
-  border-left-color: #77a38a; 
+.quest-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-sm);
 }
 
-.quest.subject-yhteiskuntaoppi {
-  border-left-color: #4fd34b; 
-}
-
-.quest.subject-ymparistooppi {
-  border-left-color: #1791c9; 
-}
-
-/* 3.3 Quest States - Different styles for quest states */
-.quest.completed {
-  opacity: 0.6;
-  background-color: #e9ffe9; /* Light green background for completed quests */
-}
-
-/* ====================================
-   4. FORM ELEMENTS
-   ==================================== */
-.add-chore-form {
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 20px;
-  margin-top: 20px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-}
-
-/* ====================================
-   5. BUTTONS
-   ==================================== */
-.btn-custom {
-  background-color: #6c5b33; /* Brown button */
+.complete-btn {
+  background-color: var(--primary-color);
   color: white;
+  border: none;
+  border-radius: var(--button-radius);
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  min-height: var(--touch-target);
+  transition: background-color var(--transition-speed) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
 }
 
-.btn-custom:hover {
-  background-color: #5e3a14; /* Darker brown on hover */
-  color: white;
+.complete-btn:hover, .complete-btn:focus {
+  background-color: var(--primary-dark);
 }
 
-/* ====================================
-   6. ANIMATIONS
-   ==================================== */
+/* Subject colors for quest cards */
+.subject-math { border-left-color: var(--subject-math); }
+.subject-english { border-left-color: var(--subject-english); }
+.subject-science { border-left-color: var(--subject-science); }
+.subject-history { border-left-color: var(--subject-history); }
+.subject-art { border-left-color: var(--subject-art); }
+.subject-music { border-left-color: var(--subject-music); }
+.subject-pe { border-left-color: var(--subject-pe); }
+.subject-language { border-left-color: var(--subject-language); }
+.subject-chore { border-left-color: var(--subject-chore); }
+.subject-other { border-left-color: var(--subject-other); }
 
-/* Completion animation for quests */
-@keyframes complete {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); background-color: #c8f7c5; }
-  100% { transform: scale(1); }
+/* Loading spinner */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xl);
 }
 
-.completion-animation {
-  animation: complete 1s ease-in-out;
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(67, 97, 238, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
 }
 
-/* Undo completion animation for quests */
-@keyframes undo {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); background-color: #f7e6c5; }
-  100% { transform: scale(1); }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.undo-animation {
-  animation: undo 1s ease-in-out;
+/* Empty states */
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+  text-align: center;
 }
 
-/* Confetti animation for quest completion */
-.confetti {
-  position: fixed;
-  width: 10px;
-  height: 10px;
-  background-color: #f00;
-  opacity: 0;
+.empty-state-content {
+  background-color: var(--card-background);
+  border-radius: var(--card-radius);
+  padding: var(--spacing-xl);
+  box-shadow: 0 2px 10px var(--shadow-color);
+  max-width: 400px;
+  width: 100%;
+}
+
+.empty-state-content i {
+  font-size: 3.5rem;
+  color: var(--success-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.quest-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  text-align: center;
+}
+
+.quest-empty-state i {
+  font-size: 2.5rem;
+  color: var(--success-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.celebration-text {
+  font-weight: 700;
+  color: var(--secondary-color);
+  margin-top: var(--spacing-xs);
+  font-size: 1.1rem;
+}
+
+/* Confetti container */
+.confetti-container {
+  position: absolute;
   top: 0;
-  animation: fall 3s ease-in-out forwards;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
 }
 
-@keyframes fall {
-  0% {
-    top: -10px;
-    opacity: 1;
-    transform: translateX(0) rotate(0);
+/* Floating action button */
+.floating-action-btn {
+  position: fixed;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--secondary-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  z-index: 100;
+  transition: transform var(--transition-speed) ease, background-color var(--transition-speed) ease;
+}
+
+.floating-action-btn i {
+  font-size: 1.5rem;
+}
+
+.floating-action-btn:active {
+  transform: scale(0.95);
+  background-color: #d81b7a;
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-content {
+  background-color: var(--card-background);
+  border-radius: var(--card-radius);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-body {
+  padding: var(--spacing-md);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+}
+
+/* Form elements */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--button-radius);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+}
+
+.primary-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--button-radius);
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  min-height: var(--touch-target);
+  transition: background-color var(--transition-speed) ease;
+}
+
+.primary-btn:hover, .primary-btn:focus {
+  background-color: var(--primary-dark);
+}
+
+/* Time indicators */
+.time-indicator {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: var(--spacing-sm);
+}
+
+.due-today {
+  background-color: #ffecb3;
+  color: #e65100;
+}
+
+.due-tomorrow {
+  background-color: #e3f2fd;
+  color: #0277bd;
+}
+
+.due-later {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.overdue {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* Completed tasks */
+.completed-quest {
+  opacity: 0.7;
+}
+
+.completed-quest .quest-description {
+  text-decoration: line-through;
+}
+
+.completed-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  font-size: 1.5rem;
+  color: var(--success-color);
+  font-weight: 700;
+  border: 3px solid var(--success-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* Media queries for larger screens */
+@media (min-width: 600px) {
+  h1 {
+    font-size: 2rem;
   }
-  100% {
-    top: 100%;
+  
+  .app-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .quest-list {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
     opacity: 0;
-    transform: translateX(calc(50px - 100px * var(--rand))) rotate(calc(360deg * var(--rand)));
   }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn var(--transition-speed) ease;
+}
+
+.slide-in {
+  animation: slideInUp var(--transition-speed) ease;
+}
+
+/* Utility classes */
+.hidden {
+  display: none !important;
 }

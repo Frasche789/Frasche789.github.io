@@ -273,11 +273,11 @@ async function scrapeWilma() {
     const subjects = [
       { name: 'History', url: 'https://opetustampere.inschool.fi/!0466066/groups/137349' },
       { name: 'Math', url: 'https://opetustampere.inschool.fi/!0466066/groups/137359' },
-      { name: 'Äidinkieli', url: 'https://opetustampere.inschool.fi/!0466066/groups/137358' },
+      { name: 'Finnish', url: 'https://opetustampere.inschool.fi/!0466066/groups/137358' },
       { name: 'English', url: 'https://opetustampere.inschool.fi/!0466066/groups/137348' },
       { name: 'Ethics', url: 'https://opetustampere.inschool.fi/!0466066/groups/137338' },
-      { name: 'Yhteiskuntaoppi', url: 'https://opetustampere.inschool.fi/!0466066/groups/137356' },
-      { name: 'Ympäristöoppi', url: 'https://opetustampere.inschool.fi/!0466066/groups/137357' }
+      { name: 'Civics', url: 'https://opetustampere.inschool.fi/!0466066/groups/137356' },
+      { name: 'Eco', url: 'https://opetustampere.inschool.fi/!0466066/groups/137357' }
     ];
     
     // Load existing data
