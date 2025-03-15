@@ -127,13 +127,7 @@
       };
       
       // Initialize Firestore and expose modules for the app.js file
-      const db = getFirestore(app);
-      
-      // Apply the Firestore settings
-      db.settings(firestoreSettings);
-      
-      // Make db and Firebase modules available globally
-      window.db = db;
+      window.db = getFirestore(app);
       window.firebaseModules = { collection, getDocs, doc, getDoc, setDoc, updateDoc };
       
       // Dispatch event when Firebase is ready
