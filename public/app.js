@@ -110,6 +110,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Error accessing localStorage:', error);
   }
   
+  try {
+    // Try to load saved streak data early
+    loadStreakData();
+  } catch (error) {
+    console.error('Error in initial streak setup:', error);
+  }
+  
   // Show loading indicator
   showLoading(true);
   
@@ -123,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Render tasks
     renderTasks();
     
-    // Update streak information
+    // Update streak information (this will now use the loaded streak as a base)
     updateStreak();
     
     // Add event listeners
@@ -1116,6 +1123,31 @@ function celebrateStreakMilestone(milestone) {
 }
 
 // ... rest of the code remains the same ...
+
+/**
+ * Load streak data from localStorage
+ * Should be called early in the initialization process
+ */
+function loadStreakData() {
+  try {
+    const storedStreak = localStorage.getItem('questBoardStreak');
+    if (storedStreak) {
+      const streakInfo = JSON.parse(storedStreak);
+      appState.streak.count = streakInfo.count || 0;
+      appState.streak.lastActive = streakInfo.lastActive || null;
+      console.log('Loaded streak data:', appState.streak);
+      
+      // Update UI immediately if elements are available
+      if (elements.streakCount && elements.streakBar) {
+        updateStreakUI(appState.streak.count);
+      }
+    } else {
+      console.log('No saved streak data found');
+    }
+  } catch (error) {
+    console.error('Error loading streak data from localStorage:', error);
+  }
+}
 
 /**
  * Render tasks grouped by their next class day
