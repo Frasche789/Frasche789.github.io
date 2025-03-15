@@ -3,8 +3,27 @@
  * Handles task rendering, Firebase integration, and UI interactions
  */
 
-// Import animations module
-import { createConfetti, playCompletionAnimation } from './animations.js';
+// Import animations module - using a more compatible approach
+let createConfetti, playCompletionAnimation;
+
+// Load animations module dynamically
+try {
+  import('./animations.js').then(module => {
+    createConfetti = module.createConfetti;
+    playCompletionAnimation = module.playCompletionAnimation;
+    console.log('Animations module loaded successfully');
+  }).catch(err => {
+    console.error('Error loading animations module:', err);
+    // Provide fallback implementations if animations fail to load
+    createConfetti = () => console.log('Confetti animation (fallback)');
+    playCompletionAnimation = () => console.log('Completion animation (fallback)');
+  });
+} catch (e) {
+  console.error('Error with dynamic import:', e);
+  // Fallbacks if dynamic import syntax not supported
+  createConfetti = () => console.log('Confetti animation (fallback)');
+  playCompletionAnimation = () => console.log('Completion animation (fallback)');
+}
 
 // App state
 const appState = {
@@ -63,10 +82,33 @@ const elements = {
   archiveToggle: null // Will be created dynamically
 };
 
+/**
+ * Toggle the loading indicator visibility
+ * @param {boolean} show - Whether to show or hide the loading indicator
+ */
+function showLoading(show) {
+  if (!elements.loadingIndicator) {
+    console.warn('Loading indicator element not found');
+    return;
+  }
+  
+  elements.loadingIndicator.style.display = show ? 'flex' : 'none';
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', async () => {
   // Restore scroll position if available
-  restoreScrollPosition();
+  try {
+    const savedPosition = localStorage.getItem('scrollPosition');
+    if (savedPosition !== null) {
+      // Use setTimeout to ensure DOM is fully loaded before scrolling
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedPosition, 10));
+      }, 100);
+    }
+  } catch (error) {
+    console.error('Error accessing localStorage:', error);
+  }
   
   // Show loading indicator
   showLoading(true);
@@ -96,7 +138,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   
   // Save scroll position when user leaves the page
-  window.addEventListener('beforeunload', saveScrollPosition);
+  window.addEventListener('beforeunload', () => {
+    try {
+      localStorage.setItem('scrollPosition', window.scrollY);
+    } catch (error) {
+      console.error('Error accessing localStorage:', error);
+    }
+  });
 });
 
 // Wait for Firebase to be initialized
@@ -104,25 +152,52 @@ function waitForFirebase() {
   return new Promise((resolve, reject) => {
     // Check if Firebase is already available
     if (window.db && window.firebaseModules) {
+      console.log('Firebase already initialized and available');
       resolve();
       return;
     }
     
-    // Listen for the firebase-ready event
-    window.addEventListener('firebase-ready', () => {
+    console.log('Waiting for Firebase to initialize...');
+    
+    // Create a listener that will clean itself up
+    const firebaseReadyListener = () => {
+      console.log('Firebase ready event received');
       if (window.db && window.firebaseModules) {
+        clearTimeout(timeoutId);
         resolve();
       } else {
+        console.error('Firebase ready event received but modules not available');
+        clearTimeout(timeoutId);
         reject(new Error('Firebase initialized but modules not available'));
       }
-    }, { once: true });
+    };
+    
+    // Add event listener
+    window.addEventListener('firebase-ready', firebaseReadyListener, { once: true });
     
     // Set a timeout in case Firebase initialization fails
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      // Remove event listener to avoid memory leaks
+      window.removeEventListener('firebase-ready', firebaseReadyListener);
+      
       if (!window.db || !window.firebaseModules) {
+        console.error('Firebase initialization timed out after 8 seconds');
+        
+        // Attempt to reinitialize Firebase
+        try {
+          document.getElementById('loading-indicator').innerHTML = `
+            <div class="error-message">
+              <p>Connection to database timed out. Please check your internet connection.</p>
+              <button onclick="location.reload()" class="primary-btn">Retry</button>
+            </div>
+          `;
+        } catch (e) {
+          console.error('Could not display error message:', e);
+        }
+        
         reject(new Error('Firebase initialization timed out'));
       }
-    }, 5000);
+    }, 8000); // Increased timeout to 8 seconds for slower connections
   });
 }
 
@@ -310,7 +385,12 @@ function toggleArchiveView() {
   appState.showArchive = !appState.showArchive;
   
   // Save scroll position before changing view
-  appState.lastScrollPosition = window.scrollY;
+  try {
+    appState.lastScrollPosition = window.scrollY;
+    localStorage.setItem('scrollPosition', window.scrollY);
+  } catch (error) {
+    console.error('Error accessing localStorage:', error);
+  }
   
   // Update the UI
   renderTasks();
@@ -745,18 +825,497 @@ function parseFinDate(finDate) {
 
 // Function to save current scroll position to localStorage
 function saveScrollPosition() {
-  localStorage.setItem('scrollPosition', window.scrollY);
-  appState.lastScrollPosition = window.scrollY;
+  try {
+    localStorage.setItem('scrollPosition', window.scrollY);
+    appState.lastScrollPosition = window.scrollY;
+  } catch (error) {
+    console.error('Error accessing localStorage:', error);
+  }
 }
 
 // Function to restore saved scroll position
 function restoreScrollPosition() {
-  const savedPosition = localStorage.getItem('scrollPosition');
-  if (savedPosition !== null) {
-    // Use setTimeout to ensure DOM is fully loaded before scrolling
+  try {
+    const savedPosition = localStorage.getItem('scrollPosition');
+    if (savedPosition !== null) {
+      // Use setTimeout to ensure DOM is fully loaded before scrolling
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedPosition, 10));
+      }, 100);
+    }
+  } catch (error) {
+    console.error('Error accessing localStorage:', error);
+  }
+}
+
+/**
+ * Calculate the next class day for a given subject
+ * @param {string} subject - The subject to check
+ * @returns {Object} Information about the next class occurrence
+ */
+function calculateNextClassDay(subject) {
+  // Default response object
+  const result = {
+    daysUntilNextClass: null,
+    nextClassDay: null,
+    hasClassToday: false,
+    hasClassTomorrow: false
+  };
+  
+  // Handle undefined or empty subject
+  if (!subject) {
+    console.warn('Subject is undefined or empty in calculateNextClassDay');
+    return result;
+  }
+  
+  try {
+    // Get the current day of the week (1-7 where 1 is Monday)
+    const today = new Date();
+    // Convert JavaScript's 0-6 (Sun-Sat) format to 1-7 (Mon-Sun) format
+    const currentDayOfWeek = today.getDay() === 0 ? 7 : today.getDay();
+    
+    // Get the schedule for the subject
+    const schedule = appState.schedule.main[subject];
+    
+    // If subject is not in the schedule, return the default result
+    if (!schedule || !Array.isArray(schedule) || schedule.length === 0) {
+      console.log(`No schedule found for subject: ${subject}`);
+      return result;
+    }
+    
+    // Check if there's a class today
+    const hasClassToday = schedule.includes(currentDayOfWeek);
+    result.hasClassToday = hasClassToday;
+    
+    if (hasClassToday) {
+      result.daysUntilNextClass = 0;
+      result.nextClassDay = currentDayOfWeek;
+      return result;
+    }
+    
+    // Find the next day with a class
+    let daysAhead = 1;
+    let nextDayChecked = currentDayOfWeek + 1;
+    if (nextDayChecked > 7) nextDayChecked = 1; // Wrap around to Monday
+    
+    // Check up to 7 days ahead
+    while (daysAhead <= 7) {
+      if (schedule.includes(nextDayChecked)) {
+        result.daysUntilNextClass = daysAhead;
+        result.nextClassDay = nextDayChecked;
+        
+        // Check if it's tomorrow
+        if (daysAhead === 1) {
+          result.hasClassTomorrow = true;
+        }
+        
+        return result;
+      }
+      
+      // Move to next day
+      nextDayChecked++;
+      if (nextDayChecked > 7) nextDayChecked = 1; // Wrap around to Monday
+      daysAhead++;
+    }
+    
+    // If we get here, no class was found in the next 7 days
+    // Use the first day in the schedule as a fallback
+    result.daysUntilNextClass = 7; // Just set to a week away as default
+    result.nextClassDay = schedule[0];
+    
+    return result;
+  } catch (error) {
+    console.error('Error in calculateNextClassDay:', error);
+    return result;
+  }
+}
+
+/**
+ * Update streak information and UI
+ * Handles streak counting, local storage persistence, and visual feedback
+ */
+function updateStreak() {
+  try {
+    // Get today's date and reset time component
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Format for storage/comparison
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Try to get the streak info from localStorage
+    let streakInfo;
+    try {
+      const storedStreak = localStorage.getItem('questBoardStreak');
+      streakInfo = storedStreak ? JSON.parse(storedStreak) : null;
+    } catch (error) {
+      console.error('Error accessing localStorage for streak:', error);
+      streakInfo = null;
+    }
+    
+    // If no stored streak, initialize with defaults
+    if (!streakInfo) {
+      streakInfo = {
+        count: 0,
+        lastActive: null
+      };
+    }
+    
+    // Convert stored date string to Date object for comparison
+    const lastActive = streakInfo.lastActive ? new Date(streakInfo.lastActive) : null;
+    
+    if (lastActive) {
+      // Reset time component for comparison
+      lastActive.setHours(0, 0, 0, 0);
+      
+      // Calculate days difference
+      const timeDiff = today.getTime() - lastActive.getTime();
+      const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+      
+      // Update streak count based on activity pattern
+      if (daysDiff === 0) {
+        // Already counted today, keep the streak
+      } else if (daysDiff === 1) {
+        // Consecutive day, increment streak
+        streakInfo.count += 1;
+      } else {
+        // Streak broken, reset to 1 for today
+        streakInfo.count = 1;
+      }
+    } else {
+      // First time ever, start streak at 1
+      streakInfo.count = 1;
+    }
+    
+    // Update the last active date
+    streakInfo.lastActive = todayStr;
+    
+    // Update app state
+    appState.streak.count = streakInfo.count;
+    appState.streak.lastActive = todayStr;
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('questBoardStreak', JSON.stringify(streakInfo));
+    } catch (error) {
+      console.error('Error saving streak to localStorage:', error);
+    }
+    
+    // Update UI elements
+    updateStreakUI(streakInfo.count);
+    
+    console.log('Updated streak:', streakInfo);
+    
+    // If the streak has hit specific milestones, show a celebration
+    const milestones = [3, 7, 14, 30, 60, 90];
+    if (milestones.includes(streakInfo.count)) {
+      celebrateStreakMilestone(streakInfo.count);
+    }
+  } catch (error) {
+    console.error('Error updating streak:', error);
+  }
+}
+
+/**
+ * Update the streak UI elements
+ * @param {number} streakCount - Current streak count
+ */
+function updateStreakUI(streakCount) {
+  if (!elements.streakCount || !elements.streakBar) {
+    console.warn('Streak UI elements not found');
+    return;
+  }
+  
+  // Update streak counter
+  elements.streakCount.textContent = streakCount;
+  
+  // Calculate percentage for streak bar (based on target from appState)
+  const percentage = Math.min((streakCount / appState.streak.target) * 100, 100);
+  elements.streakBar.style.width = `${percentage}%`;
+  
+  // Add color classes based on progress
+  elements.streakBar.classList.remove('beginning', 'progress', 'almost', 'complete');
+  
+  if (percentage < 25) {
+    elements.streakBar.classList.add('beginning');
+  } else if (percentage < 75) {
+    elements.streakBar.classList.add('progress');
+  } else if (percentage < 100) {
+    elements.streakBar.classList.add('almost');
+  } else {
+    elements.streakBar.classList.add('complete');
+  }
+}
+
+/**
+ * Celebrate reaching a streak milestone
+ * @param {number} milestone - The milestone reached
+ */
+function celebrateStreakMilestone(milestone) {
+  // Create a celebration message
+  const message = document.createElement('div');
+  message.className = 'streak-celebration';
+  
+  let emoji, streakText;
+  
+  // Customize message based on milestone
+  if (milestone >= 90) {
+    emoji = '🏆';
+    streakText = 'LEGENDARY STREAK!';
+  } else if (milestone >= 30) {
+    emoji = '🔥';
+    streakText = 'AMAZING STREAK!';
+  } else if (milestone >= 14) {
+    emoji = '⭐️';
+    streakText = 'GREAT STREAK!';
+  } else if (milestone >= 7) {
+    emoji = '✨';
+    streakText = 'SUPER STREAK!';
+  } else {
+    emoji = '🎉';
+    streakText = 'STREAK BUILDING!';
+  }
+  
+  message.innerHTML = `
+    <div class="celebration-icon">${emoji}</div>
+    <div class="celebration-text">
+      <div class="milestone-count">${milestone} DAYS</div>
+      <div class="milestone-text">${streakText}</div>
+    </div>
+  `;
+  
+  // Add to the document
+  document.body.appendChild(message);
+  
+  // Add animation class
+  setTimeout(() => {
+    message.classList.add('show');
+    
+    // Try to play a celebration animation if available
+    try {
+      if (typeof celebratePulse === 'function') {
+        const streakElement = elements.streakCount.parentElement;
+        celebratePulse(streakElement);
+      }
+      
+      if (typeof createConfetti === 'function') {
+        createConfetti();
+      }
+    } catch (error) {
+      console.warn('Animation functions not available:', error);
+    }
+  }, 100);
+  
+  // Remove after display duration
+  setTimeout(() => {
+    message.classList.remove('show');
     setTimeout(() => {
-      window.scrollTo(0, parseInt(savedPosition, 10));
-    }, 100);
+      message.remove();
+    }, 500);
+  }, 5000);
+}
+
+// ... rest of the code remains the same ...
+
+/**
+ * Render tasks grouped by their next class day
+ * @param {Object} taskGroups - Tasks grouped by their next class day
+ * @param {string} todayFormatted - Today's date in Finnish format for comparison
+ */
+function renderTasksByNextClassGroups(taskGroups, todayFormatted) {
+  // Clear container first
+  elements.questContainer.innerHTML = '';
+  
+  // Get all keys and sort them
+  const groupKeys = Object.keys(taskGroups);
+  
+  // Custom sort function to prioritize 'today', then 'tomorrow', then dates chronologically
+  groupKeys.sort((a, b) => {
+    if (a === 'today') return -1;
+    if (b === 'today') return 1;
+    if (a === 'tomorrow') return -1;
+    if (b === 'tomorrow') return 1;
+    return a.localeCompare(b); // Sorts dates in ascending order
+  });
+  
+  // Process each group
+  groupKeys.forEach(groupKey => {
+    const tasks = taskGroups[groupKey];
+    if (!tasks || tasks.length === 0) return;
+    
+    // Create a container for this day's tasks
+    const dayContainer = document.createElement('div');
+    dayContainer.className = 'quest-day';
+    
+    // Determine the display date and add appropriate class
+    let displayDate = '';
+    let urgencyClass = '';
+    
+    if (groupKey === 'today') {
+      displayDate = 'Today';
+      urgencyClass = 'urgent';
+      dayContainer.classList.add('today-tasks');
+    } else if (groupKey === 'tomorrow') {
+      displayDate = 'Tomorrow';
+      urgencyClass = 'upcoming';
+      dayContainer.classList.add('tomorrow-tasks');
+    } else if (groupKey.startsWith('due-')) {
+      // Extract date from the key
+      const dateParts = groupKey.replace('due-', '').split('-');
+      const dueDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+      
+      // Check how far in the future
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const diffTime = dueDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays <= 2) {
+        urgencyClass = 'upcoming';
+      } else if (diffDays <= 5) {
+        urgencyClass = 'planned';
+      } else {
+        urgencyClass = 'future';
+      }
+      
+      // Format the date for display
+      displayDate = dueDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric'
+      });
+      
+      dayContainer.classList.add('due-date-tasks');
+    } else {
+      // Regular future date
+      const dateParts = groupKey.split('-');
+      const classDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+      
+      // Format the date for display
+      displayDate = classDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric'
+      });
+      
+      // Check how far in the future
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const diffTime = classDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays <= 2) {
+        urgencyClass = 'upcoming';
+      } else if (diffDays <= 5) {
+        urgencyClass = 'planned';
+      } else {
+        urgencyClass = 'future';
+      }
+      
+      dayContainer.classList.add('future-class-tasks');
+    }
+    
+    // Create the day header
+    const dayHeader = document.createElement('div');
+    dayHeader.className = `day-header ${urgencyClass}`;
+    dayHeader.innerHTML = `
+      <div class="day-date">${displayDate}</div>
+      <div class="day-count">${tasks.length} quest${tasks.length > 1 ? 's' : ''}</div>
+    `;
+    dayContainer.appendChild(dayHeader);
+    
+    // Create container for the quests
+    const questList = document.createElement('div');
+    questList.className = 'quest-list';
+    
+    // Add each quest
+    tasks.forEach(task => {
+      const questCard = document.createElement('div');
+      questCard.className = `quest-card ${task.type}-quest ${urgencyClass}`;
+      questCard.dataset.id = task.id;
+      
+      // Format the subject name
+      const subjectDisplay = task.subject.charAt(0).toUpperCase() + task.subject.slice(1);
+      
+      // Create visual cue based on subject
+      const subjectInitial = task.subject.charAt(0).toUpperCase();
+      const bgColor = getSubjectColor(task.subject);
+      
+      questCard.innerHTML = `
+        <div class="quest-header">
+          <div class="subject-badge" style="background-color: ${bgColor}">
+            ${subjectInitial}
+          </div>
+          <div class="quest-subject">${subjectDisplay}</div>
+          <div class="quest-points">${task.points} pts</div>
+        </div>
+        <div class="quest-description">${task.description}</div>
+        <div class="quest-footer">
+          <div class="quest-date">${task.date}</div>
+          <button class="complete-btn" aria-label="Complete task">
+            <i class="ri-check-line"></i>
+          </button>
+        </div>
+      `;
+      
+      // Add event listener to the complete button
+      const completeButton = questCard.querySelector('.complete-btn');
+      completeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        completeTask(task.id);
+      });
+      
+      questList.appendChild(questCard);
+    });
+    
+    dayContainer.appendChild(questList);
+    elements.questContainer.appendChild(dayContainer);
+  });
+}
+
+/**
+ * Get a consistent color for a subject
+ * @param {string} subject - The subject name
+ * @returns {string} - A hex color code
+ */
+function getSubjectColor(subject) {
+  // Define colors for specific subjects
+  const subjectColors = {
+    'math': '#4361ee',
+    'finnish': '#4cc9f0',
+    'english': '#f72585',
+    'history': '#7209b7',
+    'civics': '#3a0ca3',
+    'ethics': '#4895ef',
+    'pe': '#560bad',
+    'music': '#b5179e',
+    'art': '#f15bb5',
+    'crafts': '#fee440',
+    'eco': '#06d6a0',
+    'digi': '#118ab2'
+  };
+  
+  // Normalize the subject name (lowercase)
+  const normalizedSubject = subject.toLowerCase();
+  
+  // Return the predefined color or generate one based on the subject string
+  if (subjectColors[normalizedSubject]) {
+    return subjectColors[normalizedSubject];
+  } else {
+    // Simple hash function to generate a consistent color from a string
+    let hash = 0;
+    for (let i = 0; i < normalizedSubject.length; i++) {
+      hash = normalizedSubject.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Convert to a hex color
+    let color = '#';
+    for (let i = 0; i < 3; i++) {
+      const value = (hash >> (i * 8)) & 0xFF;
+      color += ('00' + value.toString(16)).substr(-2);
+    }
+    
+    return color;
   }
 }
 
