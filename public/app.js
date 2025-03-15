@@ -63,8 +63,76 @@ const elements = {
   archiveToggle: null // Will be created dynamically
 };
 
+// Helper function to get today's date in Finnish format
+function getTodayFinDate() {
+  const today = new Date();
+  return `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
+}
+
+/**
+ * Parse Finnish date format (DD.MM.YYYY) to a JavaScript Date object
+ * @param {string} finDate - Date in Finnish format (DD.MM.YYYY)
+ * @returns {Date|null} - JavaScript Date object or null if invalid format
+ */
+function parseFinDate(finDate) {
+  if (!finDate || typeof finDate !== 'string') {
+    console.warn('Invalid date format provided to parseFinDate:', finDate);
+    return null;
+  }
+
+  try {
+    // Split the date by dots
+    const parts = finDate.split('.');
+    
+    // Check if we have exactly 3 parts (day, month, year)
+    if (parts.length !== 3) {
+      console.warn('Invalid Finnish date format (should be DD.MM.YYYY):', finDate);
+      return null;
+    }
+    
+    // Parse parts to integers
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // JavaScript months are 0-indexed
+    const year = parseInt(parts[2], 10);
+    
+    // Validate ranges
+    if (isNaN(day) || day < 1 || day > 31 ||
+        isNaN(month) || month < 0 || month > 11 ||
+        isNaN(year) || year < 1900 || year > 2100) {
+      console.warn('Date parts out of valid range:', finDate);
+      return null;
+    }
+    
+    // Create and return the Date object
+    return new Date(year, month, day);
+  } catch (error) {
+    console.error('Error parsing Finnish date:', finDate, error);
+    return null;
+  }
+}
+
+/**
+ * Save current scroll position to localStorage
+ */
+function saveScrollPosition() {
+  localStorage.setItem('scrollPosition', window.scrollY);
+}
+
+/**
+ * Restore previously saved scroll position
+ */
+function restoreScrollPosition() {
+  const savedPosition = localStorage.getItem('scrollPosition');
+  if (savedPosition) {
+    window.scrollTo(0, parseInt(savedPosition));
+  }
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', async () => {
+  // Restore scroll position if available
+  restoreScrollPosition();
+  
   // Show loading indicator
   showLoading(true);
   
@@ -695,12 +763,6 @@ async function completeTask(taskId) {
   } finally {
     showLoading(false);
   }
-}
-
-// Helper function to get today's date in Finnish format
-function getTodayFinDate() {
-  const today = new Date();
-  return `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
 }
 
 // ... rest of the code remains the same ...
