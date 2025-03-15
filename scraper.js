@@ -421,9 +421,6 @@ async function scrapeWilma() {
         // Add delay between page loads to avoid triggering rate limiting
         await delay(REQUEST_DELAY);
         
-        // Take a screenshot for each subject page
-        await page.screenshot({ path: `${subject.name}_page.png` });
-        
         // Check if we need to re-login
         const currentUrl = page.url();
         if (currentUrl.includes('login')) {

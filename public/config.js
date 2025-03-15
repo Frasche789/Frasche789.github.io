@@ -37,16 +37,6 @@ async function loadEnvVariables() {
   }
 }
 
-// Fallback Firebase configuration for production environment
-const fallbackConfig = {
-  apiKey: "AIzaSyDYrcJmNxJCeRuCuMNu0VYXrO5RbMLxnzM",
-  authDomain: "quest-board-app.firebaseapp.com",
-  projectId: "quest-board-app",
-  storageBucket: "quest-board-app.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abc123def456ghi789jkl"
-};
-
 // Get Firebase configuration from environment variables
 export async function getFirebaseConfig() {
   const envVars = await loadEnvVariables();
