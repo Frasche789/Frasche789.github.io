@@ -706,4 +706,28 @@ function getTodayFinDate() {
   return `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
 }
 
+// Parse Finnish date format (DD.MM.YYYY) into a JavaScript Date object
+function parseFinDate(finDate) {
+  if (!finDate) return new Date(0); // Return epoch date if no date provided
+  
+  // Check if date is in the Finnish format (DD.MM.YYYY)
+  const parts = finDate.split('.');
+  if (parts.length !== 3) {
+    console.warn(`Invalid Finnish date format: ${finDate}`);
+    return new Date(); // Return current date as fallback
+  }
+  
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1; // JS months are 0-indexed
+  const year = parseInt(parts[2], 10);
+  
+  // Validate date components
+  if (isNaN(day) || isNaN(month) || isNaN(year)) {
+    console.warn(`Invalid date components in: ${finDate}`);
+    return new Date(); // Return current date as fallback
+  }
+  
+  return new Date(year, month, day);
+}
+
 // ... rest of the code remains the same ...
