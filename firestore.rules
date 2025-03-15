@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny all rule - security by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Student data rules
+    match /students/{studentId} {
+      // Allow reading student data for all authenticated and guest users
+      allow read: if true;
+      
+      // Allow updates to student points (for completing tasks)
+      // Only allow updates to points field, not creation or deletion
+      allow update: if 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['points']) &&
+        request.resource.data.points is number;
+    }
+    
+    // Quest/Task rules
+    match /quests/{questId} {
+      // Allow reading tasks for all authenticated and guest users
+      allow read: if true;
+      
+      // Allow updating a quest status to "completed" and adding a completedDate
+      allow update: if
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'completedDate']) &&
+        request.resource.data.status == 'completed';
+      
+      // Allow creating new quests/tasks with proper validation
+      allow create: if
+        request.resource.data.date is string &&
+        request.resource.data.subject is string &&
+        request.resource.data.description is string &&
+        request.resource.data.type in ['homework', 'chore'] &&
+        request.resource.data.status in ['open', 'completed'] &&
+        request.resource.data.student_id is number &&
+        request.resource.data.points is number;
+    }
+  }
+}
