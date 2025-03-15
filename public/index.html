@@ -108,18 +108,12 @@
     import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
     import { getFirebaseConfig } from "./config.js";
 
-    // Initialize Firebase with config from environment variables
+    // Initialize Firebase
     async function initFirebase() {
       try {
-        const firebaseConfig = await getFirebaseConfig();
-        
-        if (!firebaseConfig) {
-          console.error('Failed to load Firebase configuration from environment variables');
-          return;
-        }
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
+        // Initialize Firebase - when deployed to Firebase hosting,
+        // the SDK automatically uses the connected project configuration
+        const app = initializeApp();
         
         // Initialize Firestore and expose modules for the app.js file
         window.db = getFirestore(app);
@@ -127,8 +121,18 @@
         
         // Dispatch event when Firebase is ready
         window.dispatchEvent(new Event('firebase-ready'));
+        console.log('Firebase initialization successful');
       } catch (error) {
         console.error('Error initializing Firebase:', error);
+        
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          console.warn(
+            'You appear to be running locally. Make sure you have set up Firebase ' +
+            'emulator or added your local domain to authorized domains in Firebase console.'
+          );
+        }
+        
+        alert('Failed to connect to the database. Please check your internet connection and try again.');
       }
     }
     

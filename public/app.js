@@ -4,7 +4,7 @@
  */
 
 // Import animations module
-import { createConfetti, playCompletionAnimation } from '../animations.js';
+import { createConfetti, playCompletionAnimation } from './animations.js';
 
 // App state
 const appState = {
