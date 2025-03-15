@@ -1,22 +1,12 @@
 /**
- * config.js - Firebase configuration for Quest Board
- * When deployed to Firebase Hosting, the SDK automatically uses the correct project configuration
+ * config.js - Firebase configuration placeholder
+ * Note: This file is no longer used for Firebase initialization.
+ * Firebase SDK now auto-initializes when deployed to Firebase hosting.
  */
 
-// Get Firebase configuration
+// Placeholder function that returns an empty config
+// Kept for backward compatibility in case any other files still reference it
 export async function getFirebaseConfig() {
-  // When deployed to Firebase Hosting, the Firebase SDK automatically uses the 
-  // configuration of the connected Firebase project.
-  //
-  // If running locally, you must set up Firebase hosting emulator or 
-  // use Firebase console to add authorized domains.
-  //
-  // The Firebase configuration is injected at build time by Firebase Hosting,
-  // so we don't need (and shouldn't have) any API keys in the client code.
-  
-  console.log('Using Firebase SDK auto-initialization');
-  
-  // Return an empty object - Firebase SDK will handle configuration
-  // based on the current environment (production/emulator)
+  console.warn('getFirebaseConfig() is deprecated. Firebase now initializes automatically when hosted on Firebase.');
   return {};
 }

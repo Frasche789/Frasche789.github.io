@@ -106,38 +106,24 @@
     // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-    import { getFirebaseConfig } from "./config.js";
 
     // Initialize Firebase
-    async function initFirebase() {
-      try {
-        // Initialize Firebase - when deployed to Firebase hosting,
-        // the SDK automatically uses the connected project configuration
-        const app = initializeApp();
-        
-        // Initialize Firestore and expose modules for the app.js file
-        window.db = getFirestore(app);
-        window.firebaseModules = { collection, getDocs, doc, getDoc, setDoc, updateDoc };
-        
-        // Dispatch event when Firebase is ready
-        window.dispatchEvent(new Event('firebase-ready'));
-        console.log('Firebase initialization successful');
-      } catch (error) {
-        console.error('Error initializing Firebase:', error);
-        
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-          console.warn(
-            'You appear to be running locally. Make sure you have set up Firebase ' +
-            'emulator or added your local domain to authorized domains in Firebase console.'
-          );
-        }
-        
-        alert('Failed to connect to the database. Please check your internet connection and try again.');
-      }
+    try {
+      // Initialize Firebase without explicit config
+      // When deployed to Firebase hosting, configuration is automatically injected
+      const app = initializeApp();
+      
+      // Initialize Firestore and expose modules for the app.js file
+      window.db = getFirestore(app);
+      window.firebaseModules = { collection, getDocs, doc, getDoc, setDoc, updateDoc };
+      
+      // Dispatch event when Firebase is ready
+      window.dispatchEvent(new Event('firebase-ready'));
+      console.log('Firebase initialization successful');
+    } catch (error) {
+      console.error('Error initializing Firebase:', error);
+      alert('Failed to connect to the database. Please check your internet connection and try again.');
     }
-    
-    // Start Firebase initialization
-    initFirebase();
   </script>
 </body>
 </html>
