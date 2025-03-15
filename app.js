@@ -108,20 +108,21 @@ function waitForFirebase() {
       return;
     }
     
-    // Set up an interval to check for Firebase
-    const maxAttempts = 20;
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      
+    // Listen for the firebase-ready event
+    window.addEventListener('firebase-ready', () => {
       if (window.db && window.firebaseModules) {
-        clearInterval(interval);
         resolve();
-      } else if (attempts >= maxAttempts) {
-        clearInterval(interval);
+      } else {
+        reject(new Error('Firebase initialized but modules not available'));
+      }
+    }, { once: true });
+    
+    // Set a timeout in case Firebase initialization fails
+    setTimeout(() => {
+      if (!window.db || !window.firebaseModules) {
         reject(new Error('Firebase initialization timed out'));
       }
-    }, 250);
+    }, 5000);
   });
 }
 

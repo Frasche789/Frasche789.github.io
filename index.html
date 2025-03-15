@@ -106,23 +106,34 @@
     // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { getFirebaseConfig } from "./config.js";
 
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
-      authDomain: "questboard-17337.firebaseapp.com",
-      projectId: "questboard-17337",
-      storageBucket: "questboard-17337.firebasestorage.app",
-      messagingSenderId: "427884628874",
-      appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
+    // Initialize Firebase with config from environment variables
+    async function initFirebase() {
+      try {
+        const firebaseConfig = await getFirebaseConfig();
+        
+        if (!firebaseConfig) {
+          console.error('Failed to load Firebase configuration from environment variables');
+          return;
+        }
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        
+        // Initialize Firestore and expose modules for the app.js file
+        window.db = getFirestore(app);
+        window.firebaseModules = { collection, getDocs, doc, getDoc, setDoc, updateDoc };
+        
+        // Dispatch event when Firebase is ready
+        window.dispatchEvent(new Event('firebase-ready'));
+      } catch (error) {
+        console.error('Error initializing Firebase:', error);
+      }
+    }
     
-    // Initialize Firestore and expose modules for the app.js file
-    window.db = getFirestore(app);
-    window.firebaseModules = { collection, getDocs, doc, getDoc, setDoc, updateDoc };
+    // Start Firebase initialization
+    initFirebase();
   </script>
 </body>
 </html>

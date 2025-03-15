@@ -1,0 +1,15 @@
+# Allow access to .env file for our config.js
+<Files .env>
+    Order allow,deny
+    Allow from all
+</Files>
+
+# Set proper MIME type for JavaScript modules
+<IfModule mod_mime.c>
+    AddType application/javascript .js
+</IfModule>
+
+# Enable CORS for local development
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
