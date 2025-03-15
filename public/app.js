@@ -65,9 +65,6 @@ const elements = {
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', async () => {
-  // Restore scroll position if available
-  restoreScrollPosition();
-  
   // Show loading indicator
   showLoading(true);
   
