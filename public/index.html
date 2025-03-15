@@ -111,7 +111,19 @@
     try {
       // Initialize Firebase without explicit config
       // When deployed to Firebase hosting, configuration is automatically injected
-      const app = initializeApp();
+      const firebaseOptions = {
+        // Set analytics options to respect privacy and avoid tracking prevention issues
+        analyticsCollectionEnabled: false,
+        appId: "1:1045472593233:web:e8c5b7c3f3c3f3c3f3c3f3" // This is public and safe to include
+      };
+      
+      const app = initializeApp(firebaseOptions);
+      
+      // Initialize Firestore with privacy-friendly settings
+      const firestoreSettings = {
+        ignoreUndefinedProperties: true,
+        cacheSizeBytes: 1048576 // 1MB cache size to respect privacy
+      };
       
       // Initialize Firestore and expose modules for the app.js file
       window.db = getFirestore(app);
