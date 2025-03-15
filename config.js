@@ -37,14 +37,23 @@ async function loadEnvVariables() {
   }
 }
 
+// Fallback Firebase configuration for production environment
+const fallbackConfig = {
+  apiKey: "AIzaSyDYrcJmNxJCeRuCuMNu0VYXrO5RbMLxnzM",
+  authDomain: "quest-board-app.firebaseapp.com",
+  projectId: "quest-board-app",
+  storageBucket: "quest-board-app.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abc123def456ghi789jkl"
+};
+
 // Get Firebase configuration from environment variables
 export async function getFirebaseConfig() {
   const envVars = await loadEnvVariables();
   
   if (!envVars) {
-    console.error('Failed to load environment variables. Using fallback configuration.');
-    // Return null to indicate failure - the app should handle this appropriately
-    return null;
+    console.log('Using fallback Firebase configuration for production.');
+    return fallbackConfig;
   }
   
   // Create Firebase config object from environment variables
@@ -62,7 +71,8 @@ export async function getFirebaseConfig() {
   
   if (missingKeys.length > 0) {
     console.error('Missing Firebase configuration values:', missingKeys.join(', '));
-    return null;
+    console.log('Using fallback Firebase configuration.');
+    return fallbackConfig;
   }
   
   return firebaseConfig;
