@@ -53,7 +53,8 @@ export const StepStatus = {
  * @param {Object} options - Step configuration
  * @param {string} options.id - Unique identifier for this step
  * @param {string} options.name - Human-readable name for this step
- * @param {Function} options.initFn - Async function to execute for initialization
+ * @param {Function} options.initFn - Async function to execute for initialization (deprecated, use options.run)
+ * @param {Function} options.run - Async function to execute for initialization
  * @param {Array<string>} [options.dependencies=[]] - Array of step IDs this step depends on
  * @param {boolean} [options.required=true] - Whether this step is required for application startup
  * @param {boolean} [options.critical=false] - Whether failure of this step should halt the entire bootstrap process
@@ -62,6 +63,7 @@ export function registerInitStep({
   id,
   name,
   initFn,
+  run,
   dependencies = [],
   required = true,
   critical = false
@@ -74,7 +76,10 @@ export function registerInitStep({
     throw new Error('Step name is required');
   }
   
-  if (!initFn || typeof initFn !== 'function') {
+  // Support both initFn (old) and run (new) properties for backward compatibility
+  const initFunction = run || initFn;
+  
+  if (!initFunction || typeof initFunction !== 'function') {
     throw new Error('Initialization function is required');
   }
   
@@ -87,7 +92,7 @@ export function registerInitStep({
   initializationSteps.set(id, {
     id,
     name,
-    initFn,
+    initFn: initFunction,
     dependencies,
     required,
     critical

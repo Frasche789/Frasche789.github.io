@@ -28,10 +28,6 @@
           <h2 id="studentName">Loading...</h2>
           <div class="level-badge">Mighty Adventurer</div>
         </div>
-        <div class="points-container">
-          <span class="points-label">Total Points</span>
-          <span class="points-value" id="studentPoints">0</span>
-        </div>
       </div>
       
       <h1 class="today-title">
@@ -49,24 +45,42 @@
       </div>
     </header>
 
-    <!-- Main content with infinite scroll -->
-    <main class="task-board">
-      <div id="task-container" class="task-days-container">
-        <!-- Task days will be rendered here by JavaScript -->
-      </div>
-      
-      <div id="no-tasks" class="empty-state-container" style="display: none;">
-        <div class="empty-state-content">
-          <i class="ri-trophy-line"></i>
-          <h3>All tasks completed!</h3>
-          <p>You've finished everything. Great job!</p>
-          <div class="confetti-container" id="confetti"></div>
+    <!-- Main task container -->
+    <main class="main-container">
+      <!-- "What's up today" section -->
+      <section class="today-section">
+        <div class="section-header">
+          <div class="date-display" id="todayDate"></div>
         </div>
-      </div>
+        
+        <div id="today-tasks" class="today-tasks">
+          <!-- Today's tasks will be dynamically inserted here -->
+        </div>
+        
+        <div id="today-empty-state" class="empty-state hidden">
+          <div class="empty-icon">
+            <i class="ri-check-double-line"></i>
+          </div>
+          <div class="empty-message">Nothing due today!</div>
+        </div>
+      </section>
       
-      <div id="loading-indicator" class="loading-spinner">
-        <div class="spinner"></div>
-      </div>
+      <!-- Task lists section -->
+      <section class="tasks-section">
+        <div class="section-header">
+        </div>
+        
+        <div id="task-container" class="task-container">
+          <!-- Tasks will be dynamically inserted here -->
+        </div>
+        
+        <div id="no-tasks" class="empty-state hidden">
+          <div class="empty-icon">
+            <i class="ri-list-check"></i>
+          </div>
+          <div class="empty-message">No tasks found</div>
+        </div>
+      </section>
     </main>
 
     <!-- Add new chore modal -->

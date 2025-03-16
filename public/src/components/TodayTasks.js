@@ -5,7 +5,13 @@
 
 import { createTaskCard } from './TaskCard.js';
 import { dispatch } from '../state/appState.js';
-import { getTodayFinDate } from '../utils/dateUtils.js';
+import { 
+  getTodayFinDate, 
+  parseFinDate, 
+  getDateRelativeToToday, 
+  getDaysBetweenDates 
+} from '../utils/dateUtils.js';
+import { calculateNextClassDay } from '../utils/subjectUtils.js';
 
 // DOM elements cache
 let todayTasksEl = null;
@@ -51,10 +57,46 @@ export function renderTodayTasks(tasks, todayFormatted = null) {
   // Clear previous content
   todayTasksEl.innerHTML = '';
   
-  // Find today's incomplete tasks
-  const todayTasks = tasks.filter(task => 
-    task.dueDate === todayFormatted && !task.completed
-  );
+  // Find today's tasks based on new logic
+  const todayTasks = tasks.filter(task => {
+    // Filter 1: Tasks must not be completed
+    if (task.completed) {
+      return false;
+    }
+    
+    // Filter 2: Check if task was created within the last 14 days
+    const creationDate = task.date; // Use creation date from task.date
+    if (!creationDate) {
+      return false; // Skip tasks without a creation date
+    }
+    
+    const today = parseFinDate(todayFormatted);
+    const creationDateObj = parseFinDate(creationDate);
+    
+    if (!creationDateObj) {
+      return false; // Skip tasks with invalid dates
+    }
+    
+    // Calculate days between creation date and today
+    const daysBetween = getDaysBetweenDates(creationDate, todayFormatted);
+    
+    // Only include tasks from the last 14 days
+    if (daysBetween === null || daysBetween > 14) {
+      return false;
+    }
+    
+    // Filter 3: Check if the task's subject occurs today or next school day
+    if (task.subject) {
+      const nextClass = calculateNextClassDay(task.subject);
+      
+      // Subject occurs today or tomorrow
+      return nextClass.found && (nextClass.daysUntil === 0 || nextClass.daysUntil === 1);
+    }
+    
+    // If no subject is assigned (e.g., general tasks or chores),
+    // include them if they were created within the last 14 days
+    return true;
+  });
   
   // Handle empty state
   if (todayTasks.length === 0) {

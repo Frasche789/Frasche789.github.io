@@ -8,11 +8,11 @@ import { UI_COMPONENTS_INIT_ID } from './uiInit.js';
 import { TASK_INIT_ID } from '../services/taskInit.js';
 import { getState, setState, dispatch } from '../state/appState.js';
 import { getTodayFinDate } from '../utils/dateUtils.js';
-import { calculateNextClassDay } from '../utils/subjectUtils.js';
 import { renderTodayTasks } from '../components/TodayTasks.js';
-import { createDateTaskList, createSubjectTaskList, createEmptyState } from '../components/TaskList.js';
-import { createImmediateTasksContainer, createLaterTasksContainer } from '../components/UrgencyTaskList.js';
-import { groupTasksByUrgency } from '../services/taskService.js';
+import { createEmptyState } from '../components/TaskList.js';
+import { createContainerTasksView } from '../components/UrgencyTaskList.js';
+import { groupTasksByContainer } from '../services/taskService.js';
+import { initArchiveModal } from '../components/ArchiveModal.js';
 
 // Registration constants
 export const RENDER_INIT_ID = 'render';
@@ -22,8 +22,7 @@ const elements = {
   todayTasks: null,
   todayEmptyState: null,
   taskContainer: null,
-  noTasksMessage: null,
-  archiveIndicator: null
+  noTasksMessage: null
 };
 
 /**
@@ -39,15 +38,16 @@ async function initializeRenderer() {
     elements.todayEmptyState = document.getElementById('today-empty-state');
     elements.taskContainer = document.getElementById('task-container');
     elements.noTasksMessage = document.getElementById('no-tasks');
-    elements.archiveIndicator = document.querySelector('.archive-indicator');
+    
+    // Initialize the archive modal
+    initArchiveModal();
     
     // Log element availability status
     console.log('Element initialization status:', {
       todayTasks: !!elements.todayTasks,
       todayEmptyState: !!elements.todayEmptyState,
       taskContainer: !!elements.taskContainer,
-      noTasksMessage: !!elements.noTasksMessage,
-      archiveIndicator: !!elements.archiveIndicator
+      noTasksMessage: !!elements.noTasksMessage
     });
     
     // Add event listener for bootstrap completion
@@ -69,6 +69,13 @@ async function initializeRenderer() {
       renderTasks();
     });
     
+    // Listen for task completion
+    window.addEventListener('task-completed', (event) => {
+      console.log('Task completed, triggering render', event?.detail);
+      // Give time for the database to update
+      setTimeout(() => renderTasks(), 300);
+    });
+    
     // Don't render immediately - wait for tasks to be loaded
     // Only verify that elements exist for now
     if (!elements.todayTasks || !elements.taskContainer) {
@@ -85,7 +92,7 @@ async function initializeRenderer() {
 }
 
 /**
- * Render tasks based on current filter
+ * Render tasks using the container-based approach
  */
 function renderTasks() {
   try {
@@ -103,99 +110,64 @@ function renderTasks() {
       }
     }
     
+    // Get state
     const state = getState();
-    
-    // Handle possible null state (additional safety)
-    if (!state) {
-      console.error('Application state is not available');
-      return;
-    }
-    
-    const { tasks = [], activeFilter = 'all', showRecentOnly = false, showArchive = false } = state;
-    
-    // Validate task data
-    if (!tasks || !Array.isArray(tasks)) {
-      console.error('No tasks available for rendering or invalid task array');
-      showNoTasksMessage(true, 'No tasks available - data error');
-      return;
-    }
-    
-    console.log(`Tasks available for rendering: ${tasks.length}`, { 
-      filter: activeFilter, 
-      showRecentOnly, 
-      showArchive 
-    });
-    
-    // Get today's date for comparisons
-    const todayFormatted = getTodayFinDate();
-    
-    // Only try to render today's tasks if we have data and elements are initialized
-    if (elements.todayTasks && elements.todayEmptyState) {
-      renderTodayTasks(tasks, todayFormatted);
-    } else {
-      console.warn('Today\'s tasks container not available');
-    }
-    
-    // Get filtered tasks
-    const filteredTasks = getFilteredTasks(tasks, { 
-      filter: activeFilter, 
-      showRecentOnly, 
-      showArchive 
-    });
-    
-    console.log(`Filtered tasks count: ${filteredTasks.length}`);
-    
-    // Check if we have tasks after filtering
-    if (filteredTasks.length === 0) {
-      console.log('No tasks after filtering, showing empty state');
+    if (!state || !state.tasks) {
+      console.warn('No tasks available in state');
       showNoTasksMessage(true);
       return;
     }
     
-    // Hide no tasks message
+    // Get tasks
+    const { tasks } = state;
+    
+    // Get today's date for comparison
+    const todayFormatted = getTodayFinDate();
+    
+    // Group tasks by container
+    const containerGroups = groupTasksByContainer(tasks);
+    
+    console.log('Task container groups:', {
+      current: containerGroups.current.length,
+      future: containerGroups.future.length,
+      archive: containerGroups.archive.length
+    });
+    
+    // Clear container
+    elements.taskContainer.innerHTML = '';
+    
+    // Handle empty state
+    if (!containerGroups.current.length && !containerGroups.future.length) {
+      showNoTasksMessage(true);
+      return;
+    }
+    
+    // Hide empty state message
     showNoTasksMessage(false);
     
-    // Choose rendering method based on active filter
-    try {
-      if (activeFilter === 'subject') {
-        const subjectGroups = groupTasksByNextClass(filteredTasks);
-        renderTasksByNextClassGroups(subjectGroups, todayFormatted);
-      } else if (activeFilter === 'urgency') {
-        const urgencyGroups = groupTasksByUrgency(filteredTasks);
-        console.log('Grouped tasks by urgency:', {
-          immediate: urgencyGroups.immediate ? {
-            today: urgencyGroups.immediate.today?.length || 0,
-            tomorrow: urgencyGroups.immediate.tomorrow?.length || 0
-          } : 'None',
-          later: urgencyGroups.later ? urgencyGroups.later.length || 0 : 'None'
-        });
-        renderTasksByUrgencyGroups(urgencyGroups);
-      } else {
-        const dateGroups = groupTasksByDueDate(filteredTasks);
-        renderTasksByDateGroups(dateGroups, todayFormatted);
+    // Create the container-based view
+    const containerView = createContainerTasksView(
+      containerGroups,
+      (taskId) => {
+        // Task completed callback
+        console.log(`Task ${taskId} completed in container view`);
+        // This will trigger a state update and re-render
+        dispatch('task-completed', { taskId });
       }
-    } catch (groupingError) {
-      console.error('Error during task grouping/rendering:', groupingError);
-      // Fallback to simple task list if grouping fails
-      elements.taskContainer.innerHTML = '';
-      elements.taskContainer.appendChild(createEmptyState('Error rendering tasks. Try refreshing.'));
-    }
+    );
     
-    // Show archive indicator if needed
-    const archiveCount = tasks.filter(task => task.archived).length;
-    renderArchiveIndicator(archiveCount);
+    // Add the view to the DOM
+    elements.taskContainer.appendChild(containerView);
+    
+    // Also update today's tasks section
+    if (elements.todayTasks) {
+      renderTodayTasks(tasks, todayFormatted);
+    }
     
   } catch (error) {
-    console.error('Error rendering tasks:', error);
-    // Try to show an error message if the container exists
-    try {
-      if (elements.taskContainer) {
-        elements.taskContainer.innerHTML = '';
-        elements.taskContainer.appendChild(createEmptyState('Error rendering tasks: ' + error.message));
-      }
-    } catch (e) {
-      console.error('Could not display error message:', e);
-    }
+    console.error('Error in renderTasks:', error);
+    elements.taskContainer.innerHTML = '';
+    elements.taskContainer.appendChild(createEmptyState('Error rendering tasks. Try refreshing.'));
   }
 }
 
@@ -204,275 +176,15 @@ function renderTasks() {
  * @param {boolean} show - Whether to show the message
  */
 function showNoTasksMessage(show) {
-  if (!elements.taskContainer || !elements.noTasksMessage) return;
+  if (!elements.noTasksMessage) return;
   
-  elements.taskContainer.innerHTML = '';
-  elements.noTasksMessage.style.display = show ? 'block' : 'none';
-}
-
-/**
- * Get filtered tasks based on filter options
- * @param {Array} tasks - All tasks
- * @param {Object} options - Filter options
- * @param {string} options.filter - The active filter ('all', 'subject', etc.)
- * @param {boolean} options.showRecentOnly - Whether to show only recent tasks
- * @param {boolean} options.showArchive - Whether to show archived tasks
- * @returns {Array} Filtered tasks
- */
-function getFilteredTasks(tasks, options) {
-  const { filter, showRecentOnly, showArchive } = options;
-  
-  return tasks.filter(task => {
-    // Filter out archived tasks unless showArchive is true
-    if (task.archived && !showArchive) {
-      return false;
-    }
-    
-    // Filter out completed tasks by default
-    if (task.completed && !showArchive) {
-      return false;
-    }
-    
-    // If showing recent only, filter out tasks with a due date more than 7 days away
-    if (showRecentOnly) {
-      const today = new Date();
-      const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-      
-      if (dueDate) {
-        const diffTime = dueDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays > 7) {
-          return false;
-        }
-      }
-    }
-    
-    return true;
-  });
-}
-
-/**
- * Group tasks by due date
- * @param {Array} tasks - Tasks to group
- * @returns {Object} Tasks grouped by due date
- */
-function groupTasksByDueDate(tasks) {
-  const groups = {};
-  
-  // Group tasks by due date
-  tasks.forEach(task => {
-    const dueDate = task.dueDate || 'No Due Date';
-    
-    if (!groups[dueDate]) {
-      groups[dueDate] = [];
-    }
-    
-    groups[dueDate].push(task);
-  });
-  
-  return groups;
-}
-
-/**
- * Group tasks by their next class day
- * @param {Array} tasks - Tasks to group
- * @returns {Object} Tasks grouped by subject
- */
-function groupTasksByNextClass(tasks) {
-  const groups = {};
-  
-  // Group tasks by subject
-  tasks.forEach(task => {
-    if (!task.subject) {
-      // Skip tasks without a subject
-      if (!groups['Other']) {
-        groups['Other'] = [];
-      }
-      groups['Other'].push(task);
-      return;
-    }
-    
-    const subject = task.subject;
-    
-    if (!groups[subject]) {
-      groups[subject] = [];
-    }
-    
-    groups[subject].push(task);
-  });
-  
-  return groups;
-}
-
-/**
- * Render tasks grouped by date
- * @param {Object} dateGroups - Tasks grouped by date
- * @param {string} todayFormatted - Today's date for comparison
- */
-function renderTasksByDateGroups(dateGroups, todayFormatted) {
-  if (!elements.taskContainer) return;
-  
-  // Clear container
-  elements.taskContainer.innerHTML = '';
-  
-  // Sort dates for display
-  const sortedDates = Object.keys(dateGroups).sort((a, b) => {
-    if (a === 'No Due Date') return 1;
-    if (b === 'No Due Date') return -1;
-    return new Date(a) - new Date(b);
-  });
-  
-  // Add each date group
-  sortedDates.forEach(date => {
-    const tasks = dateGroups[date];
-    
-    // Create date header with appropriate styling
-    let headerClass = '';
-    let dateDisplay = date;
-    
-    if (date === todayFormatted) {
-      headerClass = 'today';
-      dateDisplay = 'Today';
-    } else if (date === 'No Due Date') {
-      headerClass = 'no-date';
-    }
-    
-    // Create and append the task list for this date
-    elements.taskContainer.appendChild(
-      createDateTaskList(dateDisplay, tasks, headerClass)
-    );
-  });
-  
-  // If no date groups, show empty state
-  if (sortedDates.length === 0) {
-    elements.taskContainer.appendChild(createEmptyState());
-  }
-}
-
-/**
- * Render tasks grouped by their next class day
- * @param {Object} subjectGroups - Tasks grouped by subject
- * @param {string} todayFormatted - Today's date for comparison
- */
-function renderTasksByNextClassGroups(subjectGroups, todayFormatted) {
-  if (!elements.taskContainer) return;
-  
-  // Clear container
-  elements.taskContainer.innerHTML = '';
-  
-  // Sort subjects by their next class day
-  const sortedSubjects = Object.keys(subjectGroups).sort((a, b) => {
-    if (a === 'Other') return 1;
-    if (b === 'Other') return -1;
-    
-    const nextA = calculateNextClassDay(a);
-    const nextB = calculateNextClassDay(b);
-    
-    return nextA - nextB;
-  });
-  
-  // Add each subject group
-  sortedSubjects.forEach(subject => {
-    const tasks = subjectGroups[subject];
-    
-    // Calculate when the next class is
-    let nextClassText = '';
-    let headerClass = '';
-    
-    if (subject !== 'Other') {
-      const nextClassDate = calculateNextClassDay(subject);
-      const today = new Date();
-      
-      const diffTime = nextClassDate - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays === 0) {
-        nextClassText = 'Today';
-        headerClass = 'today';
-      } else if (diffDays === 1) {
-        nextClassText = 'Tomorrow';
-        headerClass = 'tomorrow';
-      } else if (diffDays > 1) {
-        const options = { weekday: 'long' };
-        nextClassText = nextClassDate.toLocaleDateString('en-US', options);
-      }
-    }
-    
-    // Create and append the task list for this subject
-    elements.taskContainer.appendChild(
-      createSubjectTaskList(subject, tasks, nextClassText, headerClass)
-    );
-  });
-  
-  // If no subject groups, show empty state
-  if (sortedSubjects.length === 0) {
-    elements.taskContainer.appendChild(createEmptyState());
-  }
-}
-
-/**
- * Render tasks grouped by urgency
- * @param {Object} urgencyGroups - Tasks grouped by urgency
- */
-function renderTasksByUrgencyGroups(urgencyGroups) {
-  if (!elements.taskContainer) return;
-  
-  // Clear container
-  elements.taskContainer.innerHTML = '';
-  
-  // Handle empty state
-  if (!urgencyGroups.immediate && !urgencyGroups.later) {
-    elements.taskContainer.appendChild(createEmptyState());
-    return;
-  }
-  
-  // Create immediate tasks container (today and tomorrow)
-  const immediateContainer = createImmediateTasksContainer(
-    urgencyGroups.immediate, 
-    (taskId) => {
-      // Task completed callback
-      console.log(`Task ${taskId} completed`);
-      dispatch('task-completed', { taskId });
-    }
-  );
-  elements.taskContainer.appendChild(immediateContainer);
-  
-  // Create later tasks container
-  const laterContainer = createLaterTasksContainer(
-    urgencyGroups.later,
-    (taskId) => {
-      // Task completed callback
-      console.log(`Task ${taskId} completed`);
-      dispatch('task-completed', { taskId });
-    }
-  );
-  elements.taskContainer.appendChild(laterContainer);
-}
-
-/**
- * Render archive indicator
- * @param {number} archiveCount - Number of archived tasks
- */
-function renderArchiveIndicator(archiveCount) {
-  if (!elements.archiveIndicator) return;
-  
-  const { showArchive } = getState();
-  
-  if (archiveCount > 0 && !showArchive) {
-    elements.archiveIndicator.textContent = `${archiveCount} tasks in archive`;
-    elements.archiveIndicator.style.display = 'block';
-  } else {
-    elements.archiveIndicator.style.display = 'none';
-  }
+  elements.noTasksMessage.classList.toggle('hidden', !show);
 }
 
 // Register renderer initialization with bootstrap
 registerInitStep({
   id: RENDER_INIT_ID,
   name: 'Task Renderer Initialization',
-  initFn: initializeRenderer,
-  dependencies: [UI_COMPONENTS_INIT_ID, TASK_INIT_ID], // Depends on UI components and task data
-  required: true,
-  critical: false // Not critical as the app can show an error state without the renderer
+  dependencies: [UI_COMPONENTS_INIT_ID, TASK_INIT_ID],
+  run: initializeRenderer
 });

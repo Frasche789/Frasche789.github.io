@@ -19,6 +19,21 @@ export function createTaskCard(task, onCompleted) {
   taskCard.dataset.id = task.id;
   taskCard.dataset.type = task.type || 'unknown';
   
+  // Add container class if available
+  if (task.container) {
+    taskCard.dataset.container = task.container;
+  }
+  
+  // Add urgency class if available
+  if (task.urgencyClass) {
+    taskCard.classList.add(`urgency-${task.urgencyClass}-task`);
+  }
+  
+  // Add container-specific class if available
+  if (task.containerClass) {
+    taskCard.classList.add(`container-${task.containerClass}-task`);
+  }
+  
   // Create and append content
   taskCard.innerHTML = createTaskCardContent(task);
   
@@ -65,13 +80,28 @@ function createTaskCardContent(task) {
   // Get subject color for styling
   const color = task.subject ? getSubjectColor(task.subject) : '#6c757d';
   
-  // Create a colored border based on subject or default
-  const cardStyle = task.subject ? 
-    `border-left: 4px solid ${color};` : 
-    '';
+  // Create a colored border based on subject or container
+  let cardStyle = '';
+  
+  // Prioritize container styling if available
+  if (task.containerClass) {
+    // Container colors are applied via CSS classes instead
+    cardStyle = ''; // Let CSS handle container-specific styling
+  } else if (task.subject) {
+    cardStyle = `border-left: 4px solid ${color};`;
+  }
   
   // Format the points display
   const pointsText = task.points ? `${task.points} pts` : '';
+  
+  // Format due date display
+  const dueDateText = task.dueDate ? 
+    `<div class="task-due-date">Due: ${task.dueDate}</div>` : 
+    (task.calculatedDueDate ? `<div class="task-due-date calculated">Due: ${task.calculatedDueDate}</div>` : '');
+  
+  // Format creation date display
+  const creationDateText = task.date ? 
+    `<div class="task-creation-date">Created: ${task.date}</div>` : '';
   
   // Create the card content
   return `
@@ -84,7 +114,8 @@ function createTaskCardContent(task) {
         </div>
         <div class="task-description">${task.description}</div>
         <div class="task-meta">
-          ${pointsText ? `<div class="task-points">${pointsText}</div>` : ''}
+          ${dueDateText}
+          ${creationDateText}
           ${task.completed && task.completedDate ? 
             `<div class="task-completed-date">Completed: ${task.completedDate}</div>` : ''}
         </div>
@@ -100,25 +131,48 @@ function createTaskCardContent(task) {
 
 /**
  * Update an existing task card with new data
- * @param {HTMLElement} cardElement - The existing card element
- * @param {Object} updatedTask - Updated task data 
+ * @param {HTMLElement} taskCard - Existing task card element
+ * @param {Object} task - Updated task data
+ * @param {Function} onCompleted - Callback when task is completed
  */
-export function updateTaskCard(cardElement, updatedTask) {
-  if (!cardElement || !updatedTask) return;
+export function updateTaskCard(taskCard, task, onCompleted) {
+  if (!taskCard) return;
   
-  // Update content
-  cardElement.innerHTML = createTaskCardContent(updatedTask);
-  
-  // Update class for completed state
-  if (updatedTask.completed) {
-    cardElement.classList.add('completed-task');
+  // Update classes
+  if (task.completed) {
+    taskCard.classList.add('completed-task');
   } else {
-    cardElement.classList.remove('completed-task');
+    taskCard.classList.remove('completed-task');
   }
   
-  // Re-add event listeners if needed
-  if (!updatedTask.completed) {
-    const completeBtn = cardElement.querySelector('.complete-btn');
+  // Update container class if available
+  if (task.container) {
+    taskCard.dataset.container = task.container;
+    
+    // Remove old container classes
+    const containerClasses = ['container-archive-task', 'container-current-task', 'container-future-task'];
+    containerClasses.forEach(cls => taskCard.classList.remove(cls));
+    
+    // Add new container class
+    taskCard.classList.add(`container-${task.container}-task`);
+  }
+  
+  // Update urgency class if available
+  if (task.urgencyClass) {
+    // Remove old urgency classes
+    const urgencyClasses = ['urgency-urgent-task', 'urgency-upcoming-task', 'urgency-later-task'];
+    urgencyClasses.forEach(cls => taskCard.classList.remove(cls));
+    
+    // Add new urgency class
+    taskCard.classList.add(`urgency-${task.urgencyClass}-task`);
+  }
+  
+  // Update content
+  taskCard.innerHTML = createTaskCardContent(task);
+  
+  // Re-add event listeners
+  if (!task.completed) {
+    const completeBtn = taskCard.querySelector('.complete-btn');
     if (completeBtn) {
       completeBtn.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -129,15 +183,15 @@ export function updateTaskCard(cardElement, updatedTask) {
         
         try {
           // Complete the task in the backend
-          await completeTask(updatedTask.id);
+          await completeTask(task.id);
           
           // Play completion animation
-          await playCompletionAnimation(cardElement);
+          await playCompletionAnimation(taskCard);
           
-          // Reload tasks or update UI
-          document.dispatchEvent(new CustomEvent('task-completed', { 
-            detail: { taskId: updatedTask.id } 
-          }));
+          // Callback to notify task completion
+          if (onCompleted && typeof onCompleted === 'function') {
+            onCompleted(task.id);
+          }
         } catch (error) {
           console.error('Error completing task:', error);
           // Re-enable button if completion failed

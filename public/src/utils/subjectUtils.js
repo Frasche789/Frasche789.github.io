@@ -3,6 +3,8 @@
  * Contains functions for subject colors, translations, and schedule mappings
  */
 
+import { getTodayFinDate, parseFinDate, getDateRelativeToToday } from './dateUtils.js';
+
 /**
  * Default subject schedule mapping for different days of the week
  * Keys are subject names, values are arrays of day numbers (1-based, 1=Monday)
@@ -177,4 +179,80 @@ export function getNextClassText(subject) {
   } else {
     return `${nextClass.dayName} (in ${nextClass.daysUntil} days)`;
   }
+}
+
+/**
+ * Calculate the due date for a task based on its subject
+ * @param {Object} task - The task object
+ * @param {string} task.subject - The subject of the task
+ * @param {number} extraDays - Additional days to add to the calculated due date (default: 0)
+ * @returns {string} Calculated due date in Finnish format (DD.MM.YYYY)
+ */
+export function calculateDueDate(task, extraDays = 0) {
+  // If the task doesn't have a subject (e.g., chores), return today's date
+  if (!task || !task.subject) {
+    return getTodayFinDate();
+  }
+  
+  // Calculate the next class day for the subject
+  const nextClass = calculateNextClassDay(task.subject);
+  
+  // If the subject is not in the schedule, default to today
+  if (!nextClass.found) {
+    console.warn(`Could not find next class for subject: ${task.subject}`);
+    return getTodayFinDate();
+  }
+  
+  // Calculate the due date based on the next class occurrence plus any extra days
+  return getDateRelativeToToday(nextClass.daysUntil + extraDays);
+}
+
+/**
+ * Update a task with calculated due date based on its subject
+ * @param {Object} task - The task to update
+ * @param {boolean} override - Whether to override an existing due date (default: false)
+ * @returns {Object} The updated task with calculated due date
+ */
+export function updateTaskWithCalculatedDueDate(task, override = false) {
+  if (!task) return task;
+  
+  // Don't recalculate if the task already has a manually set due date and override is false
+  if (task.dueDate && task.manuallySetDueDate && !override) {
+    return task;
+  }
+  
+  // Calculate the due date based on the next class occurrence
+  const calculatedDueDate = calculateDueDate(task);
+  
+  // Update the task
+  return {
+    ...task,
+    calculatedDueDate,
+    dueDate: task.manuallySetDueDate ? task.dueDate : calculatedDueDate
+  };
+}
+
+/**
+ * Get the appropriate due date to use for a task (manually set or calculated)
+ * @param {Object} task - The task object
+ * @returns {string} The due date to use in Finnish format (DD.MM.YYYY)
+ */
+export function getEffectiveDueDate(task) {
+  // If there's a manually set due date, prioritize it
+  if (task.manuallySetDueDate && task.dueDate) {
+    return task.dueDate;
+  }
+  
+  // Otherwise use calculated due date if available
+  if (task.calculatedDueDate) {
+    return task.calculatedDueDate;
+  }
+  
+  // If no calculated due date, try calculating it now
+  if (task.subject) {
+    return calculateDueDate(task);
+  }
+  
+  // Default to the task's dueDate field or today if none available
+  return task.dueDate || getTodayFinDate();
 }

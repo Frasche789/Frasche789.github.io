@@ -209,12 +209,12 @@ async function saveData(data) {
           // Prepare data with sanitized values - ensure no undefined or invalid values
           const taskData = {
             date: normalizedDate || '',
+            due_date: '',
             description: task.description || '',
             subject: normalizedSubject || 'Unknown',
             type: task.type || 'homework',
             status: task.status || 'open',
             student_id: Number(task.student_id) || 1,
-            points: Number(task.points) || 5,
             completed: Boolean(task.completed) || false
           };
           
@@ -666,14 +666,23 @@ async function scrapeWilma() {
           if (!exists) {
             // Add new task with sanitized values
             const newTask = {
-              id: Date.now() + Math.floor(Math.random() * 1000),
+              id: (() => {
+                // Parse the date (format: "DD.MM.YYYY")
+                const dateParts = normalizedDate.split('.');
+                // Create YYMMDD format
+                const dateCode = dateParts[2].substring(2) + dateParts[1] + dateParts[0];
+                // Get subject initials (first two letters uppercase)
+                const subjectInitials = normalizedSubject.substring(0, 2).toUpperCase();
+                // Create stylized ID: YYMMDD-XX
+                return `${dateCode}-${subjectInitials}`;
+              })(),
               date: normalizedDate,
+              due_date: '',
               subject: normalizedSubject,
               description: cleanDescription,
               type: 'homework',
               status: 'open',
               student_id: 1,
-              points: 5
             };
             
             data.tasks.push(newTask);

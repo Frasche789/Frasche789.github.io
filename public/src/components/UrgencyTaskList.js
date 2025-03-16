@@ -96,6 +96,127 @@ export function createLaterTasksContainer(laterTasks, onTaskCompleted) {
 }
 
 /**
+ * Create a container-based tasks view
+ * Shows current and future tasks directly, with an archive button for older/completed tasks
+ * 
+ * @param {Object} containerGroups - Tasks grouped by container
+ * @param {Function} onTaskCompleted - Callback when task is completed
+ * @returns {HTMLElement} - The container view
+ */
+export function createContainerTasksView(containerGroups, onTaskCompleted) {
+  // Create main container
+  const mainContainer = document.createElement('div');
+  mainContainer.className = 'container-tasks-view';
+  
+  // Create Current Tasks section
+  if (containerGroups.current && containerGroups.current.length > 0) {
+    const currentSection = createContainerSection('current', containerGroups.current, onTaskCompleted);
+    mainContainer.appendChild(currentSection);
+  }
+  
+  // Create Future Tasks section
+  if (containerGroups.future && containerGroups.future.length > 0) {
+    const futureSection = createContainerSection('future', containerGroups.future, onTaskCompleted);
+    mainContainer.appendChild(futureSection);
+  }
+  
+  // Create Archive button only if there are archive tasks
+  if (containerGroups.archive && containerGroups.archive.length > 0) {
+    const archiveButton = document.createElement('button');
+    archiveButton.className = 'archive-button';
+    archiveButton.innerHTML = `
+      <i class="ri-archive-line"></i>
+      Archive
+      <span class="archive-counter">${containerGroups.archive.length}</span>
+    `;
+    
+    // Add click event to open archive modal
+    archiveButton.addEventListener('click', () => {
+      // Import here to avoid circular dependencies
+      import('./ArchiveModal.js').then(module => {
+        const { openArchiveModal } = module;
+        openArchiveModal(containerGroups.archive);
+      });
+    });
+    
+    mainContainer.appendChild(archiveButton);
+  }
+  
+  return mainContainer;
+}
+
+/**
+ * Create a container section for tasks
+ * 
+ * @param {string} containerType - The container type (current, future)
+ * @param {Array} tasks - The tasks for this container
+ * @param {Function} onTaskCompleted - Callback when task is completed
+ * @returns {HTMLElement} - The container section
+ */
+function createContainerSection(containerType, tasks, onTaskCompleted) {
+  const sectionContainer = document.createElement('div');
+  sectionContainer.className = `container-section ${containerType}-section`;
+  
+  // Create section header
+  const sectionHeader = document.createElement('div');
+  sectionHeader.className = 'container-header';
+  
+  // Set header title and icon based on container type
+  let titleText = '';
+  let iconClass = '';
+  
+  switch (containerType) {
+    case 'current':
+      titleText = 'Today & Tomorrow';
+      iconClass = 'ri-alarm-line';
+      break;
+    case 'future':
+      titleText = 'Future Tasks';
+      iconClass = 'ri-calendar-line';
+      break;
+    default:
+      titleText = 'Tasks';
+      iconClass = 'ri-list-check';
+  }
+  
+  // Create and append title
+  const title = document.createElement('h3');
+  title.className = `container-title ${containerType}`;
+  title.innerHTML = `<i class="${iconClass}"></i> ${titleText}`;
+  sectionHeader.appendChild(title);
+  
+  // Add task count
+  const taskCount = document.createElement('span');
+  taskCount.className = 'task-count';
+  taskCount.textContent = tasks.length;
+  sectionHeader.appendChild(taskCount);
+  
+  // Create tasks container
+  const tasksContainer = document.createElement('div');
+  tasksContainer.className = 'container-tasks';
+  
+  // Add tasks to container
+  tasks.forEach(task => {
+    // Create task card with completion callback
+    const taskCard = createTaskCard(task, (taskId) => {
+      // Execute the callback if provided
+      if (onTaskCompleted && typeof onTaskCompleted === 'function') {
+        onTaskCompleted(taskId);
+      }
+    });
+    
+    // Add to container
+    tasksContainer.appendChild(taskCard);
+  });
+  
+  // Assemble section
+  sectionContainer.appendChild(sectionHeader);
+  sectionContainer.appendChild(tasksContainer);
+  
+  return sectionContainer;
+}
+
+/**
  * Create a section for a specific urgency level
  * @param {string} title - Section title (Today, Tomorrow, Later)
  * @param {string} urgencyClass - CSS class for styling
@@ -204,18 +325,29 @@ export function updateUrgencyTaskList(container, urgencyLevel, updatedTasks, onT
   
   taskList.innerHTML = '';
   
-  // Update task count badge
+  // Update count badge
   const countBadge = section.querySelector('.task-count-badge');
   if (countBadge) {
     countBadge.textContent = updatedTasks.length;
   }
   
-  // Add updated tasks
+  // If no tasks, show empty message
+  if (!updatedTasks || updatedTasks.length === 0) {
+    if (urgencyLevel === 'later') {
+      // Remove the whole section if it's the "later" container
+      container.innerHTML = '';
+      const emptyState = createEmptyState('No upcoming tasks scheduled!');
+      container.appendChild(emptyState);
+    }
+    return;
+  }
+  
+  // Re-add tasks with updated data
+  const urgencyClass = urgencyLevel === 'today' ? 'urgent' : 
+                      urgencyLevel === 'tomorrow' ? 'upcoming' : 'later';
+  
   updatedTasks.forEach(task => {
     // Add urgency class to task for styling
-    const urgencyClass = urgencyLevel === 'today' ? 'urgent' : 
-                          urgencyLevel === 'tomorrow' ? 'upcoming' : 'later';
-    
     const taskWithUrgency = { 
       ...task, 
       urgencyClass 
@@ -240,4 +372,25 @@ export function updateUrgencyTaskList(container, urgencyLevel, updatedTasks, onT
     
     taskList.appendChild(taskCard);
   });
+}
+
+/**
+ * Update tasks in an existing container-based view
+ * @param {HTMLElement} containerView - The container view to update
+ * @param {Object} containerTasks - Object containing updated tasks by container
+ * @param {Function} onTaskCompleted - Callback for when a task is completed
+ */
+export function updateContainerTasksView(containerView, containerTasks, onTaskCompleted) {
+  if (!containerView) return;
+  
+  // Clear existing content
+  containerView.innerHTML = '';
+  
+  // Re-create the container view with updated tasks
+  const updatedView = createContainerTasksView(containerTasks, onTaskCompleted);
+  
+  // Copy the content from updated view to existing view
+  while (updatedView.firstChild) {
+    containerView.appendChild(updatedView.firstChild);
+  }
 }
