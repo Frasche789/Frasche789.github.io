@@ -112,7 +112,7 @@ export async function playCompletionAnimation(element) {
     document.body.appendChild(clone);
     
     // Add completed styling to original element
-    element.classList.add('completed-quest');
+    element.classList.add('completed-task');
     
     // Create and add completion stamp
     const stamp = document.createElement('div');

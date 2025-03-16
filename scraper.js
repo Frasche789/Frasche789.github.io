@@ -70,7 +70,7 @@ async function loadExistingData() {
       }
       
       // Get tasks
-      const tasksSnapshot = await getDocs(collection(db, 'quests'));
+      const tasksSnapshot = await getDocs(collection(db, 'tasks'));
       if (!tasksSnapshot.empty) {
         data.tasks = tasksSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -221,7 +221,7 @@ async function saveData(data) {
           // Check if task with same properties already exists - more restrictive query
           // Only query by subject and description to reduce complexity
           const q = query(
-            collection(db, 'quests'), 
+            collection(db, 'tasks'), 
             where('subject', '==', taskData.subject),
             where('description', '==', taskData.description)
           );
@@ -230,7 +230,7 @@ async function saveData(data) {
           
           if (querySnapshot.empty) {
             // Task doesn't exist yet, add it
-            const docRef = await addDoc(collection(db, 'quests'), taskData);
+            const docRef = await addDoc(collection(db, 'tasks'), taskData);
             console.log(`Added new task to Firestore with ID: ${docRef.id}`);
             successCount++;
           } else {
@@ -251,7 +251,7 @@ async function saveData(data) {
     console.error('Error saving data to Firestore:', error);
     // Fallback to local JSON file if Firestore fails
     try {
-      const DATA_FILE = path.join(DATA_DIR, 'quests.json');
+      const DATA_FILE = path.join(DATA_DIR, 'tasks.json');
       fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
       console.log('Data saved to local JSON file as fallback');
     } catch (fallbackError) {

@@ -17,7 +17,7 @@ import { dispatch } from '../state/appState.js';
  */
 export function createDateTaskList(date, tasks, todayFormatted, onTaskCompleted) {
   const container = document.createElement('div');
-  container.className = 'quest-day';
+  container.className = 'task-day';
   container.dataset.date = date;
   
   // Create the date header with appropriate visual distinction
@@ -38,13 +38,13 @@ export function createDateTaskList(date, tasks, todayFormatted, onTaskCompleted)
   
   // Create date header
   const dateHeader = document.createElement('div');
-  dateHeader.className = `quest-day-header ${dateClass}`;
-  dateHeader.innerHTML = `<h3 class="quest-day-title">${dateText}</h3>`;
+  dateHeader.className = `task-day-header ${dateClass}`;
+  dateHeader.innerHTML = `<h3 class="task-day-title">${dateText}</h3>`;
   container.appendChild(dateHeader);
   
   // Create task list
   const taskList = document.createElement('div');
-  taskList.className = 'quest-list';
+  taskList.className = 'task-list';
   
   // Add tasks to the list
   tasks.forEach(task => {
@@ -73,12 +73,12 @@ export function createDateTaskList(date, tasks, todayFormatted, onTaskCompleted)
  */
 export function createSubjectTaskList(subject, tasks, nextClassInfo, onTaskCompleted) {
   const container = document.createElement('div');
-  container.className = 'quest-day subject-group';
+  container.className = 'task-day subject-group';
   container.dataset.subject = subject;
   
   // Create subject header with next class information
   const subjectHeader = document.createElement('div');
-  subjectHeader.className = 'quest-day-header';
+  subjectHeader.className = 'task-day-header';
   
   let nextClassText = 'Not scheduled';
   if (nextClassInfo && nextClassInfo.found) {
@@ -92,14 +92,14 @@ export function createSubjectTaskList(subject, tasks, nextClassInfo, onTaskCompl
   }
   
   subjectHeader.innerHTML = `
-    <h3 class="quest-day-title">${subject}</h3>
+    <h3 class="task-day-title">${subject}</h3>
     <div class="next-class-info">Next: ${nextClassText}</div>
   `;
   container.appendChild(subjectHeader);
   
   // Create task list
   const taskList = document.createElement('div');
-  taskList.className = 'quest-list';
+  taskList.className = 'task-list';
   
   // Add tasks to the list
   tasks.forEach(task => {
@@ -149,7 +149,7 @@ export function updateTaskList(listElement, updatedTasks, onTaskCompleted) {
   if (!listElement) return;
   
   // Clear existing tasks
-  const taskList = listElement.querySelector('.quest-list');
+  const taskList = listElement.querySelector('.task-list');
   if (!taskList) return;
   
   taskList.innerHTML = '';

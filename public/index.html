@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Quest Board - ADHD-optimized task tracking for students">
-  <title>Quest Board</title>
+  <meta name="description" content="Task Board - ADHD-optimized task tracking for students">
+  <title>Task Board</title>
   <!-- Font for improved readability -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,9 +39,9 @@
         What's up today
       </h1>
       
-      <div id="today-quests" class="quest-list">
-        <!-- Today's quests will be loaded here -->
-        <div class="quest-empty-state" id="today-empty-state" style="display: none;">
+      <div id="today-tasks" class="task-list">
+        <!-- Today's tasks will be loaded here -->
+        <div class="task-empty-state" id="today-empty-state" style="display: none;">
           <i class="ri-emotion-happy-line"></i>
           <p>All done for today!</p>
           <div class="celebration-text">Amazing job!</div>
@@ -50,15 +50,15 @@
     </header>
 
     <!-- Main content with infinite scroll -->
-    <main class="quest-board">
-      <div id="quest-container" class="quest-days-container">
-        <!-- Quest days will be rendered here by JavaScript -->
+    <main class="task-board">
+      <div id="task-container" class="task-days-container">
+        <!-- Task days will be rendered here by JavaScript -->
       </div>
       
-      <div id="no-quests" class="empty-state-container" style="display: none;">
+      <div id="no-tasks" class="empty-state-container" style="display: none;">
         <div class="empty-state-content">
           <i class="ri-trophy-line"></i>
-          <h3>All quests completed!</h3>
+          <h3>All tasks completed!</h3>
           <p>You've finished everything. Great job!</p>
           <div class="confetti-container" id="confetti"></div>
         </div>
@@ -112,7 +112,7 @@
         // Set analytics options to respect privacy and avoid tracking prevention issues
         analyticsCollectionEnabled: false,
         appId: "1:1045472593233:web:e8c5b7c3f3c3f3c3f3c3f3", // This is public and safe to include
-        projectId: "questboard-17337"
+        projectId: "taskboard-17337"
       };
       
       const app = initializeApp(firebaseOptions);

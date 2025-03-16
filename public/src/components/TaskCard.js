@@ -15,7 +15,7 @@ import { completeTask } from '../services/taskService.js';
  */
 export function createTaskCard(task, onCompleted) {
   const taskCard = document.createElement('div');
-  taskCard.className = `quest-card ${task.completed ? 'completed-quest' : ''}`;
+  taskCard.className = `task-card ${task.completed ? 'completed-task' : ''}`;
   taskCard.dataset.id = task.id;
   taskCard.dataset.type = task.type || 'unknown';
   
@@ -75,18 +75,18 @@ function createTaskCardContent(task) {
   
   // Create the card content
   return `
-    <div class="quest-card-inner" style="${cardStyle}">
-      <div class="quest-card-content">
-        <div class="quest-card-header">
-          ${task.subject ? `<div class="quest-subject" style="background-color: ${color};">${task.subject}</div>` : ''}
-          ${task.type === 'chore' ? '<div class="quest-type">Chore</div>' : ''}
+    <div class="task-card-inner" style="${cardStyle}">
+      <div class="task-card-content">
+        <div class="task-card-header">
+          ${task.subject ? `<div class="task-subject" style="background-color: ${color};">${task.subject}</div>` : ''}
+          ${task.type === 'chore' ? '<div class="task-type">Chore</div>' : ''}
           ${task.completed ? '<div class="completed-stamp">DONE</div>' : ''}
         </div>
-        <div class="quest-description">${task.description}</div>
-        <div class="quest-meta">
-          ${pointsText ? `<div class="quest-points">${pointsText}</div>` : ''}
+        <div class="task-description">${task.description}</div>
+        <div class="task-meta">
+          ${pointsText ? `<div class="task-points">${pointsText}</div>` : ''}
           ${task.completed && task.completedDate ? 
-            `<div class="quest-completed-date">Completed: ${task.completedDate}</div>` : ''}
+            `<div class="task-completed-date">Completed: ${task.completedDate}</div>` : ''}
         </div>
       </div>
       ${!task.completed ? `
@@ -111,9 +111,9 @@ export function updateTaskCard(cardElement, updatedTask) {
   
   // Update class for completed state
   if (updatedTask.completed) {
-    cardElement.classList.add('completed-quest');
+    cardElement.classList.add('completed-task');
   } else {
-    cardElement.classList.remove('completed-quest');
+    cardElement.classList.remove('completed-task');
   }
   
   // Re-add event listeners if needed

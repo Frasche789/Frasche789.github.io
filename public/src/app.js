@@ -1,5 +1,5 @@
 /**
- * app.js - Quest Board ADHD-Optimized UI (Modular Version)
+ * app.js - Task Board ADHD-Optimized UI (Modular Version)
  * Main entry point that orchestrates module initialization
  */
 
@@ -33,10 +33,10 @@ import { createDateTaskList, createSubjectTaskList, createEmptyState } from './c
 
 // DOM elements
 const elements = {
-  todayQuests: document.getElementById('today-quests'),
+  todayTasks: document.getElementById('today-tasks'),
   todayEmptyState: document.getElementById('today-empty-state'),
-  questContainer: document.getElementById('quest-container'),
-  noQuestsMessage: document.getElementById('no-quests'),
+  taskContainer: document.getElementById('task-container'),
+  noTasksMessage: document.getElementById('no-tasks'),
   studentNameEl: document.getElementById('studentName'),
   studentPointsEl: document.getElementById('studentPoints'),
   loadingIndicator: document.getElementById('loading-indicator'),
@@ -176,7 +176,7 @@ function createArchiveControls() {
   const indicator = document.createElement('div');
   indicator.className = 'archive-indicator';
   indicator.style.display = 'none';
-  elements.questContainer.parentNode.insertBefore(indicator, elements.questContainer.nextSibling);
+  elements.taskContainer.parentNode.insertBefore(indicator, elements.taskContainer.nextSibling);
   elements.archiveIndicator = indicator;
   
   // Create archive toggle
@@ -186,7 +186,7 @@ function createArchiveControls() {
     <i class="ri-archive-line"></i>
     <span>Show Archive</span>
   `;
-  elements.questContainer.parentNode.insertBefore(toggle, elements.questContainer.nextSibling);
+  elements.taskContainer.parentNode.insertBefore(toggle, elements.taskContainer.nextSibling);
   elements.archiveToggle = toggle;
 }
 
@@ -243,7 +243,7 @@ function renderArchiveIndicator(archiveCount) {
  * Render tasks based on current filter
  */
 export function renderTasks() {
-  if (!elements.questContainer) return;
+  if (!elements.taskContainer) return;
   
   // Get today's date for comparison
   const todayFormatted = getTodayFinDate();
@@ -259,19 +259,19 @@ export function renderTasks() {
   });
   
   // Clear container
-  elements.questContainer.innerHTML = '';
+  elements.taskContainer.innerHTML = '';
   
   // Update archive indicator
   renderArchiveIndicator(archiveCount);
   
   // Handle empty state
   if (tasks.length === 0) {
-    elements.noQuestsMessage.style.display = 'flex';
+    elements.noTasksMessage.style.display = 'flex';
     return;
   }
   
   // Hide empty state
-  elements.noQuestsMessage.style.display = 'none';
+  elements.noTasksMessage.style.display = 'none';
   
   // Determine rendering method based on filter
   if (activeFilter === 'subjects') {
@@ -318,7 +318,7 @@ function renderTasksByDateGroups(dateGroups, todayFormatted) {
       }
     );
     
-    elements.questContainer.appendChild(dateTaskList);
+    elements.taskContainer.appendChild(dateTaskList);
   });
 }
 
@@ -333,7 +333,7 @@ function renderTasksByNextClassGroups(subjectGroups, todayFormatted) {
   
   // No subjects to display
   if (subjects.length === 0) {
-    elements.questContainer.appendChild(
+    elements.taskContainer.appendChild(
       createEmptyState('No subject tasks found')
     );
     return;
@@ -374,7 +374,7 @@ function renderTasksByNextClassGroups(subjectGroups, todayFormatted) {
       }
     );
     
-    elements.questContainer.appendChild(subjectTaskList);
+    elements.taskContainer.appendChild(subjectTaskList);
   });
 }
 

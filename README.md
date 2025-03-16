@@ -1,4 +1,4 @@
-# Quest Board - ADHD-Optimized Task Tracking
+# Task Board - ADHD-Optimized Task Tracking
 
 An ADHD/autism-friendly task management system designed specifically for neurodivergent children to visualize and complete their tasks more effectively.
 

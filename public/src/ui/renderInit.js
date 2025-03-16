@@ -17,10 +17,10 @@ export const RENDER_INIT_ID = 'render';
 
 // DOM elements (will be populated during initialization)
 const elements = {
-  todayQuests: null,
+  todayTasks: null,
   todayEmptyState: null,
-  questContainer: null,
-  noQuestsMessage: null,
+  taskContainer: null,
+  noTasksMessage: null,
   archiveIndicator: null
 };
 
@@ -33,10 +33,10 @@ async function initializeRenderer() {
   
   try {
     // Populate DOM elements from document
-    elements.todayQuests = document.getElementById('today-quests');
+    elements.todayTasks = document.getElementById('today-tasks');
     elements.todayEmptyState = document.getElementById('today-empty-state');
-    elements.questContainer = document.getElementById('quest-container');
-    elements.noQuestsMessage = document.getElementById('no-quests');
+    elements.taskContainer = document.getElementById('task-container');
+    elements.noTasksMessage = document.getElementById('no-tasks');
     elements.archiveIndicator = document.querySelector('.archive-indicator');
     
     // Perform initial render
@@ -114,10 +114,10 @@ function renderTasks() {
  * @param {boolean} show - Whether to show the message
  */
 function showNoTasksMessage(show) {
-  if (!elements.questContainer || !elements.noQuestsMessage) return;
+  if (!elements.taskContainer || !elements.noTasksMessage) return;
   
-  elements.questContainer.innerHTML = '';
-  elements.noQuestsMessage.style.display = show ? 'block' : 'none';
+  elements.taskContainer.innerHTML = '';
+  elements.noTasksMessage.style.display = show ? 'block' : 'none';
 }
 
 /**
@@ -221,10 +221,10 @@ function groupTasksByNextClass(tasks) {
  * @param {string} todayFormatted - Today's date for comparison
  */
 function renderTasksByDateGroups(dateGroups, todayFormatted) {
-  if (!elements.questContainer) return;
+  if (!elements.taskContainer) return;
   
   // Clear container
-  elements.questContainer.innerHTML = '';
+  elements.taskContainer.innerHTML = '';
   
   // Sort dates for display
   const sortedDates = Object.keys(dateGroups).sort((a, b) => {
@@ -249,14 +249,14 @@ function renderTasksByDateGroups(dateGroups, todayFormatted) {
     }
     
     // Create and append the task list for this date
-    elements.questContainer.appendChild(
+    elements.taskContainer.appendChild(
       createDateTaskList(dateDisplay, tasks, headerClass)
     );
   });
   
   // If no date groups, show empty state
   if (sortedDates.length === 0) {
-    elements.questContainer.appendChild(createEmptyState());
+    elements.taskContainer.appendChild(createEmptyState());
   }
 }
 
@@ -266,10 +266,10 @@ function renderTasksByDateGroups(dateGroups, todayFormatted) {
  * @param {string} todayFormatted - Today's date for comparison
  */
 function renderTasksByNextClassGroups(subjectGroups, todayFormatted) {
-  if (!elements.questContainer) return;
+  if (!elements.taskContainer) return;
   
   // Clear container
-  elements.questContainer.innerHTML = '';
+  elements.taskContainer.innerHTML = '';
   
   // Sort subjects by their next class day
   const sortedSubjects = Object.keys(subjectGroups).sort((a, b) => {
@@ -310,14 +310,14 @@ function renderTasksByNextClassGroups(subjectGroups, todayFormatted) {
     }
     
     // Create and append the task list for this subject
-    elements.questContainer.appendChild(
+    elements.taskContainer.appendChild(
       createSubjectTaskList(subject, tasks, nextClassText, headerClass)
     );
   });
   
   // If no subject groups, show empty state
   if (sortedSubjects.length === 0) {
-    elements.questContainer.appendChild(createEmptyState());
+    elements.taskContainer.appendChild(createEmptyState());
   }
 }
 

@@ -8,7 +8,7 @@ import { dispatch } from '../state/appState.js';
 import { getTodayFinDate } from '../utils/dateUtils.js';
 
 // DOM elements cache
-let todayQuestsEl = null;
+let todayTasksEl = null;
 let todayEmptyStateEl = null;
 
 /**
@@ -16,10 +16,10 @@ let todayEmptyStateEl = null;
  * @param {Object} elements - DOM elements object
  */
 export function initTodayTasks(elements) {
-  todayQuestsEl = elements.todayQuests;
+  todayTasksEl = elements.todayTasks;
   todayEmptyStateEl = elements.todayEmptyState;
   
-  if (!todayQuestsEl || !todayEmptyStateEl) {
+  if (!todayTasksEl || !todayEmptyStateEl) {
     console.error('Today tasks elements not found');
     return;
   }
@@ -31,7 +31,7 @@ export function initTodayTasks(elements) {
  * @param {string} [todayFormatted] - Today's date in Finnish format (optional)
  */
 export function renderTodayTasks(tasks, todayFormatted = null) {
-  if (!todayQuestsEl || !todayEmptyStateEl) {
+  if (!todayTasksEl || !todayEmptyStateEl) {
     console.error('Today tasks elements not initialized. Call initTodayTasks first.');
     return;
   }
@@ -42,7 +42,7 @@ export function renderTodayTasks(tasks, todayFormatted = null) {
   }
   
   // Clear previous content
-  todayQuestsEl.innerHTML = '';
+  todayTasksEl.innerHTML = '';
   
   // Find today's incomplete tasks
   const todayTasks = tasks.filter(task => 
@@ -71,7 +71,7 @@ export function renderTodayTasks(tasks, todayFormatted = null) {
     // Add a special class for today's task cards
     taskCard.classList.add('today-task-card');
     
-    todayQuestsEl.appendChild(taskCard);
+    todayTasksEl.appendChild(taskCard);
   });
 }
 
@@ -80,16 +80,16 @@ export function renderTodayTasks(tasks, todayFormatted = null) {
  * @param {string} taskId - ID of the completed task
  */
 function onTodayTaskCompleted(taskId) {
-  if (!todayQuestsEl || !todayEmptyStateEl) return;
+  if (!todayTasksEl || !todayEmptyStateEl) return;
   
   // Remove the task card
-  const taskCard = todayQuestsEl.querySelector(`.quest-card[data-id="${taskId}"]`);
+  const taskCard = todayTasksEl.querySelector(`.task-card[data-id="${taskId}"]`);
   if (taskCard) {
     taskCard.remove();
   }
   
   // Check if there are any tasks left
-  if (todayQuestsEl.children.length === 0) {
+  if (todayTasksEl.children.length === 0) {
     // Show empty state with celebration
     todayEmptyStateEl.style.display = 'flex';
     
@@ -117,7 +117,7 @@ export function handleTaskUpdate(detail) {
   if (!taskId) return;
   
   // Check if this task is in the today section
-  const taskCard = todayQuestsEl.querySelector(`.quest-card[data-id="${taskId}"]`);
+  const taskCard = todayTasksEl.querySelector(`.task-card[data-id="${taskId}"]`);
   
   if (taskCard) {
     // If the task was completed, remove it

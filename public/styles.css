@@ -1,5 +1,5 @@
 /* 
- * styles.css - Quest Board ADHD-Optimized UI
+ * styles.css - Task Board ADHD-Optimized UI
  * Mobile-first responsive design with neurologically-optimized visual hierarchy
  */
 
@@ -235,14 +235,14 @@ p {
   border-color: var(--primary-color);
 }
 
-/* Main quest board */
-.quest-board {
+/* Main task board */
+.task-board {
   flex: 1;
   padding: var(--spacing-md);
   overflow-x: hidden;
 }
 
-.quest-days-container {
+.task-days-container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
@@ -281,8 +281,8 @@ p {
   font-weight: 700;
 }
 
-/* Quest cards */
-.quest-card {
+/* Task cards */
+.task-card {
   background-color: var(--card-background);
   border-radius: var(--card-radius);
   box-shadow: 0 2px 8px var(--shadow-color);
@@ -293,39 +293,39 @@ p {
   transition: transform var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-.quest-card.next-class-today {
+.task-card.next-class-today {
   border-left: 5px solid var(--class-today);
   box-shadow: 0 4px 12px rgba(255, 82, 82, 0.1);
 }
 
-.quest-card.next-class-tomorrow {
+.task-card.next-class-tomorrow {
   border-left: 5px solid var(--class-tomorrow);
   box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1);
 }
 
-.quest-card:active {
+.task-card:active {
   transform: scale(0.98);
 }
 
-.quest-header {
+.task-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
 
-.quest-title {
+.task-title {
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0;
 }
 
-.quest-subject {
+.task-subject {
   font-size: 0.8rem;
   color: var(--text-light);
   margin-bottom: var(--spacing-xs);
 }
 
-.quest-points {
+.task-points {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -339,23 +339,23 @@ p {
   padding: 0.3rem;
 }
 
-.quest-description {
+.task-description {
   margin-bottom: var(--spacing-sm);
   color: var(--text-primary);
 }
 
-.quest-footer {
+.task-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.quest-date {
+.task-date {
   font-size: 0.8rem;
   color: var(--text-light);
 }
 
-.quest-status {
+.task-status {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
@@ -363,7 +363,7 @@ p {
   color: var(--text-light);
 }
 
-.quest-actions {
+.task-actions {
   display: flex;
   justify-content: center;
   margin-top: var(--spacing-sm);
@@ -390,7 +390,7 @@ p {
   background-color: var(--primary-dark);
 }
 
-/* Subject colors for quest cards */
+/* Subject colors for task cards */
 .subject-math { border-left-color: var(--subject-math); }
 .subject-english { border-left-color: var(--subject-english); }
 .subject-science { border-left-color: var(--subject-science); }
@@ -448,7 +448,7 @@ p {
   margin-bottom: var(--spacing-md);
 }
 
-.quest-empty-state {
+.task-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -457,7 +457,7 @@ p {
   text-align: center;
 }
 
-.quest-empty-state i {
+.task-empty-state i {
   font-size: 2.5rem;
   color: var(--success-color);
   margin-bottom: var(--spacing-sm);
@@ -662,11 +662,11 @@ p {
 }
 
 /* Completed tasks */
-.completed-quest {
+.completed-task {
   opacity: 0.7;
 }
 
-.completed-quest .quest-description {
+.completed-task .task-description {
   text-decoration: line-through;
 }
 
@@ -755,7 +755,7 @@ p {
   transform: translateY(0);
 }
 
-.archive-view .quest-card {
+.archive-view .task-card {
   opacity: 0.85;
   background-color: rgba(255, 255, 255, 0.9);
   border-left: 4px solid var(--primary-light);
@@ -825,7 +825,7 @@ p {
     margin: 0 auto;
   }
   
-  .quest-list {
+  .task-list {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 }

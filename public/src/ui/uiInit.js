@@ -17,10 +17,10 @@ export const UI_EVENTS_INIT_ID = 'ui-events';
 
 // DOM elements
 const elements = {
-  todayQuests: null,
+  todayTasks: null,
   todayEmptyState: null,
-  questContainer: null,
-  noQuestsMessage: null,
+  taskContainer: null,
+  noTasksMessage: null,
   studentNameEl: null,
   studentPointsEl: null,
   loadingIndicator: null,
@@ -43,10 +43,10 @@ const elements = {
 function initDomElements() {
   console.log('Initializing DOM element references...');
   
-  elements.todayQuests = document.getElementById('today-quests');
+  elements.todayTasks = document.getElementById('today-tasks');
   elements.todayEmptyState = document.getElementById('today-empty-state');
-  elements.questContainer = document.getElementById('quest-container');
-  elements.noQuestsMessage = document.getElementById('no-quests');
+  elements.taskContainer = document.getElementById('task-container');
+  elements.noTasksMessage = document.getElementById('no-tasks');
   elements.studentNameEl = document.getElementById('studentName');
   elements.studentPointsEl = document.getElementById('studentPoints');
   elements.loadingIndicator = document.getElementById('loading-indicator');
@@ -62,7 +62,7 @@ function initDomElements() {
   // Validate required elements
   const missingElements = [];
   
-  ['todayQuests', 'questContainer', 'loadingIndicator'].forEach(key => {
+  ['todayTasks', 'taskContainer', 'loadingIndicator'].forEach(key => {
     if (!elements[key]) {
       missingElements.push(key);
     }
@@ -87,7 +87,7 @@ async function initializeUIComponents() {
     initAnimationStyles();
     
     // Initialize Today Tasks component
-    if (elements.todayQuests) {
+    if (elements.todayTasks) {
       initTodayTasks(elements);
     }
     
@@ -218,13 +218,13 @@ function toggleArchiveView() {
  */
 function createArchiveControls() {
   // Only create if we have the container
-  if (!elements.questContainer) return;
+  if (!elements.taskContainer) return;
   
   // Create archive indicator
   const indicator = document.createElement('div');
   indicator.className = 'archive-indicator';
   indicator.style.display = 'none';
-  elements.questContainer.parentNode.insertBefore(indicator, elements.questContainer.nextSibling);
+  elements.taskContainer.parentNode.insertBefore(indicator, elements.taskContainer.nextSibling);
   elements.archiveIndicator = indicator;
   
   // Create archive toggle
@@ -234,7 +234,7 @@ function createArchiveControls() {
     <i class="ri-archive-line"></i>
     <span>Show Archive</span>
   `;
-  elements.questContainer.parentNode.insertBefore(toggle, elements.questContainer.nextSibling);
+  elements.taskContainer.parentNode.insertBefore(toggle, elements.taskContainer.nextSibling);
   elements.archiveToggle = toggle;
 }
 
