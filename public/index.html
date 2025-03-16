@@ -237,9 +237,19 @@
     // Mark task as complete
     async function markTaskComplete(taskId) {
       try {
-        // Import and use the completeTask function from taskService.js
-        const { completeTask } = await import('./src/services/taskService.js');
-        await completeTask(taskId);
+        console.log('Marking task as complete:', taskId);
+        
+        // Get today's date in Finnish format
+        const today = getTodayFinDate();
+        
+        // Update the task in Firestore directly
+        await db.collection('tasks').doc(taskId).update({
+          completed: true,
+          completedDate: today,
+          updatedAt: Date.now()
+        });
+        
+        console.log('Task marked as complete in Firestore');
         
         // Refresh tasks after completion
         loadTasks();

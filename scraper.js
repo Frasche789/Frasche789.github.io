@@ -10,7 +10,7 @@ const { getFirestore, collection, getDocs, doc, getDoc, setDoc, addDoc, query, w
 // Define subject URLs globally so they're accessible to all functions
 const subjects = [
   { name: 'History', url: 'https://opetustampere.inschool.fi/!0466066/groups/137349' },
-  { name: 'Math', url: 'https://opetustampere.inschool.fi/!0466066/groups/137359' },
+  { name: 'Math', url: 'https://opetustampere.inschool.fi/!0466066/groups/137353' },
   { name: 'Finnish', url: 'https://opetustampere.inschool.fi/!0466066/groups/137358' },
   { name: 'English', url: 'https://opetustampere.inschool.fi/!0466066/groups/137348' },
   { name: 'Ethics', url: 'https://opetustampere.inschool.fi/!0466066/groups/137338' },
