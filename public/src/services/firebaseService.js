@@ -65,19 +65,6 @@ export function waitForFirebase() {
       
       if (!window.db || !window.firebaseModules) {
         console.error('Firebase initialization timed out after 8 seconds');
-        
-        // Attempt to reinitialize Firebase
-        try {
-          document.getElementById('loading-indicator').innerHTML = `
-            <div class="error-message">
-              <p>Connection to database timed out. Please check your internet connection.</p>
-              <button onclick="location.reload()" class="primary-btn">Retry</button>
-            </div>
-          `;
-        } catch (e) {
-          console.error('Could not update loading indicator:', e);
-        }
-        
         reject(new Error('Firebase initialization timed out'));
       }
     }, 8000);

@@ -39,6 +39,9 @@ async function loadTasks() {
     // Update state with loaded tasks
     setState({ tasks: sortedTasks }, 'taskService.loadTasks');
     
+    // Dispatch event to signal that tasks are loaded and ready
+    window.dispatchEvent(new CustomEvent('tasks-loaded', { detail: sortedTasks }));
+    
     console.log(`Loaded ${tasks.length} tasks`);
     return sortedTasks;
     

@@ -287,8 +287,7 @@ function updateLoadingIndicator(show, message = 'Loading...', isError = false) {
         ? `
           <div class="error-message">
             <p>${message}</p>
-            <button onclick="location.reload()" class="primary-btn">Retry</button>
-          </div>
+            <button onclick="location.reload()" class="primary-btn">Retry</button>          </div>
         `
         : `
           <div class="spinner"></div>

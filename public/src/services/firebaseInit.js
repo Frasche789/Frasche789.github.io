@@ -67,8 +67,7 @@ async function initializeFirebase() {
         console.error('Firebase initialization timed out after 8 seconds');
         reject(new Error('Firebase initialization timed out'));
       }
-    }, 8000);
-  });
+    }, 8000);  });
 }
 
 /**

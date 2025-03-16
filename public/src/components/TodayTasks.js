@@ -36,6 +36,13 @@ export function renderTodayTasks(tasks, todayFormatted = null) {
     return;
   }
   
+  // Check if tasks is undefined or null
+  if (!tasks || !Array.isArray(tasks)) {
+    console.error('Tasks array is undefined or not an array');
+    todayEmptyStateEl.style.display = 'flex';
+    return;
+  }
+  
   // Get today's date if not provided
   if (!todayFormatted) {
     todayFormatted = getTodayFinDate();

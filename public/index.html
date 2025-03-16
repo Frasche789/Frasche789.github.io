@@ -106,13 +106,14 @@
 
     // Initialize Firebase
     try {
-      // Initialize Firebase without explicit config
-      // When deployed to Firebase hosting, configuration is automatically injected
+      // Firebase configuration with API key
       const firebaseOptions = {
-        // Set analytics options to respect privacy and avoid tracking prevention issues
-        analyticsCollectionEnabled: false,
-        appId: "1:1045472593233:web:e8c5b7c3f3c3f3c3f3c3f3", // This is public and safe to include
-        projectId: "taskboard-17337"
+        apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
+        authDomain: "questboard-17337.firebaseapp.com",
+        projectId: "questboard-17337",
+        storageBucket: "questboard-17337.firebasestorage.app",
+        messagingSenderId: "427884628874",
+        appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
       };
       
       const app = initializeApp(firebaseOptions);
@@ -134,8 +135,7 @@
       console.error('Error initializing Firebase:', error);
       document.getElementById('loading-indicator').innerHTML = `
         <div class="error-message">
-          <p>Failed to connect to the database. Please check your internet connection and try again.</p>
-          <p>Error: ${error.message}</p>
+          <p>Failed to connect to the database. Please try again.</p>
           <button onclick="location.reload()" class="primary-btn">Retry</button>
         </div>
       `;

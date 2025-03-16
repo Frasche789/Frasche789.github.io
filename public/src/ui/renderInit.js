@@ -39,13 +39,22 @@ async function initializeRenderer() {
     elements.noTasksMessage = document.getElementById('no-tasks');
     elements.archiveIndicator = document.querySelector('.archive-indicator');
     
-    // Perform initial render
-    renderTasks();
-    
     // Add event listener for UI render-tasks events
     window.addEventListener('ui:render-tasks', () => {
       renderTasks();
     });
+    
+    // Listen for tasks-loaded event from the task service
+    window.addEventListener('tasks-loaded', () => {
+      console.log('Tasks loaded, triggering render');
+      renderTasks();
+    });
+    
+    // Don't render immediately - wait for tasks to be loaded
+    // Only verify that elements exist for now
+    if (!elements.todayTasks || !elements.taskContainer) {
+      console.warn('Required DOM elements not found for task rendering');
+    }
     
     console.log('Task renderer initialized successfully');
     return true;
@@ -62,15 +71,27 @@ async function initializeRenderer() {
 function renderTasks() {
   try {
     const state = getState();
-    const { tasks, activeFilter, showRecentOnly, showArchive } = state;
+    
+    // Handle possible null state (additional safety)
+    if (!state) {
+      console.error('Application state is not available');
+      return;
+    }
+    
+    const { tasks = [], activeFilter = 'all', showRecentOnly = false, showArchive = false } = state;
     
     if (!tasks || !Array.isArray(tasks)) {
       console.error('No tasks available for rendering');
       return;
     }
     
-    // Render today's tasks
-    renderTodayTasks();
+    // Get today's date for comparisons
+    const todayFormatted = getTodayFinDate();
+    
+    // Only try to render today's tasks if we have data and elements are initialized
+    if (elements.todayTasks && elements.todayEmptyState) {
+      renderTodayTasks(tasks, todayFormatted);
+    }
     
     // Get filtered tasks
     const filteredTasks = getFilteredTasks(tasks, { 
@@ -87,9 +108,6 @@ function renderTasks() {
     
     // Hide no tasks message
     showNoTasksMessage(false);
-    
-    // Get today's date for comparisons
-    const todayFormatted = getTodayFinDate();
     
     // Choose rendering method based on active filter
     if (activeFilter === 'subject') {
