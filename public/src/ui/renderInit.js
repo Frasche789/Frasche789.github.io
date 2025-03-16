@@ -41,14 +41,31 @@ async function initializeRenderer() {
     elements.noTasksMessage = document.getElementById('no-tasks');
     elements.archiveIndicator = document.querySelector('.archive-indicator');
     
+    // Log element availability status
+    console.log('Element initialization status:', {
+      todayTasks: !!elements.todayTasks,
+      todayEmptyState: !!elements.todayEmptyState,
+      taskContainer: !!elements.taskContainer,
+      noTasksMessage: !!elements.noTasksMessage,
+      archiveIndicator: !!elements.archiveIndicator
+    });
+    
+    // Add event listener for bootstrap completion
+    window.addEventListener('bootstrap:completed', (event) => {
+      console.log('Bootstrap completed, triggering render', event);
+      // Slight delay to ensure DOM and state are fully ready
+      setTimeout(() => renderTasks(), 100);
+    });
+    
     // Add event listener for UI render-tasks events
     window.addEventListener('ui:render-tasks', () => {
+      console.log('ui:render-tasks event received');
       renderTasks();
     });
     
     // Listen for tasks-loaded event from the task service
-    window.addEventListener('tasks-loaded', () => {
-      console.log('Tasks loaded, triggering render');
+    window.addEventListener('tasks-loaded', (event) => {
+      console.log('Tasks loaded, triggering render', event?.detail?.length || 0);
       renderTasks();
     });
     
@@ -72,6 +89,20 @@ async function initializeRenderer() {
  */
 function renderTasks() {
   try {
+    console.log('Rendering tasks in renderInit.js');
+    
+    // Verify DOM elements are available
+    if (!elements.taskContainer) {
+      console.error('Task container element not found. DOM may not be ready.');
+      elements.taskContainer = document.getElementById('task-container');
+      
+      // Still not found after retry
+      if (!elements.taskContainer) {
+        console.error('Task container still not found after retry. Aborting render.');
+        return;
+      }
+    }
+    
     const state = getState();
     
     // Handle possible null state (additional safety)
@@ -82,10 +113,18 @@ function renderTasks() {
     
     const { tasks = [], activeFilter = 'all', showRecentOnly = false, showArchive = false } = state;
     
+    // Validate task data
     if (!tasks || !Array.isArray(tasks)) {
-      console.error('No tasks available for rendering');
+      console.error('No tasks available for rendering or invalid task array');
+      showNoTasksMessage(true, 'No tasks available - data error');
       return;
     }
+    
+    console.log(`Tasks available for rendering: ${tasks.length}`, { 
+      filter: activeFilter, 
+      showRecentOnly, 
+      showArchive 
+    });
     
     // Get today's date for comparisons
     const todayFormatted = getTodayFinDate();
@@ -93,6 +132,8 @@ function renderTasks() {
     // Only try to render today's tasks if we have data and elements are initialized
     if (elements.todayTasks && elements.todayEmptyState) {
       renderTodayTasks(tasks, todayFormatted);
+    } else {
+      console.warn('Today\'s tasks container not available');
     }
     
     // Get filtered tasks
@@ -102,8 +143,11 @@ function renderTasks() {
       showArchive 
     });
     
+    console.log(`Filtered tasks count: ${filteredTasks.length}`);
+    
     // Check if we have tasks after filtering
     if (filteredTasks.length === 0) {
+      console.log('No tasks after filtering, showing empty state');
       showNoTasksMessage(true);
       return;
     }
@@ -112,15 +156,29 @@ function renderTasks() {
     showNoTasksMessage(false);
     
     // Choose rendering method based on active filter
-    if (activeFilter === 'subject') {
-      const subjectGroups = groupTasksByNextClass(filteredTasks);
-      renderTasksByNextClassGroups(subjectGroups, todayFormatted);
-    } else if (activeFilter === 'urgency') {
-      const urgencyGroups = groupTasksByUrgency(filteredTasks);
-      renderTasksByUrgencyGroups(urgencyGroups);
-    } else {
-      const dateGroups = groupTasksByDueDate(filteredTasks);
-      renderTasksByDateGroups(dateGroups, todayFormatted);
+    try {
+      if (activeFilter === 'subject') {
+        const subjectGroups = groupTasksByNextClass(filteredTasks);
+        renderTasksByNextClassGroups(subjectGroups, todayFormatted);
+      } else if (activeFilter === 'urgency') {
+        const urgencyGroups = groupTasksByUrgency(filteredTasks);
+        console.log('Grouped tasks by urgency:', {
+          immediate: urgencyGroups.immediate ? {
+            today: urgencyGroups.immediate.today?.length || 0,
+            tomorrow: urgencyGroups.immediate.tomorrow?.length || 0
+          } : 'None',
+          later: urgencyGroups.later ? urgencyGroups.later.length || 0 : 'None'
+        });
+        renderTasksByUrgencyGroups(urgencyGroups);
+      } else {
+        const dateGroups = groupTasksByDueDate(filteredTasks);
+        renderTasksByDateGroups(dateGroups, todayFormatted);
+      }
+    } catch (groupingError) {
+      console.error('Error during task grouping/rendering:', groupingError);
+      // Fallback to simple task list if grouping fails
+      elements.taskContainer.innerHTML = '';
+      elements.taskContainer.appendChild(createEmptyState('Error rendering tasks. Try refreshing.'));
     }
     
     // Show archive indicator if needed
@@ -129,6 +187,15 @@ function renderTasks() {
     
   } catch (error) {
     console.error('Error rendering tasks:', error);
+    // Try to show an error message if the container exists
+    try {
+      if (elements.taskContainer) {
+        elements.taskContainer.innerHTML = '';
+        elements.taskContainer.appendChild(createEmptyState('Error rendering tasks: ' + error.message));
+      }
+    } catch (e) {
+      console.error('Could not display error message:', e);
+    }
   }
 }
 

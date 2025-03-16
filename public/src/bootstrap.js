@@ -236,6 +236,9 @@ export async function bootstrap() {
     console.log('Application bootstrap completed successfully');
     eventBus.emit('bootstrap:completed', { success: true, results });
     
+    // Explicitly trigger renderTasks after bootstrap completion
+    window.dispatchEvent(new CustomEvent('ui:render-tasks'));
+    
     return { success: true, results };
     
   } catch (error) {

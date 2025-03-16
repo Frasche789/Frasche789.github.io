@@ -1,0 +1,67 @@
+// In ui/renderInit.js
+function initializeRenderer() {
+  console.log('Initializing task renderer...');
+  
+  try {
+    // Populate DOM elements from document
+    elements.todayTasks = document.getElementById('today-tasks');
+    elements.todayEmptyState = document.getElementById('today-empty-state');
+    elements.taskContainer = document.getElementById('task-container');
+    elements.noTasksMessage = document.getElementById('no-tasks');
+    
+    // Log element availability status
+    console.log('Element initialization status:', {
+      todayTasks: !!elements.todayTasks,
+      todayEmptyState: !!elements.todayEmptyState,
+      taskContainer: !!elements.taskContainer,
+      noTasksMessage: !!elements.noTasksMessage
+    });
+    
+    // Add event listener for bootstrap completion
+    window.addEventListener('bootstrap:completed', (event) => {
+      console.log('Bootstrap completed, triggering render', event);
+      // Slight delay to ensure DOM and state are fully ready
+      setTimeout(() => renderTasks(), 100);
+    });
+    
+    // Add event listener for UI render-tasks events
+    window.addEventListener('ui:render-tasks', () => {
+      console.log('ui:render-tasks event received');
+      renderTasks();
+    });
+    
+    // Listen for tasks-loaded event from the task service
+    window.addEventListener('tasks-loaded', (event) => {
+      console.log('Tasks loaded, triggering render', event?.detail?.length || 0);
+      renderTasks();
+    });
+    
+    console.log('Task renderer initialized successfully');
+    return true;
+    
+  } catch (error) {
+    console.error('Error initializing task renderer:', error);
+    throw error;
+  }
+}
+
+// Implement a fallback empty state function
+function showEmptyState(message = 'No tasks available') {
+  // If taskContainer isn't available, try to find it again
+  const container = elements.taskContainer || document.getElementById('task-container');
+  
+  if (!container) {
+    console.error('Cannot show empty state - container not found');
+    return;
+  }
+  
+  container.innerHTML = `
+    <div class="empty-state-container" style="display: flex;">
+      <div class="empty-state-content">
+        <i class="ri-emotion-happy-line"></i>
+        <h3>No tasks</h3>
+        <p>${message}</p>
+      </div>
+    </div>
+  `;
+}

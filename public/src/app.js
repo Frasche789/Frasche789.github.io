@@ -245,53 +245,123 @@ function renderArchiveIndicator(archiveCount) {
  * Render tasks based on current filter
  */
 export function renderTasks() {
-  if (!elements.taskContainer) return;
+  console.log('Rendering tasks in app.js');
   
-  // Get today's date for comparison
-  const todayFormatted = getTodayFinDate();
-  
-  // Get current state
-  const { activeFilter, showRecentOnly, showArchive } = getState();
-  
-  // Get filtered tasks
-  const { tasks, archiveCount } = getFilteredTasks({
-    filter: activeFilter,
-    showRecentOnly,
-    showArchive
-  });
-  
-  // Clear container
-  elements.taskContainer.innerHTML = '';
-  
-  // Update archive indicator
-  renderArchiveIndicator(archiveCount);
-  
-  // Handle empty state
-  if (tasks.length === 0) {
-    elements.noTasksMessage.style.display = 'flex';
-    return;
+  try {
+    // Verify DOM elements are available
+    if (!elements.taskContainer) {
+      console.error('Task container element not found. DOM may not be ready.');
+      elements.taskContainer = document.getElementById('task-container');
+      
+      // Still not found after retry
+      if (!elements.taskContainer) {
+        console.error('Task container still not found after retry. Aborting render.');
+        return;
+      }
+    }
+    
+    // Get today's date for comparison
+    const todayFormatted = getTodayFinDate();
+    
+    // Get current state
+    const state = getState();
+    if (!state) {
+      console.error('Application state is not available');
+      return;
+    }
+    
+    const { activeFilter, showRecentOnly, showArchive } = state;
+    
+    console.log('Rendering with filters:', { activeFilter, showRecentOnly, showArchive });
+    
+    // Get filtered tasks
+    const { tasks, archiveCount } = getFilteredTasks({
+      filter: activeFilter,
+      showRecentOnly,
+      showArchive
+    });
+    
+    // Validate task data
+    if (!tasks || !Array.isArray(tasks)) {
+      console.error('Invalid task data structure after filtering');
+      if (elements.noTasksMessage) {
+        elements.noTasksMessage.style.display = 'flex';
+      }
+      return;
+    }
+    
+    console.log(`Tasks available after filtering: ${tasks.length}`);
+    
+    // Clear container
+    elements.taskContainer.innerHTML = '';
+    
+    // Update archive indicator
+    renderArchiveIndicator(archiveCount);
+    
+    // Handle empty state
+    if (tasks.length === 0) {
+      console.log('No tasks after filtering, showing empty state');
+      if (elements.noTasksMessage) {
+        elements.noTasksMessage.style.display = 'flex';
+      } else {
+        console.warn('No tasks message element not found');
+        // Fallback to inline empty state
+        elements.taskContainer.appendChild(createEmptyState('No tasks available'));
+      }
+      return;
+    }
+    
+    // Hide empty state
+    if (elements.noTasksMessage) {
+      elements.noTasksMessage.style.display = 'none';
+    }
+    
+    // Determine rendering method based on filter
+    try {
+      if (activeFilter === 'subjects') {
+        // Group tasks by subject and render by next class day
+        const subjectGroups = groupTasksByNextClass(tasks);
+        renderTasksByNextClassGroups(subjectGroups, todayFormatted);
+      } else if (activeFilter === 'urgency') {
+        // Group tasks by urgency and render
+        const urgencyGroups = groupTasksByUrgency(tasks);
+        console.log('Grouped tasks by urgency:', {
+          immediate: urgencyGroups.immediate ? {
+            today: urgencyGroups.immediate.today?.length || 0,
+            tomorrow: urgencyGroups.immediate.tomorrow?.length || 0
+          } : 'None',
+          later: urgencyGroups.later ? urgencyGroups.later.length || 0 : 'None'
+        });
+        renderTasksByUrgencyGroups(urgencyGroups, todayFormatted);
+      } else {
+        // Group tasks by due date and render chronologically
+        const dateGroups = groupTasksByDueDate(tasks);
+        renderTasksByDateGroups(dateGroups, todayFormatted);
+      }
+    } catch (groupingError) {
+      console.error('Error during task grouping/rendering:', groupingError);
+      // Fallback to simple task list if grouping fails
+      elements.taskContainer.innerHTML = '';
+      elements.taskContainer.appendChild(createEmptyState('Error rendering tasks. Try refreshing.'));
+    }
+    
+    // Also update today's tasks section
+    if (elements.todayTasks) {
+      console.log('Updating today\'s tasks section');
+      renderTodayTasks(state.tasks, todayFormatted);
+    }
+  } catch (error) {
+    console.error('Error rendering tasks:', error);
+    // Try to show an error message if the container exists
+    try {
+      if (elements.taskContainer) {
+        elements.taskContainer.innerHTML = '';
+        elements.taskContainer.appendChild(createEmptyState('Error rendering tasks: ' + error.message));
+      }
+    } catch (e) {
+      console.error('Could not display error message:', e);
+    }
   }
-  
-  // Hide empty state
-  elements.noTasksMessage.style.display = 'none';
-  
-  // Determine rendering method based on filter
-  if (activeFilter === 'subjects') {
-    // Group tasks by subject and render by next class day
-    const subjectGroups = groupTasksByNextClass(tasks);
-    renderTasksByNextClassGroups(subjectGroups, todayFormatted);
-  } else if (activeFilter === 'urgency') {
-    // Group tasks by urgency and render
-    const urgencyGroups = groupTasksByUrgency(tasks);
-    renderTasksByUrgencyGroups(urgencyGroups, todayFormatted);
-  } else {
-    // Group tasks by due date and render chronologically
-    const dateGroups = groupTasksByDueDate(tasks);
-    renderTasksByDateGroups(dateGroups, todayFormatted);
-  }
-  
-  // Also update today's tasks section
-  renderTodayTasks(getState().tasks, todayFormatted);
 }
 
 /**
