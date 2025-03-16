@@ -180,40 +180,6 @@ p {
   color: var(--primary-color);
 }
 
-/* Streak tracker */
-.streak-tracker {
-  background-color: rgba(67, 97, 238, 0.05);
-  border-radius: var(--border-radius);
-  padding: var(--spacing-md);
-  margin-top: var(--spacing-md);
-}
-
-.streak-label {
-  font-size: 0.85rem;
-  color: var(--text-light);
-  margin-bottom: var(--spacing-xs);
-}
-
-.streak-count {
-  font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: var(--spacing-sm);
-}
-
-.streak-progress {
-  height: 8px;
-  background-color: rgba(67, 97, 238, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.streak-bar {
-  height: 100%;
-  background-color: var(--primary-color);
-  border-radius: 4px;
-  transition: width var(--transition-speed) ease-in-out;
-}
-
 /* Filter section */
 .filter-container {
   background-color: var(--card-background);

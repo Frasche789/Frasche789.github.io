@@ -11,6 +11,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Icons for visual reinforcement -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- Module preloading for critical path modules -->
+  <link rel="modulepreload" href="./src/index.js">
+  <link rel="modulepreload" href="./src/app.js">
+  <link rel="modulepreload" href="./src/services/firebaseService.js">
+  <link rel="modulepreload" href="./src/state/appState.js">
   <!-- Custom styles -->
   <link href="styles.css" rel="stylesheet">
 </head>
@@ -40,14 +45,6 @@
           <i class="ri-emotion-happy-line"></i>
           <p>All done for today!</p>
           <div class="celebration-text">Amazing job!</div>
-        </div>
-      </div>
-      
-      <div class="streak-tracker">
-        <div class="streak-label">Your streak</div>
-        <div class="streak-count"><span id="streakCount">0</span> days</div>
-        <div class="streak-progress">
-          <div class="streak-bar" id="streakBar" style="width: 0%"></div>
         </div>
       </div>
     </header>
@@ -98,8 +95,8 @@
     </div>
   </div>
   
-  <!-- Scripts -->
-  <script type="module" src="src/app.js"></script>
+  <!-- Main application module entry point -->
+  <script type="module" src="./src/index.js"></script>
   
   <!-- Firebase integration -->
   <script type="module">

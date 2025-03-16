@@ -13,9 +13,7 @@ import {
   getState, 
   setState, 
   subscribe, 
-  dispatch,
-  loadStateFromStorage,
-  saveStateToStorage
+  dispatch
 } from './state/appState.js';
 
 // Import services
@@ -30,7 +28,6 @@ import {
 
 // Import components
 import { initTodayTasks, renderTodayTasks } from './components/TodayTasks.js';
-import { initStreakTracker, updateStreak, loadStreakData } from './components/StreakTracker.js';
 import { initChoreModal } from './components/ChoreModal.js';
 import { createDateTaskList, createSubjectTaskList, createEmptyState } from './components/TaskList.js';
 
@@ -45,8 +42,6 @@ const elements = {
   loadingIndicator: document.getElementById('loading-indicator'),
   filterButtons: document.querySelectorAll('.filter-btn'),
   recentFilterText: document.getElementById('recentText'),
-  streakCount: document.getElementById('streakCount'),
-  streakBar: document.getElementById('streakBar'),
   addChoreBtn: document.getElementById('addChoreBtn'),
   choreModal: document.getElementById('choreModal'),
   closeModalBtn: document.getElementById('closeModal'),
@@ -73,29 +68,9 @@ function showLoading(show) {
 /**
  * Initialize app
  */
-async function initializeApp() {
+export async function initializeApp() {
   // Initialize animation styles
   initAnimationStyles();
-  
-  // Restore scroll position if available
-  try {
-    const savedPosition = localStorage.getItem('scrollPosition');
-    if (savedPosition !== null) {
-      // Use setTimeout to ensure DOM is fully loaded before scrolling
-      setTimeout(() => {
-        window.scrollTo(0, parseInt(savedPosition, 10));
-      }, 100);
-    }
-  } catch (error) {
-    console.error('Error accessing localStorage:', error);
-  }
-  
-  try {
-    // Try to load saved streak data early
-    loadStreakData();
-  } catch (error) {
-    console.error('Error in initial streak setup:', error);
-  }
   
   // Show loading indicator
   showLoading(true);
@@ -116,9 +91,6 @@ async function initializeApp() {
     // Render tasks
     renderTasks();
     
-    // Update streak information
-    updateStreak();
-    
     // Add event listeners
     initializeEventListeners();
     
@@ -129,15 +101,6 @@ async function initializeApp() {
     // Hide loading indicator
     showLoading(false);
   }
-  
-  // Save scroll position when user leaves the page
-  window.addEventListener('beforeunload', () => {
-    try {
-      localStorage.setItem('scrollPosition', window.scrollY);
-    } catch (error) {
-      console.error('Error accessing localStorage:', error);
-    }
-  });
 }
 
 /**
@@ -146,9 +109,6 @@ async function initializeApp() {
 function initializeComponents() {
   // Initialize Today Tasks component
   initTodayTasks(elements);
-  
-  // Initialize Streak Tracker component
-  initStreakTracker(elements);
   
   // Initialize Chore Modal component
   initChoreModal(elements);
@@ -201,16 +161,10 @@ function initializeEventListeners() {
       renderTasks();
     }
     
-    // Update student info if it changed
+    // Update student info if students changed
     if (info.changedPaths.includes('students')) {
       updateStudentInfo();
     }
-  });
-  
-  // Listen for task-completed events
-  document.addEventListener('task-completed', () => {
-    // Update streak when a task is completed
-    updateStreak();
   });
 }
 
@@ -288,7 +242,7 @@ function renderArchiveIndicator(archiveCount) {
 /**
  * Render tasks based on current filter
  */
-function renderTasks() {
+export function renderTasks() {
   if (!elements.questContainer) return;
   
   // Get today's date for comparison
@@ -468,11 +422,3 @@ function updateStudentInfo() {
 
 // Initialize app when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
-
-// Export functions for potential external use
-export {
-  initializeApp,
-  renderTasks,
-  toggleRecentFilter,
-  toggleArchiveView
-};

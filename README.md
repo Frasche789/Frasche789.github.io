@@ -9,10 +9,14 @@ An ADHD/autism-friendly task management system designed specifically for neurodi
 - 🔄 **Infinite scroll day-based layout**: Chronological organization of tasks with clear day separators
 - 🎯 **Visually distinct task cards**: Color-coded by subject with prominent completion controls
 - ⏱️ **Due date visualization**: Clear visual distinction between today/tomorrow/later tasks
-- 🔥 **Streak tracking**: Motivation system to encourage regular app usage
+
 - 🎉 **Celebration animations**: Positive reinforcement through visual feedback
 - 🔎 **Filtering system**: Sort by task type, completion status, and recency
 - ⚡ **Performance optimized**: Fast loading and rendering for low-end devices
+
+
+## Planned Future Features
+- 🔥 **Streak tracking**: Motivation system to encourage regular app usage
 - 📊 **Scroll position memory**: Remembers where you left off between sessions
 
 ## Technical Implementation

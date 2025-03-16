@@ -7,16 +7,10 @@
 export const initialState = {
   students: [],
   tasks: [],
-  activeFilter: 'all',
+  activeFilter: 'all', 
   filteredLists: {},
-  showRecentOnly: false,
-  lastScrollPosition: 0,
-  showArchive: false,
-  streak: {
-    count: 0,
-    target: 7, // Target for a complete streak (e.g., 7 days)
-    lastActive: null
-  }
+  showRecentOnly: false, 
+  showArchive: false
 };
 
 // Create subscribers collections
@@ -159,112 +153,75 @@ export function resetState() {
 }
 
 /**
- * Load state from localStorage
- */
-export function loadStateFromStorage() {
-  try {
-    const savedState = localStorage.getItem('questBoardState');
-    if (savedState) {
-      const parsedState = JSON.parse(savedState);
-      setState(parsedState, 'localStorage');
-    }
-  } catch (error) {
-    console.error('Error loading state from localStorage:', error);
-  }
-}
-
-/**
- * Save current state to localStorage
- * @param {Array} keys - Specific state keys to save (defaults to all)
- */
-export function saveStateToStorage(keys = null) {
-  try {
-    let stateToSave = { ..._state };
-    
-    // If specific keys provided, only save those
-    if (keys && Array.isArray(keys) && keys.length > 0) {
-      stateToSave = keys.reduce((acc, key) => {
-        if (_state[key] !== undefined) {
-          acc[key] = _state[key];
-        }
-        return acc;
-      }, {});
-    }
-    
-    localStorage.setItem('questBoardState', JSON.stringify(stateToSave));
-  } catch (error) {
-    console.error('Error saving state to localStorage:', error);
-  }
-}
-
-// Helper functions
-
-/**
  * Find changed paths between two state objects
  * @param {Object} prevState - Previous state
  * @param {Object} newState - New state
+ * @param {string} basePath - Base path for recursion
+ * @param {Array} results - Accumulator for results
  * @returns {Array} Array of dot-notation paths that changed
  */
-function findChangedPaths(prevState, newState, path = '', result = []) {
-  // If types are different, the entire path changed
+function findChangedPaths(prevState, newState, basePath = '', results = []) {
+  // Different types means the entire path changed
   if (typeof prevState !== typeof newState) {
-    result.push(path);
-    return result;
+    results.push(basePath);
+    return results;
   }
   
-  // If not objects or arrays, check equality
+  // Handle non-objects (primitives)
   if (typeof prevState !== 'object' || prevState === null || newState === null) {
     if (prevState !== newState) {
-      result.push(path);
+      results.push(basePath);
     }
-    return result;
+    return results;
   }
   
-  // Handle arrays
+  // Handle arrays (simple check for now, just look at length)
   if (Array.isArray(prevState) && Array.isArray(newState)) {
     if (prevState.length !== newState.length) {
-      result.push(path);
-      return result;
+      results.push(basePath);
+      return results;
     }
     
-    // For arrays, we simplify and consider any change a change to the whole array
+    // Deep compare items (simple JSON comparison for now)
+    // This is not the most efficient but works for this use case
     for (let i = 0; i < prevState.length; i++) {
       if (JSON.stringify(prevState[i]) !== JSON.stringify(newState[i])) {
-        result.push(path);
-        return result;
+        results.push(basePath);
+        return results;
       }
     }
     
-    return result;
+    return results;
   }
   
-  // For objects, recursively check each property
-  const allKeys = new Set([...Object.keys(prevState), ...Object.keys(newState)]);
+  // Get all unique keys from both objects
+  const allKeys = new Set([
+    ...Object.keys(prevState),
+    ...Object.keys(newState)
+  ]);
   
+  // Check each key for changes
   allKeys.forEach(key => {
-    const childPath = path ? `${path}.${key}` : key;
+    const currentPath = basePath ? `${basePath}.${key}` : key;
     
-    if (!(key in prevState)) {
-      // New property added
-      result.push(childPath);
-    } else if (!(key in newState)) {
-      // Property removed
-      result.push(childPath);
+    if (key in prevState && key in newState) {
+      // Both objects have the key, check for changes recursively
+      findChangedPaths(prevState[key], newState[key], currentPath, results);
     } else {
-      // Property exists in both, check recursively
-      findChangedPaths(prevState[key], newState[key], childPath, result);
+      // One object is missing the key, definite change
+      results.push(currentPath);
     }
   });
   
-  return result;
+  return results;
 }
 
 /**
  * Notify subscribers of state changes
- * @param {Object} prevState - Previous state
- * @param {Object} newState - New state
- * @param {Array} changedPaths - Array of changed dot-notation paths
- * @param {string} source - Source of the state change
+ * @param {Object} prevState - Previous state object
+ * @param {Object} newState - New state object
+ * @param {Array} changedPaths - Array of changed paths
+ * @param {string} source - Source of change
  */
 function notifySubscribers(prevState, newState, changedPaths, source) {
   // Notify global subscribers
@@ -276,25 +233,30 @@ function notifySubscribers(prevState, newState, changedPaths, source) {
     }
   });
   
-  // Notify path-specific subscribers
+  // If there are changed paths, notify path subscribers
   if (changedPaths.length > 0) {
+    // For each registered path subscription
     Object.keys(subscribers.paths).forEach(path => {
-      // Check if this path or any of its parents changed
-      const pathMatches = changedPaths.some(changedPath => {
-        return changedPath === path || 
-               changedPath.startsWith(`${path}.`) || 
-               path.startsWith(`${changedPath}.`);
-      });
-      
-      if (pathMatches) {
-        const pathValue = getStateSlice(path);
-        const prevPathValue = path.split('.').reduce((obj, prop) => {
+      // Check if any changed path matches or contains this subscription path
+      if (changedPaths.some(changedPath => 
+        changedPath === path || 
+        changedPath.startsWith(`${path}.`) || 
+        path.startsWith(`${changedPath}.`)
+      )) {
+        // Get the current value at this path
+        const currentValue = getStateSlice(path);
+        // Get the previous value at this path
+        const previousValue = path.split('.').reduce((obj, prop) => {
           return obj && obj[prop] !== undefined ? obj[prop] : undefined;
         }, prevState);
         
+        // Notify all subscribers to this path
         subscribers.paths[path].forEach(callback => {
           try {
-            callback(pathValue, prevPathValue, { path, source });
+            callback(currentValue, previousValue, { 
+              path, 
+              source 
+            });
           } catch (error) {
             console.error(`Error in path subscriber for ${path}:`, error);
           }
