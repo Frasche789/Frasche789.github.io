@@ -336,6 +336,108 @@ export function getDependencyGraph() {
   return graph;
 }
 
+/**
+ * Register a rendering component with the bootstrap system
+ * @param {Object} options - Component configuration
+ * @param {string} options.id - Unique identifier for this component
+ * @param {string} options.name - Human-readable name for this component
+ * @param {Function} options.render - Function to execute for rendering
+ * @param {Array<string>} [options.dependencies=[]] - Array of component IDs this component depends on
+ * @param {Array<string>} [options.dataDependencies=[]] - Array of data sources this component depends on
+ * @param {boolean} [options.autoRender=true] - Whether this component should auto-render on data changes
+ */
+export function registerRenderComponent({
+  id,
+  name,
+  render,
+  dependencies = [],
+  dataDependencies = [],
+  autoRender = true
+}) {
+  if (!id || typeof id !== 'string') {
+    throw new Error('Component ID is required');
+  }
+  
+  if (!name || typeof name !== 'string') {
+    throw new Error('Component name is required');
+  }
+  
+  if (!render || typeof render !== 'function') {
+    throw new Error('Render function is required');
+  }
+  
+  // Register as a regular initialization step
+  registerInitStep({
+    id: `render:${id}`,
+    name: `Render ${name}`,
+    run: async () => {
+      // Return the render function and configuration for later use
+      return {
+        id,
+        name,
+        render,
+        dependencies,
+        dataDependencies,
+        autoRender
+      };
+    },
+    dependencies: dependencies.map(dep => `render:${dep}`),
+    required: false,
+    critical: false
+  });
+  
+  // Log for debugging
+  console.log(`Registered render component: ${name} (${id})`);
+  
+  // Emit registration event
+  eventBus.emit('component:registered', { id, name, dependencies, dataDependencies });
+  
+  // Return an unregister function
+  return () => {
+    // TODO: Implement component unregistration if needed
+  };
+}
+
+/**
+ * Render a specific component and its dependencies
+ * @param {string} componentId - ID of the component to render
+ * @param {Object} [data] - Data to pass to the render function
+ * @returns {Promise<any>} Result of the render operation
+ */
+export async function renderComponent(componentId, data = {}) {
+  const stepId = `render:${componentId}`;
+  
+  try {
+    // Initialize the component if not already done
+    const component = await initializeStep(stepId);
+    
+    if (!component) {
+      throw new Error(`Component "${componentId}" not found or failed to initialize`);
+    }
+    
+    // Execute the render function
+    return await component.render(data);
+  } catch (error) {
+    console.error(`Failed to render component "${componentId}":`, error);
+    throw error;
+  }
+}
+
+/**
+ * Get all registered render components
+ * @returns {Array<Object>} Array of registered render components
+ */
+export function getRegisteredComponents() {
+  return getInitializationSteps()
+    .filter(step => step.id.startsWith('render:'))
+    .map(step => ({
+      id: step.id.replace('render:', ''),
+      name: step.name.replace('Render ', ''),
+      status: step.status,
+      dependencies: step.dependencies.map(dep => dep.replace('render:', ''))
+    }));
+}
+
 // Export the event bus for modules that need to listen to bootstrap events
 export const bootstrapEvents = {
   on: eventBus.on.bind(eventBus),

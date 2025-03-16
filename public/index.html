@@ -68,10 +68,45 @@
       <!-- Task lists section -->
       <section class="tasks-section">
         <div class="section-header">
+          <!-- Archive toggle button -->
+          <div class="archive-toggle-container">
+            <button id="archive-toggle" class="archive-toggle-button">
+              <i class="ri-archive-line"></i>
+              <span class="toggle-label">Show Archive</span>
+            </button>
+          </div>
         </div>
         
         <div id="task-container" class="task-container">
-          <!-- Tasks will be dynamically inserted here -->
+          <!-- Current tasks - Tasks with subjects having class today or tomorrow -->
+          <div id="current-tasks-container" class="task-category-container">
+            <h2 class="category-title">Current Tasks</h2>
+            <div class="category-tasks"></div>
+            <div class="category-empty-state hidden">
+              <div class="empty-icon"><i class="ri-calendar-check-line"></i></div>
+              <div class="empty-message">No current tasks</div>
+            </div>
+          </div>
+          
+          <!-- Future tasks - Tasks with subjects not having class today or tomorrow -->
+          <div id="future-tasks-container" class="task-category-container">
+            <h2 class="category-title">Future Tasks</h2>
+            <div class="category-tasks"></div>
+            <div class="category-empty-state hidden">
+              <div class="empty-icon"><i class="ri-calendar-line"></i></div>
+              <div class="empty-message">No future tasks</div>
+            </div>
+          </div>
+          
+          <!-- Archive tasks - Tasks created more than 14 days ago or completed tasks -->
+          <div id="archive-container" class="task-category-container hidden">
+            <h2 class="category-title">Archive</h2>
+            <div class="category-tasks"></div>
+            <div class="category-empty-state hidden">
+              <div class="empty-icon"><i class="ri-archive-line"></i></div>
+              <div class="empty-message">No archived tasks</div>
+            </div>
+          </div>
         </div>
         
         <div id="no-tasks" class="empty-state hidden">
@@ -81,6 +116,12 @@
           <div class="empty-message">No tasks found</div>
         </div>
       </section>
+
+      <!-- Loading indicator -->
+      <div id="loading-indicator" class="loading-indicator">
+        <div class="spinner"></div>
+        <p>Loading your tasks...</p>
+      </div>
     </main>
 
     <!-- Add new chore modal -->

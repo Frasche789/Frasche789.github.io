@@ -256,3 +256,21 @@ export function getEffectiveDueDate(task) {
   // Default to the task's dueDate field or today if none available
   return task.dueDate || getTodayFinDate();
 }
+
+/**
+ * Check if a subject has class today or tomorrow
+ * @param {string} subject - The subject to check
+ * @returns {boolean} - True if the subject has class today or tomorrow
+ */
+export function hasClassTodayOrTomorrow(subject) {
+  // If no subject provided, return false
+  if (!subject) {
+    return false;
+  }
+
+  // Calculate next class day for the subject
+  const nextClass = calculateNextClassDay(subject);
+  
+  // Return true if subject has class today or tomorrow (daysUntil <= 1)
+  return nextClass.found && nextClass.daysUntil <= 1;
+}
