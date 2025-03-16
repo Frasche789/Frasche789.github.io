@@ -115,10 +115,12 @@ export async function addChore(choreData) {
       completed: false,
       completedDate: null,
       type: 'chore',
-      container: 'current', // Set container to current by default for chores
       createdAt: timestamp,
       updatedAt: timestamp
     };
+    
+    // Determine which container this task belongs to
+    newTask.container = determineTaskContainer(newTask);
     
     // Generate a unique ID for the task
     const taskId = `chore_${timestamp}`;
@@ -246,16 +248,18 @@ export async function completeTask(taskId) {
       ...task,
       completed: true,
       completedDate: today,
-      updatedAt: Date.now(),
-      container: 'archive' // Move to archive once completed
+      updatedAt: Date.now()
     };
+    
+    // Determine container after completion
+    updatedTask.container = determineTaskContainer(updatedTask);
     
     // Update in Firestore
     await updateDocument('tasks', taskId, {
       completed: true,
       completedDate: today,
       updatedAt: Date.now(),
-      container: 'archive'
+      container: updatedTask.container
     });
     
     // Update student points if needed
@@ -499,9 +503,7 @@ export function getFilteredTasks(options = {}) {
 
 /**
  * Group tasks by container (Archive, Current, Future)
- * Archive = ALL tasks that have been created more than 14 days ago
- * Current = ALL tasks that are NOT COMPLETED AND have a subject that has class today or tomorrow
- * Future = ALL tasks that are NOT COMPLETED AND have been created less than two weeks ago
+ * Uses determineTaskContainer to sort tasks into their appropriate containers
  * 
  * @param {Array} tasks - Array of task objects
  * @returns {Object} Tasks grouped by container
@@ -518,96 +520,36 @@ export function groupTasksByContainer(tasks) {
     return containerGroups;
   }
   
-  const today = new Date();
-  
-  // Calculate date 2 weeks ago for archive classification
-  const twoWeeksAgo = new Date(today);
-  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-  
-  // Format dates for comparison
-  const twoWeeksAgoTimestamp = twoWeeksAgo.getTime();
-  
   tasks.forEach(task => {
     // Skip tasks with invalid data
     if (!task) return;
     
-    // Archive: ALL tasks that have been created more than 14 days ago
-    if (task.createdAt && new Date(task.createdAt).getTime() < twoWeeksAgoTimestamp) {
+    // Use determineTaskContainer to decide which container the task belongs to
+    const container = determineTaskContainer(task);
+    
+    // Add task to the appropriate container group
+    if (container === 'archive' && containerGroups.archive) {
       containerGroups.archive.push({
         ...task,
-        container: 'archive',
-        containerClass: 'archive'
+        container,
+        containerClass: container
       });
-      return;
-    }
-    
-    // For non-archive tasks, if it's completed, don't show it in current or future
-    if (task.completed) {
-      return;
-    }
-    
-    // Check if subject has class today or tomorrow
-    let hasClassTodayOrTomorrow = false;
-    
-    if (task.subject) {
-      const nextClass = calculateNextClassDay(task.subject);
-      hasClassTodayOrTomorrow = nextClass.found && (nextClass.daysUntil === 0 || nextClass.daysUntil === 1);
-    }
-    
-    // Current: ALL tasks that are NOT COMPLETED AND have a subject that has class today or tomorrow
-    if (hasClassTodayOrTomorrow) {
+    } else if (container === 'current' && containerGroups.current) {
       containerGroups.current.push({
         ...task,
-        container: 'current',
-        containerClass: 'current'
+        container,
+        containerClass: container
       });
-    } 
-    // Future: ALL tasks that are NOT COMPLETED AND have been created less than two weeks ago
-    else {
+    } else if (container === 'future' && containerGroups.future) {
       containerGroups.future.push({
         ...task,
-        container: 'future',
-        containerClass: 'future'
+        container,
+        containerClass: container
       });
     }
   });
   
   return containerGroups;
-}
-
-/**
- * Helper function to format a date for string comparison
- * @param {Date} date - Date to format
- * @returns {string} Formatted date (YYYY-MM-DD)
- */
-function formatDateForComparison(date) {
-  return date.toISOString().split('T')[0];
-}
-
-/**
- * Group tasks by their due date
- * @param {Array} tasks - Array of tasks to group
- * @returns {Object} Object with tasks grouped by due date
- */
-export function groupTasksByDueDate(tasks) {
-  // Get today's date for comparison
-  const todayFormatted = getTodayFinDate();
-  
-  // Group tasks by due date
-  return tasks.reduce((groups, task) => {
-    // Skip tasks without a due date
-    if (!task.dueDate) return groups;
-    
-    // Get or create the group for this date
-    if (!groups[task.dueDate]) {
-      groups[task.dueDate] = [];
-    }
-    
-    // Add task to its date group
-    groups[task.dueDate].push(task);
-    
-    return groups;
-  }, {});
 }
 
 /**
@@ -774,4 +716,39 @@ export function getTaskContainers(tasks) {
   containerGroups.future.sort(sortByDueDate);
 
   return containerGroups;
+}
+
+/**
+ * Helper function to format a date for string comparison
+ * @param {Date} date - Date to format
+ * @returns {string} Formatted date (YYYY-MM-DD)
+ */
+function formatDateForComparison(date) {
+  return date.toISOString().split('T')[0];
+}
+
+/**
+ * Group tasks by their due date
+ * @param {Array} tasks - Array of tasks to group
+ * @returns {Object} Object with tasks grouped by due date
+ */
+export function groupTasksByDueDate(tasks) {
+  // Get today's date for comparison
+  const todayFormatted = getTodayFinDate();
+  
+  // Group tasks by due date
+  return tasks.reduce((groups, task) => {
+    // Skip tasks without a due date
+    if (!task.dueDate) return groups;
+    
+    // Get or create the group for this date
+    if (!groups[task.dueDate]) {
+      groups[task.dueDate] = [];
+    }
+    
+    // Add task to its date group
+    groups[task.dueDate].push(task);
+    
+    return groups;
+  }, {});
 }

@@ -65,6 +65,19 @@ export function parseFinDate(finDate) {
 }
 
 /**
+ * Format a Finnish date (DD.MM.YYYY) to a more readable format (e.g., "March 16")
+ * @param {string} finDate - Date in Finnish format
+ * @returns {string} Formatted date string
+ */
+export function formatFinDate(finDate) {
+  const date = parseFinDate(finDate);
+  if (!date) return 'Invalid date';
+  
+  const options = { month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+}
+
+/**
  * Compare two dates and determine their relation
  * @param {string} date1 - First date in Finnish format
  * @param {string} date2 - Second date in Finnish format
@@ -184,7 +197,7 @@ export function getTomorrowFinDate() {
 }
 
 /**
- * Determine which container a task belongs to based on its due date and completion status
+ * Determine which container a task belongs to based on the categorization rules
  * @param {Object} task - The task object
  * @returns {string} Container identifier: 'archive', 'current', or 'future'
  */
@@ -192,28 +205,21 @@ export function determineTaskContainer(task) {
   // Default container is 'current' if we can't determine otherwise
   if (!task) return 'current';
   
-  // Completed tasks go to Archive by default
+  // Rule 1: Archive - Completed tasks (regardless of age)
   if (task.completed) return 'archive';
   
-  // If no due date is available, default to current
-  if (!task.dueDate) return 'current';
+  // Rule 2: Archive - Tasks created >14 days ago
+  if (isTaskOlderThan(task, 14)) return 'archive';
   
-  const todayFinDate = getTodayFinDate();
-  const tomorrowFinDate = getTomorrowFinDate();
+  // For remaining tasks (incomplete and <14 days old)
   
-  // Compare the task's due date with today
-  const comparisonWithToday = compareDates(task.dueDate, todayFinDate);
+  // Extract subject from task
+  const subject = task.subject || '';
   
-  // If the date is invalid, default to current
-  if (comparisonWithToday >= 2) return 'current';
+  // Rule 2: Current - Subjects having class today/tomorrow
+  if (hasClassTodayOrTomorrow(subject)) return 'current';
   
-  // Past due tasks go to Archive
-  if (comparisonWithToday > 0) return 'archive';
-  
-  // Due today or tomorrow go to Current
-  if (comparisonWithToday === 0 || compareDates(task.dueDate, tomorrowFinDate) === 0) return 'current';
-  
-  // Tasks due later than tomorrow go to Future
+  // Rule 3: Future - Subjects NOT having class today/tomorrow
   return 'future';
 }
 
@@ -235,4 +241,71 @@ export function getDaysBetweenDates(date1, date2) {
   
   const diffTime = Math.abs(d2 - d1);
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Get day name from a date
+ * @param {Date} date - Date object
+ * @returns {string} Day name (Monday, Tuesday, etc.)
+ */
+export function getDayName(date = new Date()) {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[date.getDay()];
+}
+
+/**
+ * Check if a subject has class today or tomorrow (simplified version)
+ * @param {string} subject - Subject name
+ * @returns {boolean} True if the subject has class today or tomorrow
+ */
+export function hasClassTodayOrTomorrow(subject) {
+  if (!subject) return false;
+  
+  // Normalize subject name for comparison
+  const normalizedSubject = subject.trim().toLowerCase();
+  
+  // Get today and tomorrow's day names
+  const today = new Date();
+  const todayName = getDayName(today);
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const tomorrowName = getDayName(tomorrow);
+  
+  // Simplified schedule data
+  const schedule = {
+    'Monday': ['math', 'eco', 'crafts', 'pe'],
+    'Tuesday': ['math', 'finnish', 'history', 'music', 'pe'],
+    'Wednesday': ['finnish', 'math', 'english', 'ethics', 'pe'],
+    'Thursday': ['english', 'math', 'eco', 'finnish'],
+    'Friday': ['art', 'civics', 'finnish', 'digi'],
+    'Saturday': [],
+    'Sunday': []
+  };
+  
+  // Check if subject is in today's or tomorrow's schedule
+  const todaySchedule = schedule[todayName] || [];
+  const tomorrowSchedule = schedule[tomorrowName] || [];
+  
+  return todaySchedule.includes(normalizedSubject) || 
+         tomorrowSchedule.includes(normalizedSubject);
+}
+
+/**
+ * Check if a task is older than the specified number of days
+ * @param {Object} task - Task object with createdAt property
+ * @param {number} days - Number of days threshold
+ * @returns {boolean} True if the task is older than the specified days
+ */
+export function isTaskOlderThan(task, days = 14) {
+  if (!task || !task.date) return false;
+  
+  const createdDate = parseFinDate(task.date);
+  if (!createdDate) return false;
+  
+  const today = new Date();
+  const diffTime = today - createdDate;
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays > days;
 }

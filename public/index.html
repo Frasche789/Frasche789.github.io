@@ -3,198 +3,354 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Task Board - ADHD-optimized task tracking for students">
   <title>Task Board</title>
-  <!-- Font for improved readability -->
+  <!-- Favicon -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- Icons for visual reinforcement -->
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-  <!-- Module preloading for critical path modules -->
-  <link rel="modulepreload" href="./src/index.js">
-  <link rel="modulepreload" href="./src/app.js">
-  <link rel="modulepreload" href="./src/services/firebaseService.js">
-  <link rel="modulepreload" href="./src/state/appState.js">
-  <!-- Custom styles -->
-  <link href="styles.css" rel="stylesheet">
+  
+  <!-- External CSS -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Fixed header with today's tasks -->
-    <header class="today-header">
-      <div class="profile-container">
-        <div class="profile-info">
-          <h2 id="studentName">Loading...</h2>
-          <div class="level-badge">Mighty Adventurer</div>
-        </div>
-      </div>
-      
-      <h1 class="today-title">
-        <span class="icon-container"><i class="ri-calendar-check-fill"></i></span>
-        What's up today
-      </h1>
-      
-      <div id="today-tasks" class="task-list">
-        <!-- Today's tasks will be loaded here -->
-        <div class="task-empty-state" id="today-empty-state" style="display: none;">
-          <i class="ri-emotion-happy-line"></i>
-          <p>All done for today!</p>
-          <div class="celebration-text">Amazing job!</div>
-        </div>
-      </div>
+  <div class="container">
+    <!-- Header -->
+    <header class="card">
+      <h1 id="studentName">Nuno's Task Board</h1>
+      <p id="currentDate">Tuesday, March 16</p>
     </header>
-
-    <!-- Main task container -->
-    <main class="main-container">
-      <!-- "What's up today" section -->
-      <section class="today-section">
-        <div class="section-header">
-          <div class="date-display" id="todayDate"></div>
-        </div>
-        
-        <div id="today-tasks" class="today-tasks">
-          <!-- Today's tasks will be dynamically inserted here -->
-        </div>
-        
-        <div id="today-empty-state" class="empty-state hidden">
-          <div class="empty-icon">
-            <i class="ri-check-double-line"></i>
-          </div>
-          <div class="empty-message">Nothing due today!</div>
-        </div>
-      </section>
-      
-      <!-- Task lists section -->
-      <section class="tasks-section">
-        <div class="section-header">
-          <!-- Archive toggle button -->
-          <div class="archive-toggle-container">
-            <button id="archive-toggle" class="archive-toggle-button">
-              <i class="ri-archive-line"></i>
-              <span class="toggle-label">Show Archive</span>
-            </button>
-          </div>
-        </div>
-        
-        <div id="task-container" class="task-container">
-          <!-- Current tasks - Tasks with subjects having class today or tomorrow -->
-          <div id="current-tasks-container" class="task-category-container">
-            <h2 class="category-title">Current Tasks</h2>
-            <div class="category-tasks"></div>
-            <div class="category-empty-state hidden">
-              <div class="empty-icon"><i class="ri-calendar-check-line"></i></div>
-              <div class="empty-message">No current tasks</div>
-            </div>
-          </div>
-          
-          <!-- Future tasks - Tasks with subjects not having class today or tomorrow -->
-          <div id="future-tasks-container" class="task-category-container">
-            <h2 class="category-title">Future Tasks</h2>
-            <div class="category-tasks"></div>
-            <div class="category-empty-state hidden">
-              <div class="empty-icon"><i class="ri-calendar-line"></i></div>
-              <div class="empty-message">No future tasks</div>
-            </div>
-          </div>
-          
-          <!-- Archive tasks - Tasks created more than 14 days ago or completed tasks -->
-          <div id="archive-container" class="task-category-container hidden">
-            <h2 class="category-title">Archive</h2>
-            <div class="category-tasks"></div>
-            <div class="category-empty-state hidden">
-              <div class="empty-icon"><i class="ri-archive-line"></i></div>
-              <div class="empty-message">No archived tasks</div>
-            </div>
-          </div>
-        </div>
-        
-        <div id="no-tasks" class="empty-state hidden">
-          <div class="empty-icon">
-            <i class="ri-list-check"></i>
-          </div>
-          <div class="empty-message">No tasks found</div>
-        </div>
-      </section>
-
-      <!-- Loading indicator -->
-      <div id="loading-indicator" class="loading-indicator">
-        <div class="spinner"></div>
-        <p>Loading your tasks...</p>
+    
+    <!-- Archive Toggle Button -->
+    <button class="archive-toggle" id="archiveToggle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+      <span>Show Archive</span> (<span id="archiveCount">2</span>)
+    </button>
+    
+    <!-- Archive Container (Hidden by Default) -->
+    <div class="card archive-container" id="archiveContainer">
+      <div class="section-title">Archived Tasks</div>
+      <div id="archiveTasks">
+        <!-- Archive tasks will be dynamically added here -->
       </div>
-    </main>
-
-    <!-- Add new chore modal -->
-    <div class="floating-action-btn" id="addChoreBtn">
-      <i class="ri-add-line"></i>
+      <div id="emptyArchive" class="empty-state">No archived tasks</div>
     </div>
     
-    <div class="modal" id="choreModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Add New Chore</h3>
-          <button class="close-btn" id="closeModal"><i class="ri-close-line"></i></button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="choreDescription">Chore Description</label>
-            <input type="text" id="choreDescription" placeholder="Clean your room, Take out trash...">
-          </div>
-          <div class="form-group">
-            <label for="chorePoints">Reward Points</label>
-            <input type="number" id="chorePoints" value="5" min="1" max="20">
-          </div>
-          <button id="addChoreSubmit" class="primary-btn">Add Chore</button>
-        </div>
+    <!-- Tomorrow's Classes Card -->
+    <div class="card">
+      <div class="section-title">TOMORROW'S CLASSES</div>
+      <div class="subject-list" id="tomorrowClasses">
+        <!-- Tomorrow's classes will be dynamically loaded here -->
       </div>
+      
+      <div class="tasks-section">
+        <h3>Tasks To Complete:</h3>
+        <div id="currentTasks">
+          <!-- Current tasks will be dynamically loaded here -->
+        </div>
+        <div id="emptyCurrentTasks" class="empty-state">No tasks for tomorrow's classes</div>
+      </div>
+    </div>
+    
+    <!-- Upcoming Tasks Card -->
+    <div class="card">
+      <div class="section-title">Upcoming Tasks</div>
+      <div id="futureTasks">
+        <!-- Future tasks will be dynamically loaded here -->
+      </div>
+      <div id="emptyFutureTasks" class="empty-state">No upcoming tasks</div>
     </div>
   </div>
   
-  <!-- Main application module entry point -->
-  <script type="module" src="./src/index.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   
-  <!-- Firebase integration -->
   <script type="module">
-    // Import Firebase modules
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
+    import { 
+      getTodayFinDate, 
+      parseFinDate, 
+      isToday, 
+      isTomorrow, 
+      determineTaskContainer,
+      hasClassTodayOrTomorrow,
+      getDayName,
+      formatFinDate
+    } from './src/utils/dateUtils.js';
+    
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
+      authDomain: "questboard-17337.firebaseapp.com",
+      projectId: "questboard-17337", 
+      storageBucket: "questboard-17337.appspot.com",
+      messagingSenderId: "427884628874",
+      appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
+    };
+    
     // Initialize Firebase
-    try {
-      // Firebase configuration with API key
-      const firebaseOptions = {
-        apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
-        authDomain: "questboard-17337.firebaseapp.com",
-        projectId: "questboard-17337",
-        storageBucket: "questboard-17337.firebasestorage.app",
-        messagingSenderId: "427884628874",
-        appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
-      };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // DOM Elements
+    const elements = {
+      studentName: document.getElementById('studentName'),
+      currentDate: document.getElementById('currentDate'),
+      archiveToggle: document.getElementById('archiveToggle'),
+      archiveContainer: document.getElementById('archiveContainer'),
+      archiveCount: document.getElementById('archiveCount'),
+      archiveTasks: document.getElementById('archiveTasks'),
+      emptyArchive: document.getElementById('emptyArchive'),
+      tomorrowClasses: document.getElementById('tomorrowClasses'),
+      currentTasks: document.getElementById('currentTasks'),
+      emptyCurrentTasks: document.getElementById('emptyCurrentTasks'),
+      futureTasks: document.getElementById('futureTasks'),
+      emptyFutureTasks: document.getElementById('emptyFutureTasks')
+    };
+    
+    // Subject colors mapping
+    const subjectColors = {
+      'math': 'var(--subject-math)',
+      'finnish': 'var(--subject-finnish)',
+      'english': 'var(--subject-english)',
+      'history': 'var(--subject-history)',
+      'civics': 'var(--subject-civics)',
+      'ethics': 'var(--subject-ethics)',
+      'pe': 'var(--subject-pe)',
+      'music': 'var(--subject-music)',
+      'art': 'var(--subject-art)',
+      'crafts': 'var(--subject-crafts)',
+      'eco': 'var(--subject-eco)',
+      'digi': 'var(--subject-digi)'
+    };
+    
+    // Schedule data
+    const schedule = {
+      'Monday': ['Math', 'Eco', 'Crafts', 'PE'],
+      'Tuesday': ['Math', 'Finnish', 'History', 'Music', 'PE'],
+      'Wednesday': ['Finnish', 'Math', 'English', 'Ethics', 'PE'],
+      'Thursday': ['English', 'Math', 'Eco', 'Finnish'],
+      'Friday': ['Art', 'Civics', 'Finnish', 'Digi'],
+      'Saturday': [],
+      'Sunday': []
+    };
+    
+    // Format date to display
+    function formatDateDisplay() {
+      const today = new Date();
+      const options = { weekday: 'long', month: 'long', day: 'numeric' };
+      elements.currentDate.textContent = today.toLocaleDateString('en-US', options);
+    }
+    
+    // Format date for task cards
+    function formatDate(dateString) {
+      if (!dateString) return 'No due date';
       
-      const app = initializeApp(firebaseOptions);
+      const date = parseFinDate(dateString);
+      const options = { month: 'short', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    }
+    
+    // Get appropriate label for due date
+    function getDueLabel(dateString) {
+      if (!dateString) return '';
       
-      // Initialize Firestore with privacy-friendly settings
-      const firestoreSettings = {
-        ignoreUndefinedProperties: true,
-        cacheSizeBytes: 1048576 // 1MB cache size to respect privacy
-      };
+      if (isToday(dateString)) {
+        return '<span class="badge badge-today">Today</span>';
+      } else if (isTomorrow(dateString)) {
+        return '<span class="badge badge-tomorrow">Tomorrow</span>';
+      }
+      return '';
+    }
+    
+    // Load tomorrow's classes
+    function loadTomorrowClasses() {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      const tomorrowName = getDayName(tomorrow);
       
-      // Initialize Firestore and expose modules for the app.js file
-      window.db = getFirestore(app);
-      window.firebaseModules = { collection, getDocs, doc, getDoc, setDoc, updateDoc };
+      const tomorrowSubjects = schedule[tomorrowName] || [];
       
-      // Dispatch event when Firebase is ready
-      window.dispatchEvent(new Event('firebase-ready'));
-      console.log('Firebase initialization successful');
-    } catch (error) {
-      console.error('Error initializing Firebase:', error);
-      document.getElementById('loading-indicator').innerHTML = `
-        <div class="error-message">
-          <p>Failed to connect to the database. Please try again.</p>
-          <button onclick="location.reload()" class="primary-btn">Retry</button>
+      if (tomorrowSubjects.length === 0) {
+        elements.tomorrowClasses.innerHTML = '<div class="empty-state">No classes tomorrow</div>';
+        return;
+      }
+      
+      elements.tomorrowClasses.innerHTML = '';
+      tomorrowSubjects.forEach(subject => {
+        const subjectKey = subject.toLowerCase();
+        const color = subjectColors[subjectKey] || 'var(--text-primary)';
+        
+        const subjectPill = document.createElement('div');
+        subjectPill.className = 'subject-pill';
+        subjectPill.textContent = subject;
+        subjectPill.style.backgroundColor = color;
+        
+        elements.tomorrowClasses.appendChild(subjectPill);
+      });
+    }
+    
+    // Create task card element
+    function createTaskCard(task) {
+      const { id, subject, description, date, dueDate, completed } = task;
+      
+      const subjectKey = subject ? subject.toLowerCase() : 'other';
+      const color = subjectColors[subjectKey] || 'var(--text-primary)';
+      
+      const taskCard = document.createElement('div');
+      taskCard.className = `card task-card subject-${subjectKey}`;
+      if (completed) {
+        taskCard.classList.add('completed-task');
+      }
+      
+      taskCard.innerHTML = `
+        <div class="header" style="display: flex; align-items: center; width: 100%;">
+          <div class="subject-badge ${subjectKey}" data-subject="${subjectKey}">${subject || 'Other'}</div>
+          <button class="complete-btn" data-task-id="${id}" ${completed ? 'disabled' : ''}>✓</button>
+        </div>
+        <div class="description">${description}</div>
+        <div class="task-meta">
+          <span>${formatDate(date)}</span>
+          <span>${getDueLabel(dueDate)}</span>
         </div>
       `;
+      
+      // Add event listener for complete button
+      const completeBtn = taskCard.querySelector('.complete-btn');
+      if (completeBtn && !completed) {
+        completeBtn.addEventListener('click', () => {
+          markTaskComplete(id);
+        });
+      }
+      
+      return taskCard;
     }
+    
+    // Mark task as complete
+    async function markTaskComplete(taskId) {
+      try {
+        // Import and use the completeTask function from taskService.js
+        const { completeTask } = await import('./src/services/taskService.js');
+        await completeTask(taskId);
+        
+        // Refresh tasks after completion
+        loadTasks();
+      } catch (error) {
+        console.error('Error completing task:', error);
+      }
+    }
+    
+    // Load and categorize tasks
+    async function loadTasks() {
+      try {
+        const snapshot = await db.collection('tasks').get();
+        const tasks = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        // Categorize tasks
+        const archiveTasks = [];
+        const currentTasks = [];
+        const futureTasks = [];
+        
+        tasks.forEach(task => {
+          const container = determineTaskContainer(task);
+          
+          switch (container) {
+            case 'archive':
+              archiveTasks.push(task);
+              break;
+            case 'current':
+              currentTasks.push(task);
+              break;
+            case 'future':
+              futureTasks.push(task);
+              break;
+          }
+        });
+        
+        // Update archive count
+        elements.archiveCount.textContent = archiveTasks.length;
+        
+        // Render archive tasks
+        renderTaskList(elements.archiveTasks, elements.emptyArchive, archiveTasks);
+        
+        // Render current tasks
+        renderTaskList(elements.currentTasks, elements.emptyCurrentTasks, currentTasks);
+        
+        // Render future tasks
+        renderTaskList(elements.futureTasks, elements.emptyFutureTasks, futureTasks);
+        
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+      }
+    }
+    
+    // Render a list of tasks to a container
+    function renderTaskList(container, emptyElement, tasks) {
+      container.innerHTML = '';
+      
+      if (tasks.length === 0) {
+        emptyElement.style.display = 'block';
+      } else {
+        emptyElement.style.display = 'none';
+        
+        // Sort tasks by date (ascending)
+        tasks.sort((a, b) => {
+          if (!a.date) return 1;
+          if (!b.date) return -1;
+          return parseFinDate(a.date) - parseFinDate(b.date);
+        });
+        
+        tasks.forEach(task => {
+          const taskCard = createTaskCard(task);
+          container.appendChild(taskCard);
+        });
+      }
+    }
+    
+    // Initialize app
+    function init() {
+      // Load student name
+      db.collection('settings').doc('profile').get()
+        .then(doc => {
+          if (doc.exists) {
+            const { name } = doc.data();
+            elements.studentName.textContent = `${name}'s Task Board`;
+          }
+        })
+        .catch(error => console.error('Error loading profile:', error));
+      
+      // Format date
+      formatDateDisplay();
+      
+      // Load tomorrow's classes
+      loadTomorrowClasses();
+      
+      // Load tasks
+      loadTasks();
+      
+      // Set up event listeners
+      elements.archiveToggle.addEventListener('click', () => {
+        elements.archiveContainer.classList.toggle('expanded');
+        
+        const isExpanded = elements.archiveContainer.classList.contains('expanded');
+        const toggleText = elements.archiveToggle.querySelector('span');
+        toggleText.textContent = isExpanded ? 'Hide Archive' : 'Show Archive';
+      });
+    }
+    
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>

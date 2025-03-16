@@ -3,7 +3,7 @@
  * Contains functions for subject colors, translations, and schedule mappings
  */
 
-import { getTodayFinDate, parseFinDate, getDateRelativeToToday } from './dateUtils.js';
+import { getTodayFinDate, parseFinDate, getDateRelativeToToday, getDayName } from './dateUtils.js';
 
 /**
  * Default subject schedule mapping for different days of the week
@@ -257,20 +257,3 @@ export function getEffectiveDueDate(task) {
   return task.dueDate || getTodayFinDate();
 }
 
-/**
- * Check if a subject has class today or tomorrow
- * @param {string} subject - The subject to check
- * @returns {boolean} - True if the subject has class today or tomorrow
- */
-export function hasClassTodayOrTomorrow(subject) {
-  // If no subject provided, return false
-  if (!subject) {
-    return false;
-  }
-
-  // Calculate next class day for the subject
-  const nextClass = calculateNextClassDay(subject);
-  
-  // Return true if subject has class today or tomorrow (daysUntil <= 1)
-  return nextClass.found && nextClass.daysUntil <= 1;
-}
