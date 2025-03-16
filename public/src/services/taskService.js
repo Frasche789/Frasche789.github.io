@@ -376,6 +376,14 @@ export function groupTasksByUrgency(tasks) {
     
     // Parse today's date to create tomorrow's date
     const todayDate = parseFinDate(todayFinDate);
+    
+    // Safety check - if today's date can't be parsed, use current date
+    if (!todayDate) {
+      console.warn('Could not parse today\'s date', todayFinDate);
+      // Log and use fallback groups
+      return grouped;
+    }
+    
     const tomorrowDate = new Date(todayDate);
     tomorrowDate.setDate(tomorrowDate.getDate() + 1);
     
@@ -385,13 +393,20 @@ export function groupTasksByUrgency(tasks) {
     // Sort tasks into appropriate categories
     tasks.forEach(task => {
       // Handle tasks without due dates
-      if (!task.dueDate) {
+      if (!task.dueDate || task.dueDate === 'No Due Date') {
         grouped.later.push({...task, urgencyCategory: 'later'});
         return;
       }
       
       // Compare the task due date with today's date
       const comparison = compareDates(task.dueDate, todayFinDate);
+      
+      // Handle invalid dates (comparison returns 2, 3, or 4)
+      if (comparison >= 2) {
+        console.warn(`Invalid date comparison result for task: ${task.id}, dueDate: ${task.dueDate}`);
+        grouped.later.push({...task, urgencyCategory: 'later'});
+        return;
+      }
       
       if (comparison === 0) {
         // Due today
