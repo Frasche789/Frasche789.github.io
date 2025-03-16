@@ -274,6 +274,23 @@ export async function renderTasks() {
     // Use the bootstrap rendering system to render tasks
     dispatch('ui:render-tasks', { categorizedTasks, showArchive });
     
+    // Render archive tasks specifically
+    import('./components/ArchiveTaskList.js').then(module => {
+      if (typeof module.renderArchiveTasks === 'function') {
+        module.renderArchiveTasks(categorizedTasks.archive, showArchive);
+        
+        // Update archive count in the toggle button
+        if (elements.archiveToggle) {
+          const archiveCountEl = elements.archiveToggle.querySelector('#archiveCount');
+          if (archiveCountEl) {
+            archiveCountEl.textContent = categorizedTasks.archive.length;
+          }
+        }
+      }
+    }).catch(error => {
+      console.error('Failed to import ArchiveTaskList module:', error);
+    });
+    
     // Hide loading indicator
     showLoading(false);
     

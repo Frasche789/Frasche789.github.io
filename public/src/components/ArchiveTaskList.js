@@ -10,6 +10,7 @@ import { dispatch } from '../state/appState.js';
 let archiveContainerEl = null;
 let archiveToggleEl = null;
 let archiveEmptyStateEl = null;
+let archiveCountEl = null;
 
 /**
  * Initialize the Archive Task List component
@@ -19,6 +20,11 @@ export function initArchiveTaskList(elements) {
   archiveContainerEl = elements.archiveContainer;
   archiveToggleEl = elements.archiveToggle;
   archiveEmptyStateEl = elements.archiveEmptyState;
+  
+  // Find the archive count element
+  if (archiveToggleEl) {
+    archiveCountEl = archiveToggleEl.querySelector('#archiveCount');
+  }
   
   if (!archiveContainerEl) {
     console.error('Archive container element not found');
@@ -37,13 +43,22 @@ export function initArchiveTaskList(elements) {
 function toggleArchiveVisibility() {
   if (!archiveContainerEl || !archiveToggleEl) return;
   
-  const isVisible = archiveContainerEl.style.display !== 'none';
-  archiveContainerEl.style.display = isVisible ? 'none' : 'block';
+  const isVisible = archiveContainerEl.classList.contains('visible');
   
-  // Update toggle button text
-  archiveToggleEl.textContent = isVisible 
-    ? 'Show Archive' 
-    : 'Hide Archive';
+  // Toggle visibility class
+  if (isVisible) {
+    archiveContainerEl.classList.remove('visible');
+    archiveContainerEl.classList.add('hidden');
+  } else {
+    archiveContainerEl.classList.remove('hidden');
+    archiveContainerEl.classList.add('visible');
+  }
+  
+  // Update toggle button text - find the span element and update its text
+  const textSpan = archiveToggleEl.querySelector('span:first-of-type');
+  if (textSpan) {
+    textSpan.textContent = isVisible ? 'Show Archive' : 'Hide Archive';
+  }
     
   // Update toggle button class
   archiveToggleEl.classList.toggle('archive-visible', !isVisible);
@@ -63,67 +78,70 @@ export function renderArchiveTasks(archivedTasks, showArchive = false) {
     return;
   }
   
+  // Update archive count display
+  if (archiveCountEl && archivedTasks) {
+    archiveCountEl.textContent = archivedTasks.length;
+  }
+  
   // Set initial visibility
-  archiveContainerEl.style.display = showArchive ? 'block' : 'none';
+  if (showArchive) {
+    archiveContainerEl.classList.remove('hidden');
+    archiveContainerEl.classList.add('visible');
+  } else {
+    archiveContainerEl.classList.remove('visible');
+    archiveContainerEl.classList.add('hidden');
+  }
   
   // Update toggle button text if it exists
   if (archiveToggleEl) {
-    archiveToggleEl.textContent = showArchive 
-      ? 'Hide Archive' 
-      : 'Show Archive';
+    const textSpan = archiveToggleEl.querySelector('span:first-of-type');
+    if (textSpan) {
+      textSpan.textContent = showArchive ? 'Hide Archive' : 'Show Archive';
+    }
     archiveToggleEl.classList.toggle('archive-visible', showArchive);
   }
   
   // Clear previous content
-  archiveContainerEl.innerHTML = '';
+  const taskListContainer = archiveContainerEl.querySelector('#archiveTasks');
+  if (taskListContainer) {
+    taskListContainer.innerHTML = '';
   
-  // Create header
-  const header = document.createElement('div');
-  header.className = 'archive-header';
-  header.innerHTML = `
-    <h2 class="archive-title">Archive</h2>
-    <div class="archive-description">Tasks that are completed or older than 14 days</div>
-  `;
-  archiveContainerEl.appendChild(header);
-  
-  // Create task list container
-  const taskListContainer = document.createElement('div');
-  taskListContainer.className = 'archive-task-list';
-  
-  // Check if there are any archived tasks
-  if (!archivedTasks || archivedTasks.length === 0) {
-    if (archiveEmptyStateEl) {
-      archiveEmptyStateEl.style.display = 'flex';
-      taskListContainer.appendChild(archiveEmptyStateEl);
-    } else {
-      // Create empty state message
-      const emptyState = document.createElement('div');
-      emptyState.className = 'empty-state-container';
-      emptyState.innerHTML = `
-        <div class="empty-state-content">
-          <i class="ri-archive-line"></i>
-          <h3>Archive Empty</h3>
-          <p>No archived tasks found</p>
-        </div>
-      `;
-      taskListContainer.appendChild(emptyState);
-    }
-  } else {
-    // Add archived tasks to the list with distinct styling
-    archivedTasks.forEach(task => {
-      const taskCard = createTaskCard(task, (taskId) => {
-        // If a task in archive is uncompleted, it should be recategorized
-        if (!task.completed) {
-          dispatch('task-uncompleted', { taskId, task });
+    // Check if there are any archived tasks
+    if (!archivedTasks || archivedTasks.length === 0) {
+      if (archiveEmptyStateEl) {
+        archiveEmptyStateEl.style.display = 'flex';
+      } else {
+        // The empty state message is already in the HTML, just make it visible
+        const emptyState = archiveContainerEl.querySelector('#emptyArchive');
+        if (emptyState) {
+          emptyState.style.display = 'block';
         }
-      }, 'archive');
+      }
+    } else {
+      // Hide empty state if we have tasks
+      if (archiveEmptyStateEl) {
+        archiveEmptyStateEl.style.display = 'none';
+      }
       
-      // Add additional archive-specific styling
-      taskCard.classList.add('archive-task-card');
+      const emptyState = archiveContainerEl.querySelector('#emptyArchive');
+      if (emptyState) {
+        emptyState.style.display = 'none';
+      }
       
-      taskListContainer.appendChild(taskCard);
-    });
+      // Add archived tasks to the list with distinct styling
+      archivedTasks.forEach(task => {
+        const taskCard = createTaskCard(task, (taskId) => {
+          // If a task in archive is uncompleted, it should be recategorized
+          if (!task.completed) {
+            dispatch('task-uncompleted', { taskId, task });
+          }
+        }, 'archive');
+        
+        // Add additional archive-specific styling
+        taskCard.classList.add('archive-task-card');
+        
+        taskListContainer.appendChild(taskCard);
+      });
+    }
   }
-  
-  archiveContainerEl.appendChild(taskListContainer);
 }

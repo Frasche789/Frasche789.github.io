@@ -35,7 +35,7 @@
     </button>
     
     <!-- Archive Container (Hidden by Default) -->
-    <div class="card archive-container" id="archiveContainer">
+    <div class="card archive-container hidden" id="archiveContainer">
       <div class="section-title">Archived Tasks</div>
       <div id="archiveTasks">
         <!-- Archive tasks will be dynamically added here -->
@@ -212,14 +212,14 @@
       }
       
       taskCard.innerHTML = `
-        <div class="header" style="display: flex; align-items: center; width: 100%;">
-          <div class="subject-badge ${subjectKey}" data-subject="${subjectKey}">${subject || 'Other'}</div>
+        <div class="header">
+          <div class="subject-badge ${subjectKey}">${subject || 'Other'}</div>
           <button class="complete-btn" data-task-id="${id}" ${completed ? 'disabled' : ''}>✓</button>
         </div>
         <div class="description">${description}</div>
         <div class="task-meta">
-          <span>${formatDate(date)}</span>
-          <span>${getDueLabel(dueDate)}</span>
+          <span>Created: ${formatDate(date)}</span>
+          ${dueDate ? `<span>Due: ${formatDate(dueDate)}</span>` : ''}
         </div>
       `;
       
