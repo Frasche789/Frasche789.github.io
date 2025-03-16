@@ -354,3 +354,70 @@ export function groupTasksByNextClass(tasks) {
   
   return groupedBySubject;
 }
+
+/**
+ * Group tasks by urgency (today, tomorrow, later)
+ * @param {Array} tasks - Array of tasks to group
+ * @returns {Object} Object with tasks grouped by urgency levels
+ */
+export function groupTasksByUrgency(tasks) {
+  try {
+    // Initialize groups
+    const grouped = {
+      immediate: {
+        today: [],
+        tomorrow: []
+      },
+      later: []
+    };
+    
+    // Get today's date in Finnish format
+    const todayFinDate = getTodayFinDate();
+    
+    // Parse today's date to create tomorrow's date
+    const todayDate = parseFinDate(todayFinDate);
+    const tomorrowDate = new Date(todayDate);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    
+    // Format tomorrow's date in Finnish format
+    const tomorrowFinDate = `${tomorrowDate.getDate().toString().padStart(2, '0')}.${(tomorrowDate.getMonth() + 1).toString().padStart(2, '0')}.${tomorrowDate.getFullYear()}`;
+    
+    // Sort tasks into appropriate categories
+    tasks.forEach(task => {
+      // Handle tasks without due dates
+      if (!task.dueDate) {
+        grouped.later.push({...task, urgencyCategory: 'later'});
+        return;
+      }
+      
+      // Compare the task due date with today's date
+      const comparison = compareDates(task.dueDate, todayFinDate);
+      
+      if (comparison === 0) {
+        // Due today
+        grouped.immediate.today.push({...task, urgencyCategory: 'today'});
+      } else if (compareDates(task.dueDate, tomorrowFinDate) === 0) {
+        // Due tomorrow
+        grouped.immediate.tomorrow.push({...task, urgencyCategory: 'tomorrow'});
+      } else if (comparison < 0) {
+        // Overdue (before today)
+        grouped.immediate.today.push({...task, urgencyCategory: 'overdue'});
+      } else {
+        // Due later (after tomorrow)
+        grouped.later.push({...task, urgencyCategory: 'later'});
+      }
+    });
+    
+    return grouped;
+  } catch (error) {
+    console.error('Error grouping tasks by urgency:', error);
+    // Return empty groups if there's an error
+    return {
+      immediate: {
+        today: [],
+        tomorrow: []
+      },
+      later: []
+    };
+  }
+}

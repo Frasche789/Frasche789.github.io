@@ -23,13 +23,15 @@ import {
   loadStudents, 
   getFilteredTasks,
   groupTasksByDueDate,
-  groupTasksByNextClass
+  groupTasksByNextClass,
+  groupTasksByUrgency
 } from './services/taskService.js';
 
 // Import components
 import { initTodayTasks, renderTodayTasks } from './components/TodayTasks.js';
 import { initChoreModal } from './components/ChoreModal.js';
 import { createDateTaskList, createSubjectTaskList, createEmptyState } from './components/TaskList.js';
+import { createImmediateTasksContainer, createLaterTasksContainer } from './components/UrgencyTaskList.js';
 
 // DOM elements
 const elements = {
@@ -278,6 +280,10 @@ export function renderTasks() {
     // Group tasks by subject and render by next class day
     const subjectGroups = groupTasksByNextClass(tasks);
     renderTasksByNextClassGroups(subjectGroups, todayFormatted);
+  } else if (activeFilter === 'urgency') {
+    // Group tasks by urgency and render
+    const urgencyGroups = groupTasksByUrgency(tasks);
+    renderTasksByUrgencyGroups(urgencyGroups, todayFormatted);
   } else {
     // Group tasks by due date and render chronologically
     const dateGroups = groupTasksByDueDate(tasks);
@@ -376,6 +382,48 @@ function renderTasksByNextClassGroups(subjectGroups, todayFormatted) {
     
     elements.taskContainer.appendChild(subjectTaskList);
   });
+}
+
+/**
+ * Render tasks grouped by urgency
+ * @param {Object} urgencyGroups - Tasks grouped by urgency
+ * @param {string} todayFormatted - Today's date for comparison
+ */
+function renderTasksByUrgencyGroups(urgencyGroups, todayFormatted) {
+  if (!elements.taskContainer) return;
+  
+  // Clear container
+  elements.taskContainer.innerHTML = '';
+  
+  // Handle empty state
+  if (!urgencyGroups.immediate && !urgencyGroups.later) {
+    elements.taskContainer.appendChild(
+      createEmptyState('No tasks found')
+    );
+    return;
+  }
+  
+  // Create immediate tasks container (today and tomorrow)
+  const immediateContainer = createImmediateTasksContainer(
+    urgencyGroups.immediate, 
+    (taskId) => {
+      // Task completed callback
+      console.log(`Task ${taskId} completed`);
+      // State subscription will trigger re-render
+    }
+  );
+  elements.taskContainer.appendChild(immediateContainer);
+  
+  // Create later tasks container
+  const laterContainer = createLaterTasksContainer(
+    urgencyGroups.later,
+    (taskId) => {
+      // Task completed callback
+      console.log(`Task ${taskId} completed`);
+      // State subscription will trigger re-render
+    }
+  );
+  elements.taskContainer.appendChild(laterContainer);
 }
 
 /**

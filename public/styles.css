@@ -402,6 +402,294 @@ p {
 .subject-chore { border-left-color: var(--subject-chore); }
 .subject-other { border-left-color: var(--subject-other); }
 
+/* Urgency-based Task List */
+.immediate-tasks-container,
+.later-tasks-container {
+  margin-bottom: var(--spacing-lg);
+  transition: all 0.3s ease;
+  border-radius: var(--card-radius);
+  overflow: hidden;
+}
+
+.immediate-tasks-container {
+  position: relative;
+  box-shadow: 0 4px 16px rgba(247, 37, 133, 0.15);
+}
+
+.immediate-tasks-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(to right, var(--secondary-color), var(--primary-dark));
+  z-index: 1;
+}
+
+.immediate-tasks-container .task-day-title {
+  color: var(--secondary-color);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-xs);
+}
+
+.later-tasks-container .task-day-title {
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.task-day-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-top: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.urgency-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.urgency-section {
+  border-radius: var(--card-radius);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.urgency-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.urgency-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+}
+
+.urgency-section-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+/* Add icons to urgency sections */
+.urgency-urgent .urgency-section-title::before {
+  content: "🔥";
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.urgency-upcoming .urgency-section-title::before {
+  content: "⏰";
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.urgency-later .urgency-section-title::before {
+  content: "📅";
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.task-count-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-light);
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 50%;
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  padding: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Urgency specific styling */
+.urgency-urgent {
+  background-color: rgba(247, 37, 133, 0.08);
+  border-left: 5px solid var(--secondary-color);
+}
+
+.urgency-urgent .urgency-section-title {
+  color: var(--secondary-color);
+  font-weight: 700;
+}
+
+.urgency-urgent .task-count-badge {
+  background-color: var(--secondary-color);
+  animation: pulse 2s infinite;
+}
+
+.urgency-upcoming {
+  background-color: rgba(255, 152, 0, 0.08);
+  border-left: 5px solid var(--class-tomorrow);
+}
+
+.urgency-upcoming .urgency-section-title {
+  color: var(--class-tomorrow);
+}
+
+.urgency-upcoming .task-count-badge {
+  background-color: var(--class-tomorrow);
+}
+
+.urgency-later {
+  background-color: rgba(76, 201, 240, 0.05);
+  border-left: 5px solid var(--success-color);
+}
+
+.urgency-later .urgency-section-title {
+  color: var(--success-color);
+}
+
+.urgency-later .task-count-badge {
+  background-color: var(--success-color);
+}
+
+/* Task card urgency variations */
+.urgency-urgent-task {
+  border-left: 5px solid var(--secondary-color);
+  box-shadow: 0 4px 12px rgba(247, 37, 133, 0.1);
+  animation: slideIn 0.3s ease-out;
+}
+
+.urgency-upcoming-task {
+  border-left: 5px solid var(--class-tomorrow);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1);
+  animation: slideIn 0.3s ease-out;
+}
+
+.urgency-later-task {
+  border-left: 5px solid var(--success-color);
+  box-shadow: 0 4px 12px rgba(76, 201, 240, 0.1);
+  animation: slideIn 0.3s ease-out;
+}
+
+.overdue-task {
+  border-left: 5px solid #ff0000;
+  box-shadow: 0 4px 14px rgba(255, 0, 0, 0.15);
+  animation: appearWithShake 0.5s ease-out;
+  position: relative;
+}
+
+.overdue-task::before {
+  content: "OVERDUE";
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: #ff0000;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transform: rotate(3deg);
+}
+
+/* Animation for overdue tasks */
+@keyframes appearWithShake {
+  0% { transform: translateX(-5px); opacity: 0; }
+  20% { transform: translateX(5px); opacity: 0.5; }
+  40% { transform: translateX(-3px); opacity: 0.7; }
+  60% { transform: translateX(3px); opacity: 0.9; }
+  80% { transform: translateX(-1px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* Pulse animation for urgent task counts */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Slide in animation for task cards */
+@keyframes slideIn {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Enhanced empty state styling */
+.empty-state-container {
+  text-align: center;
+  padding: var(--spacing-lg);
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: var(--card-radius);
+  margin: var(--spacing-md) 0;
+}
+
+.immediate-tasks-container .empty-state-container {
+  background-color: rgba(247, 37, 133, 0.03);
+  border: 1px dashed var(--secondary-color);
+}
+
+.later-tasks-container .empty-state-container {
+  background-color: rgba(76, 201, 240, 0.03);
+  border: 1px dashed var(--success-color);
+}
+
+.empty-state-content i {
+  font-size: 2.5rem;
+  color: var(--text-light);
+  margin-bottom: var(--spacing-sm);
+}
+
+.immediate-tasks-container .empty-state-content i {
+  color: var(--secondary-color);
+}
+
+.later-tasks-container .empty-state-content i {
+  color: var(--success-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .urgency-section {
+    padding: var(--spacing-sm);
+  }
+  
+  .task-count-badge {
+    min-width: 1.8rem;
+    min-height: 1.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .urgency-section-title {
+    font-size: 1rem;
+  }
+  
+  .immediate-tasks-container .task-day-title,
+  .later-tasks-container .task-day-title {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .urgency-urgent-task::before,
+  .urgency-upcoming-task::before,
+  .urgency-later-task::before,
+  .overdue-task::before {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+  }
+  
+  .urgency-urgent .urgency-section-title::before,
+  .urgency-upcoming .urgency-section-title::before,
+  .urgency-later .urgency-section-title::before {
+    font-size: 1rem;
+  }
+}
+
 /* Loading spinner */
 .loading-spinner {
   display: flex;

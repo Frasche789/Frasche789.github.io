@@ -6,11 +6,13 @@
 import { registerInitStep } from '../bootstrap.js';
 import { UI_COMPONENTS_INIT_ID } from './uiInit.js';
 import { TASK_INIT_ID } from '../services/taskInit.js';
-import { getState } from '../state/appState.js';
+import { getState, setState, dispatch } from '../state/appState.js';
 import { getTodayFinDate } from '../utils/dateUtils.js';
 import { calculateNextClassDay } from '../utils/subjectUtils.js';
 import { renderTodayTasks } from '../components/TodayTasks.js';
 import { createDateTaskList, createSubjectTaskList, createEmptyState } from '../components/TaskList.js';
+import { createImmediateTasksContainer, createLaterTasksContainer } from '../components/UrgencyTaskList.js';
+import { groupTasksByUrgency } from '../services/taskService.js';
 
 // Registration constants
 export const RENDER_INIT_ID = 'render';
@@ -113,6 +115,9 @@ function renderTasks() {
     if (activeFilter === 'subject') {
       const subjectGroups = groupTasksByNextClass(filteredTasks);
       renderTasksByNextClassGroups(subjectGroups, todayFormatted);
+    } else if (activeFilter === 'urgency') {
+      const urgencyGroups = groupTasksByUrgency(filteredTasks);
+      renderTasksByUrgencyGroups(urgencyGroups);
     } else {
       const dateGroups = groupTasksByDueDate(filteredTasks);
       renderTasksByDateGroups(dateGroups, todayFormatted);
@@ -337,6 +342,45 @@ function renderTasksByNextClassGroups(subjectGroups, todayFormatted) {
   if (sortedSubjects.length === 0) {
     elements.taskContainer.appendChild(createEmptyState());
   }
+}
+
+/**
+ * Render tasks grouped by urgency
+ * @param {Object} urgencyGroups - Tasks grouped by urgency
+ */
+function renderTasksByUrgencyGroups(urgencyGroups) {
+  if (!elements.taskContainer) return;
+  
+  // Clear container
+  elements.taskContainer.innerHTML = '';
+  
+  // Handle empty state
+  if (!urgencyGroups.immediate && !urgencyGroups.later) {
+    elements.taskContainer.appendChild(createEmptyState());
+    return;
+  }
+  
+  // Create immediate tasks container (today and tomorrow)
+  const immediateContainer = createImmediateTasksContainer(
+    urgencyGroups.immediate, 
+    (taskId) => {
+      // Task completed callback
+      console.log(`Task ${taskId} completed`);
+      dispatch('task-completed', { taskId });
+    }
+  );
+  elements.taskContainer.appendChild(immediateContainer);
+  
+  // Create later tasks container
+  const laterContainer = createLaterTasksContainer(
+    urgencyGroups.later,
+    (taskId) => {
+      // Task completed callback
+      console.log(`Task ${taskId} completed`);
+      dispatch('task-completed', { taskId });
+    }
+  );
+  elements.taskContainer.appendChild(laterContainer);
 }
 
 /**
