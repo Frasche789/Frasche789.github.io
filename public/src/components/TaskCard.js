@@ -7,6 +7,7 @@ import { playCompletionAnimation } from '../utils/animationUtils.js';
 import { getSubjectColor } from '../utils/subjectUtils.js';
 import { completeTask } from '../services/taskService.js';
 import { getState, setState, dispatch } from '../state/appState.js';
+import { getTodayFinDate } from '../utils/dateUtils.js';
 
 /**
  * Create a task card element
@@ -33,6 +34,25 @@ export function createTaskCard(task, onCompleted) {
   // Add container-specific class if available
   if (task.containerClass) {
     taskCard.classList.add(`container-${task.containerClass}-task`);
+  }
+  
+  // Add exam-specific class if it's an exam type
+  if (task.type === 'exam') {
+    taskCard.classList.add('exam-task');
+    
+    // Check if the exam is due today or tomorrow
+    const todayFormatted = getTodayFinDate();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowFormatted = `${String(tomorrow.getDate()).padStart(2, '0')}.${String(tomorrow.getMonth() + 1).padStart(2, '0')}.${tomorrow.getFullYear()}`;
+    
+    const dueDate = task.dueDate || task.due_date;
+    
+    if (dueDate === todayFormatted) {
+      taskCard.classList.add('exam-due-today');
+    } else if (dueDate === tomorrowFormatted) {
+      taskCard.classList.add('exam-due-tomorrow');
+    }
   }
   
   // Create and append content
@@ -139,13 +159,31 @@ function createTaskCardContent(task) {
   const creationDateText = task.date ? 
     `<div class="task-creation-date">Created: ${task.date}</div>` : '';
   
+  // Check if exam is due today or tomorrow
+  let examBadgeText = 'EXAM';
+  if (task.type === 'exam') {
+    const todayFormatted = getTodayFinDate();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowFormatted = `${String(tomorrow.getDate()).padStart(2, '0')}.${String(tomorrow.getMonth() + 1).padStart(2, '0')}.${tomorrow.getFullYear()}`;
+    
+    const dueDate = task.dueDate || task.due_date;
+    
+    if (dueDate === todayFormatted) {
+      examBadgeText = 'EXAM TODAY';
+    } else if (dueDate === tomorrowFormatted) {
+      examBadgeText = 'EXAM TOMORROW';
+    }
+  }
+  
   // Create the card content
   return `
     <div class="task-card-inner" style="${cardStyle}">
       <div class="task-card-content">
         <div class="task-card-header">
           ${task.subject ? `<div class="task-subject" style="background-color: ${color};">${task.subject}</div>` : ''}
-          ${task.type === 'chore' ? '<div class="task-type">Chore</div>' : ''}
+          ${task.type === 'chore' ? '<div class="task-type chore-badge">Chore</div>' : ''}
+          ${task.type === 'exam' ? `<div class="task-type exam-badge">${examBadgeText}</div>` : ''}
           ${task.completed ? '<div class="completed-stamp">DONE</div>' : ''}
         </div>
         <div class="task-description">${task.description}</div>

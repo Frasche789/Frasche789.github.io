@@ -3,6 +3,9 @@
  * Contains functions for date parsing, formatting, and comparison
  */
 
+// Import categorizeTask for centralized task categorization
+import { categorizeTask } from '../services/taskCategorization.js';
+
 /**
  * Get today's date in Finnish format (DD.MM.YYYY)
  * @returns {string} Today's date in Finnish format
@@ -200,27 +203,11 @@ export function getTomorrowFinDate() {
  * Determine which container a task belongs to based on the categorization rules
  * @param {Object} task - The task object
  * @returns {string} Container identifier: 'archive', 'current', or 'future'
+ * @deprecated Use categorizeTask from taskCategorization.js instead
  */
 export function determineTaskContainer(task) {
-  // Default container is 'current' if we can't determine otherwise
-  if (!task) return 'current';
-  
-  // Rule 1: Archive - Completed tasks (regardless of age)
-  if (task.completed) return 'archive';
-  
-  // Rule 2: Archive - Tasks created >14 days ago
-  if (isTaskOlderThan(task, 14)) return 'archive';
-  
-  // For remaining tasks (incomplete and <14 days old)
-  
-  // Extract subject from task
-  const subject = task.subject || '';
-  
-  // Rule 2: Current - Subjects having class today/tomorrow
-  if (hasClassTodayOrTomorrow(subject)) return 'current';
-  
-  // Rule 3: Future - Subjects NOT having class today/tomorrow
-  return 'future';
+  // Forward to the centralized implementation
+  return categorizeTask(task);
 }
 
 /**
@@ -293,7 +280,7 @@ export function hasClassTodayOrTomorrow(subject) {
 
 /**
  * Check if a task is older than the specified number of days
- * @param {Object} task - Task object with createdAt property
+ * @param {Object} task - Task object with date property
  * @param {number} days - Number of days threshold
  * @returns {boolean} True if the task is older than the specified days
  */
@@ -304,6 +291,11 @@ export function isTaskOlderThan(task, days = 14) {
   if (!createdDate) return false;
   
   const today = new Date();
+  
+  // Reset time parts for accurate date comparison
+  today.setHours(0, 0, 0, 0);
+  createdDate.setHours(0, 0, 0, 0);
+  
   const diffTime = today - createdDate;
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   

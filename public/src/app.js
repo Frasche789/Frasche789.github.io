@@ -3,10 +3,31 @@
  * Main entry point that orchestrates module initialization
  */
 
+// App configuration
+export const appConfig = {
+  tasks: {
+    // Number of days after which tasks are automatically archived
+    archiveThresholdDays: 7,
+    
+    // Task categorization settings
+    categorization: {
+      // Include tasks due tomorrow in current category
+      includeTomorrowInCurrent: true
+    }
+  },
+  ui: {
+    // Animation settings
+    animations: {
+      enabled: true,
+      reducedMotion: false
+    }
+  }
+};
+
 // Import utilities
 import { initAnimationStyles } from './utils/animationUtils.js';
 import { getTodayFinDate } from './utils/dateUtils.js';
-import { calculateNextClassDay, hasClassTodayOrTomorrow } from './utils/subjectUtils.js';
+import { calculateNextClassDay, hasClassTodayOrTomorrow } from './utils/dateUtils.js';
 
 // Import state management
 import { 

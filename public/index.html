@@ -87,6 +87,9 @@
     
     import { waitForFirebase, getFirestore } from './src/services/firebaseService.js';
     
+    // Import the centralized task categorization service
+    import { categorizeTasksByBusinessRules } from './src/services/taskCategorization.js';
+    
     // Initialize Firebase using the centralized service
     let db;
     
@@ -258,26 +261,8 @@
           ...doc.data()
         }));
         
-        // Categorize tasks
-        const archiveTasks = [];
-        const currentTasks = [];
-        const futureTasks = [];
-        
-        tasks.forEach(task => {
-          const container = determineTaskContainer(task);
-          
-          switch (container) {
-            case 'archive':
-              archiveTasks.push(task);
-              break;
-            case 'current':
-              currentTasks.push(task);
-              break;
-            case 'future':
-              futureTasks.push(task);
-              break;
-          }
-        });
+        // Use the centralized task categorization service
+        const { archive: archiveTasks, current: currentTasks, future: futureTasks } = categorizeTasksByBusinessRules(tasks);
         
         // Update archive count
         elements.archiveCount.textContent = archiveTasks.length;

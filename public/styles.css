@@ -38,6 +38,12 @@
   --class-tomorrow: #ff9800;
   --class-upcoming: #4caf50;
   
+  /* Task type indicators */
+  --exam-color: #e63946;
+  --exam-today-color: #d00000;
+  --exam-tomorrow-color: #e85d04;
+  --chore-color: #118ab2;
+  
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -367,6 +373,91 @@ header p {
 .task-card.completed-task .description {
   text-decoration: line-through;
   color: var(--text-light);
+}
+
+/* Task type styling */
+.task-card .task-type {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-left: var(--spacing-xs);
+  min-width: 40px;
+  height: 24px;
+}
+
+/* Exam badge styling */
+.task-card .exam-badge {
+  background-color: var(--exam-color);
+  color: white;
+  font-weight: 800;
+  border-radius: 4px;
+  animation: pulse 2s infinite ease-in-out;
+  font-size: 0.7rem;
+  min-width: 80px;
+}
+
+/* Chore badge styling */
+.task-card .chore-badge {
+  background-color: var(--chore-color);
+  color: white;
+}
+
+/* Exam task card styling in Current section */
+.task-card.exam-task[data-container="current"] {
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+  border: 1px solid var(--exam-color);
+}
+
+/* Exam due today specific styling */
+.task-card.exam-due-today .exam-badge {
+  background-color: var(--exam-today-color);
+  animation: pulse-urgent 1.5s infinite ease-in-out;
+}
+
+.task-card.exam-due-today[data-container="current"] {
+  box-shadow: 0 4px 15px rgba(208, 0, 0, 0.4);
+  border: 2px solid var(--exam-today-color);
+}
+
+/* Exam due tomorrow specific styling */
+.task-card.exam-due-tomorrow .exam-badge {
+  background-color: var(--exam-tomorrow-color);
+}
+
+.task-card.exam-due-tomorrow[data-container="current"] {
+  box-shadow: 0 4px 12px rgba(232, 93, 4, 0.3);
+  border: 1px solid var(--exam-tomorrow-color);
+}
+
+/* Pulse animation for exam badges */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(230, 57, 70, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(230, 57, 70, 0);
+  }
+}
+
+/* More urgent pulse animation for today's exams */
+@keyframes pulse-urgent {
+  0% {
+    box-shadow: 0 0 0 0 rgba(208, 0, 0, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(208, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(208, 0, 0, 0);
+  }
 }
 
 /* Animations */
