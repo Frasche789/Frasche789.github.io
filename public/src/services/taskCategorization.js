@@ -9,8 +9,12 @@ import { hasClassTodayOrTomorrow } from '../utils/subjectUtils.js';
 /**
  * Categorize tasks according to strict business rules:
  * - Archive: Tasks created >14 days ago OR completed tasks (regardless of age)
- * - Current: Incomplete, recent (<14 days old) tasks with subjects having class today/tomorrow
- * - Future: Incomplete, recent (<14 days old) tasks with subjects NOT having class today/tomorrow
+ * - Current: 
+ *   - Homework/Subject tasks: Incomplete, recent (<14 days old) with subjects having class today/tomorrow
+ *   - Chores/Exams: Incomplete, recent tasks that are due today
+ * - Future: 
+ *   - Homework/Subject tasks: Incomplete, recent with subjects NOT having class today/tomorrow
+ *   - Chores/Exams: Incomplete, recent tasks due in the future
  * 
  * @param {Array} tasks - Array of task objects
  * @returns {Object} Tasks organized by category {archive: [], current: [], future: []}
@@ -35,20 +39,35 @@ export function categorizeTasksByBusinessRules(tasks) {
     // Parse task creation date
     const taskDate = parseFinDate(task.date);
     
-    // Archive rule: >14 days old OR completed
+    // RULE 1: Archive rule - >14 days old OR completed
     if ((taskDate && taskDate < twoWeeksAgo) || task.completed) {
       result.archive.push(task);
       return;
     }
     
     // For remaining tasks (recent and not completed)
-    // Check if subject has class today/tomorrow
-    const hasClassSoon = hasClassTodayOrTomorrow(task.subject);
     
-    if (hasClassSoon) {
-      result.current.push(task);
+    // RULE 2: Handle different task types appropriately
+    if (task.type === 'chore' || task.type === 'exam') {
+      // For chores and exams, check the due date
+      const dueDate = task.dueDate || task.due_date;
+      
+      if (dueDate === todayFormatted) {
+        // Due today - put in Current
+        result.current.push(task);
+      } else {
+        // Due in the future - put in Future
+        result.future.push(task);
+      }
     } else {
-      result.future.push(task);
+      // For homework/subject tasks or any other type, use the subject's class schedule
+      const hasClassSoon = hasClassTodayOrTomorrow(task.subject);
+      
+      if (hasClassSoon) {
+        result.current.push(task);
+      } else {
+        result.future.push(task);
+      }
     }
   });
 
@@ -74,16 +93,21 @@ export function categorizeTask(task) {
   // Parse task creation date
   const taskDate = parseFinDate(task.date);
   
-  // Archive rule: >14 days old OR completed
+  // RULE 1: Archive rule - >14 days old OR completed
   if ((taskDate && taskDate < twoWeeksAgo) || task.completed) {
     return 'archive';
   }
   
-  // For remaining tasks (recent and not completed)
-  // Check if subject has class today/tomorrow
-  const hasClassSoon = hasClassTodayOrTomorrow(task.subject);
-  
-  return hasClassSoon ? 'current' : 'future';
+  // RULE 2: Handle different task types appropriately
+  if (task.type === 'chore' || task.type === 'exam') {
+    // For chores and exams, check the due date
+    const dueDate = task.dueDate || task.due_date;
+    return dueDate === todayFormatted ? 'current' : 'future';
+  } else {
+    // For homework/subject tasks or any other type, use the subject's class schedule
+    const hasClassSoon = hasClassTodayOrTomorrow(task.subject);
+    return hasClassSoon ? 'current' : 'future';
+  }
 }
 
 /**
