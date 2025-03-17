@@ -14,14 +14,15 @@ import {
   parseFinDate, 
   getTodayFinDate, 
   compareDates, 
-  determineTaskContainer 
 } from '../utils/dateUtils.js';
 import { 
   calculateDueDate, 
   updateTaskWithCalculatedDueDate, 
-  getEffectiveDueDate,
-  calculateNextClassDay
+  getEffectiveDueDate,  
+  calculateNextClassDay,
+  hasClassTodayOrTomorrow
 } from '../utils/subjectUtils.js';
+import { categorizeTask } from '../services/taskCategorization.js';
 
 /**
  * Load tasks from Firestore
@@ -42,7 +43,7 @@ export async function loadTasks(options = { useCache: true }) {
       
       // If the task doesn't have a container assigned, determine it
       if (!task.container) {
-        task.container = determineTaskContainer(task);
+        task.container = categorizeTask(task);
       }
       
       return task;
@@ -85,18 +86,17 @@ export async function loadStudents(options = { useCache: true }) {
 }
 
 /**
- * Add a new task (chore)
- * @param {Object} choreData - Data for the new chore
- * @param {string} choreData.description - Description of the chore
- * @param {number} choreData.points - Points for completing the chore
+ * Add a new task
+ * @param {Object} taskData - Data for the new task
+ * @param {string} taskData.description - Description of the task
+ * @param {number} taskData.points - Points for completing the task
  * @returns {Promise<Object>} The newly created task
  */
-export async function addChore(choreData) {
+export async function addTask(taskData) {
   try {
-    if (!choreData.description || !choreData.points) {
-      throw new Error('Chore description and points are required');
+    if (!taskData.description) {
+      throw new Error('Task description is required');
     }
-
     // Create a timestamp for the task
     const timestamp = Date.now();
     
@@ -105,25 +105,24 @@ export async function addChore(choreData) {
     
     // Create the task object
     const newTask = {
-      description: choreData.description,
+      description: taskData.description,
       assignDate: today, // Today's date
       dateAdded: today, // Track when the task was added
       dueDate: today, // Due today
       calculatedDueDate: today, // Same as due date for chores
       manuallySetDueDate: true, // Mark as manually set
-      points: parseInt(choreData.points),
       completed: false,
       completedDate: null,
-      type: 'chore',
+      type: 'task',
       createdAt: timestamp,
       updatedAt: timestamp
     };
     
     // Determine which container this task belongs to
-    newTask.container = determineTaskContainer(newTask);
+    newTask.container = categorizeTask(newTask);
     
     // Generate a unique ID for the task
-    const taskId = `chore_${timestamp}`;
+    const taskId = `task_${timestamp}`;
     
     // Save to Firestore
     await setDocument('tasks', taskId, newTask);
@@ -135,7 +134,7 @@ export async function addChore(choreData) {
     const currentTasks = getState().tasks || [];
     setState({ 
       tasks: [...currentTasks, taskWithId] 
-    }, 'taskService.addChore');
+    }, 'taskService.addTask');
     
     // Dispatch task added event
     dispatch('task-added', taskWithId);
@@ -143,7 +142,7 @@ export async function addChore(choreData) {
     return taskWithId;
     
   } catch (error) {
-    console.error('Error adding chore:', error);
+    console.error('Error adding task:', error);
     throw error;
   }
 }
@@ -157,10 +156,10 @@ export async function addChore(choreData) {
  * @param {string} taskData.dueDate - Due date in Finnish format (optional)
  * @returns {Promise<Object>} The newly created task
  */
-export async function addSubjectTask(taskData) {
+export async function addHomework(taskData) {
   try {
     if (!taskData.description || !taskData.subject) {
-      throw new Error('Task description and subject are required');
+      throw new Error('Homework description and subject are required');
     }
 
     // Create a timestamp for the task
@@ -175,7 +174,6 @@ export async function addSubjectTask(taskData) {
       type: 'subject',
       dateAdded: today,
       assignDate: today,
-      points: parseInt(taskData.points || 5), // Default to 5 points if not specified
       completed: false,
       completedDate: null,
       createdAt: timestamp,
@@ -192,7 +190,7 @@ export async function addSubjectTask(taskData) {
     }
     
     // Determine which container this task belongs to
-    taskWithDueDate.container = determineTaskContainer(taskWithDueDate);
+    taskWithDueDate.container = categorizeTask(taskWithDueDate);
     
     // Generate a unique ID for the task
     const taskId = `subject_${timestamp}`;
@@ -207,7 +205,7 @@ export async function addSubjectTask(taskData) {
     const currentTasks = getState().tasks || [];
     setState({ 
       tasks: [...currentTasks, taskWithId] 
-    }, 'taskService.addSubjectTask');
+    }, 'taskService.addHomework');
     
     // Dispatch task added event
     dispatch('task-added', taskWithId);
@@ -215,7 +213,7 @@ export async function addSubjectTask(taskData) {
     return taskWithId;
     
   } catch (error) {
-    console.error('Error adding subject task:', error);
+    console.error('Error adding homework:', error);
     throw error;
   }
 }
@@ -252,7 +250,7 @@ export async function completeTask(taskId) {
     };
     
     // Determine container after completion
-    updatedTask.container = determineTaskContainer(updatedTask);
+    updatedTask.container = categorizeTask(updatedTask);
     
     // Update in Firestore
     await updateDocument('tasks', taskId, {
@@ -331,7 +329,7 @@ export async function updateTaskDueDate(taskId, dueDate) {
     };
     
     // Recalculate the container based on the new due date
-    updatedTask.container = determineTaskContainer(updatedTask);
+    updatedTask.container = categorizeTask(updatedTask);
     
     // Update in Firestore
     await updateDocument('tasks', taskId, {
@@ -389,7 +387,7 @@ export async function resetTaskDueDate(taskId) {
     updatedTask.updatedAt = Date.now();
     
     // Recalculate the container based on the new due date
-    updatedTask.container = determineTaskContainer(updatedTask);
+    updatedTask.container = categorizeTask(updatedTask);
     
     // Update in Firestore
     await updateDocument('tasks', taskId, {
@@ -416,95 +414,8 @@ export async function resetTaskDueDate(taskId) {
     throw error;
   }
 }
-
-/**
- * Get tasks filtered by various criteria
- * @param {Object} options - Filter options
- * @param {string} [options.filter='all'] - Filter type ('all', 'subjects', 'chores')
- * @param {boolean} [options.showRecentOnly=false] - Show only recent tasks
- * @param {boolean} [options.showArchive=false] - Show archived tasks
- * @param {string} [options.container=null] - Filter by container ('archive', 'current', 'future')
- * @returns {Object} Filtered tasks organized by container
- */
-export function getFilteredTasks(options = {}) {
-  const {
-    filter = 'all',
-    showRecentOnly = false,
-    showArchive = false,
-    container = null
-  } = options;
-  
-  const { tasks } = getState();
-  
-  if (!tasks || !tasks.length) {
-    return {
-      archive: [],
-      current: [],
-      future: []
-    };
-  }
-  
-  // Apply type filter
-  let filteredTasks = [...tasks];
-  
-  if (filter === 'subjects') {
-    filteredTasks = filteredTasks.filter(task => task.type === 'subject');
-  } else if (filter === 'chores') {
-    filteredTasks = filteredTasks.filter(task => task.type === 'chore');
-  }
-  
-  // Apply completion filter (show archive or not)
-  if (!showArchive) {
-    filteredTasks = filteredTasks.filter(task => !task.completed);
-  }
-  
-  // Apply recency filter if requested
-  if (showRecentOnly) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const twoWeeksAgo = new Date(today);
-    twoWeeksAgo.setDate(today.getDate() - 14);
-    
-    filteredTasks = filteredTasks.filter(task => {
-      const taskDate = parseFinDate(task.dueDate || task.assignDate);
-      if (!taskDate) return true; // Include tasks without dates
-      
-      taskDate.setHours(0, 0, 0, 0);
-      return taskDate >= twoWeeksAgo;
-    });
-  }
-  
-  // Apply container filter if specified
-  if (container) {
-    // If container is not yet set on tasks, calculate it
-    filteredTasks = filteredTasks.map(task => {
-      if (!task.container) {
-        return { ...task, container: determineTaskContainer(task) };
-      }
-      return task;
-    });
-    
-    filteredTasks = filteredTasks.filter(task => task.container === container);
-    
-    // Return all filtered tasks in the specified container
-    return {
-      [container]: filteredTasks,
-      // Empty arrays for other containers
-      ...(container !== 'archive' ? { archive: [] } : {}),
-      ...(container !== 'current' ? { current: [] } : {}),
-      ...(container !== 'future' ? { future: [] } : {})
-    };
-  }
-  
-  // Group tasks by their container (archive, current, future)
-  return getTaskContainers(filteredTasks);
-}
-
 /**
  * Group tasks by container (Archive, Current, Future)
- * Uses determineTaskContainer to sort tasks into their appropriate containers
- * 
  * @param {Array} tasks - Array of task objects
  * @returns {Object} Tasks grouped by container
  */
@@ -524,27 +435,24 @@ export function groupTasksByContainer(tasks) {
     // Skip tasks with invalid data
     if (!task) return;
     
-    // Use determineTaskContainer to decide which container the task belongs to
-    const container = determineTaskContainer(task);
+    // Use categorizeTask to decide which container the task belongs to
+    const container = categorizeTask(task);
     
     // Add task to the appropriate container group
     if (container === 'archive' && containerGroups.archive) {
       containerGroups.archive.push({
         ...task,
         container,
-        containerClass: container
       });
     } else if (container === 'current' && containerGroups.current) {
       containerGroups.current.push({
         ...task,
         container,
-        containerClass: container
       });
     } else if (container === 'future' && containerGroups.future) {
       containerGroups.future.push({
         ...task,
         container,
-        containerClass: container
       });
     }
   });
@@ -662,93 +570,4 @@ export function groupTasksByUrgency(tasks) {
       later: []
     };
   }
-}
-
-/**
- * Group tasks by container (archive, current, future)
- * @param {Array} tasks - Tasks to group
- * @returns {Object} Object with tasks grouped by container
- */
-export function getTaskContainers(tasks) {
-  if (!tasks || !Array.isArray(tasks)) {
-    console.error('Invalid tasks data provided to getTaskContainers');
-    return {
-      archive: [],
-      current: [],
-      future: []
-    };
-  }
-
-  // Initialize container groups
-  const containerGroups = {
-    archive: [],
-    current: [],
-    future: []
-  };
-
-  // Group tasks by their container property
-  tasks.forEach(task => {
-    // Use the container property if it exists, otherwise determine it
-    const container = task.container || determineTaskContainer(task);
-    
-    // Add task to the appropriate container
-    if (containerGroups[container]) {
-      containerGroups[container].push(task);
-    } else {
-      // Fallback to current container if somehow the container is invalid
-      console.warn(`Invalid container type found for task: ${task.id}, defaulting to current`, task);
-      containerGroups.current.push(task);
-    }
-  });
-
-  // Sort tasks within each container
-  const sortByDueDate = (a, b) => {
-    // Default to today if no due date
-    const dateA = a.dueDate || a.calculatedDueDate || getTodayFinDate();
-    const dateB = b.dueDate || b.calculatedDueDate || getTodayFinDate();
-    
-    return compareDates(dateA, dateB);
-  };
-
-  // Sort tasks in each container
-  containerGroups.archive.sort(sortByDueDate);
-  containerGroups.current.sort(sortByDueDate);
-  containerGroups.future.sort(sortByDueDate);
-
-  return containerGroups;
-}
-
-/**
- * Helper function to format a date for string comparison
- * @param {Date} date - Date to format
- * @returns {string} Formatted date (YYYY-MM-DD)
- */
-function formatDateForComparison(date) {
-  return date.toISOString().split('T')[0];
-}
-
-/**
- * Group tasks by their due date
- * @param {Array} tasks - Array of tasks to group
- * @returns {Object} Object with tasks grouped by due date
- */
-export function groupTasksByDueDate(tasks) {
-  // Get today's date for comparison
-  const todayFormatted = getTodayFinDate();
-  
-  // Group tasks by due date
-  return tasks.reduce((groups, task) => {
-    // Skip tasks without a due date
-    if (!task.dueDate) return groups;
-    
-    // Get or create the group for this date
-    if (!groups[task.dueDate]) {
-      groups[task.dueDate] = [];
-    }
-    
-    // Add task to its date group
-    groups[task.dueDate].push(task);
-    
-    return groups;
-  }, {});
 }

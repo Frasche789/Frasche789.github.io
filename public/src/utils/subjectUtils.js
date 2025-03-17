@@ -76,6 +76,30 @@ export function getSubjectColor(subject) {
 }
 
 /**
+ * Check if a subject has class today or tomorrow
+ * @param {string} subject - Subject name
+ * @returns {boolean} True if the subject has class today or tomorrow
+ */
+export function hasClassTodayOrTomorrow(subject) {
+  if (!subject) return false;
+  
+  // Get today and tomorrow's day names using the dateUtils function
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  
+  // Get the next class for this subject
+  const nextClass = calculateNextClassDay(subject);
+  
+  // If nextClass.found is false or nextClass.daysUntil is undefined, return false
+  if (!nextClass.found || nextClass.daysUntil === undefined) {
+    return false;
+  }
+  
+  // Return true if the class is today or tomorrow
+  return nextClass.daysUntil === 0 || nextClass.daysUntil === 1;
+}
+/**
  * Calculate the next class day for a given subject
  * @param {string} subject - The subject to check
  * @param {Object} scheduleConfig - The schedule configuration to use (optional)
@@ -256,4 +280,3 @@ export function getEffectiveDueDate(task) {
   // Default to the task's dueDate field or today if none available
   return task.dueDate || getTodayFinDate();
 }
-

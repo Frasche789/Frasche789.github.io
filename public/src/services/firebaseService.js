@@ -81,12 +81,6 @@ async function initializeFirebase() {
       }
     }, 'firebaseInitialized');
     
-    // Dispatch both types of events for compatibility
-    const firebaseReadyEvent = new CustomEvent('firebase-ready', {
-      detail: { db: _db, modules: _firebaseModules }
-    });
-    window.dispatchEvent(firebaseReadyEvent);
-    
     const bootstrapEvent = new CustomEvent('firebase:ready', {
       detail: { db: _db, modules: _firebaseModules }
     });

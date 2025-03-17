@@ -26,16 +26,6 @@ export function createTaskCard(task, onCompleted) {
     taskCard.dataset.container = task.container;
   }
   
-  // Add urgency class if available
-  if (task.urgencyClass) {
-    taskCard.classList.add(`urgency-${task.urgencyClass}-task`);
-  }
-  
-  // Add container-specific class if available
-  if (task.containerClass) {
-    taskCard.classList.add(`container-${task.containerClass}-task`);
-  }
-  
   // Add exam-specific class if it's an exam type
   if (task.type === 'exam') {
     taskCard.classList.add('exam-task');
@@ -139,21 +129,9 @@ function createTaskCardContent(task) {
   // Create a colored border based on subject or container
   let cardStyle = '';
   
-  // Prioritize container styling if available
-  if (task.containerClass) {
-    // Container colors are applied via CSS classes instead
-    cardStyle = ''; // Let CSS handle container-specific styling
-  } else if (task.subject) {
-    cardStyle = `border-left: 4px solid ${color};`;
-  }
-  
-  // Format the points display
-  const pointsText = task.points ? `${task.points} pts` : '';
-  
   // Format due date display
   const dueDateText = task.dueDate ? 
-    `<div class="task-due-date">Due: ${task.dueDate}</div>` : 
-    (task.calculatedDueDate ? `<div class="task-due-date calculated">Due: ${task.calculatedDueDate}</div>` : '');
+    `<div class="task-due-date">Due: ${task.dueDate}</div>` : '';
   
   // Format creation date display
   const creationDateText = task.date ? 
@@ -182,7 +160,7 @@ function createTaskCardContent(task) {
       <div class="task-card-content">
         <div class="task-card-header">
           ${task.subject ? `<div class="task-subject" style="background-color: ${color};">${task.subject}</div>` : ''}
-          ${task.type === 'chore' ? '<div class="task-type chore-badge">Chore</div>' : ''}
+          ${task.type === 'chore' ? '<div class="task-type task-badge">Task</div>' : ''}
           ${task.type === 'exam' ? `<div class="task-type exam-badge">${examBadgeText}</div>` : ''}
           ${task.completed ? '<div class="completed-stamp">DONE</div>' : ''}
         </div>

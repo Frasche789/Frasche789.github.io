@@ -79,16 +79,15 @@
       parseFinDate, 
       isToday, 
       isTomorrow, 
-      determineTaskContainer,
-      hasClassTodayOrTomorrow,
       getDayName,
       formatFinDate
     } from './src/utils/dateUtils.js';
     
+    import { hasClassTodayOrTomorrow, calculateNextClassDay, getSubjectColor } from './src/utils/subjectUtils.js';
     import { waitForFirebase, getFirestore } from './src/services/firebaseService.js';
     
     // Import the centralized task categorization service
-    import { categorizeTasksByBusinessRules } from './src/services/taskCategorization.js';
+    import { categorizeTaskByContainer, categorizeTask } from './src/services/taskCategorization.js';
     
     // Initialize Firebase using the centralized service
     let db;
@@ -262,7 +261,7 @@
         }));
         
         // Use the centralized task categorization service
-        const { archive: archiveTasks, current: currentTasks, future: futureTasks } = categorizeTasksByBusinessRules(tasks);
+        const { archive: archiveTasks, current: currentTasks, future: futureTasks } = categorizeTaskByContainer(tasks);
         
         // Update archive count
         elements.archiveCount.textContent = archiveTasks.length;

@@ -27,7 +27,8 @@ export const appConfig = {
 // Import utilities
 import { initAnimationStyles } from './utils/animationUtils.js';
 import { getTodayFinDate } from './utils/dateUtils.js';
-import { calculateNextClassDay, hasClassTodayOrTomorrow } from './utils/dateUtils.js';
+import { calculateNextClassDay, hasClassTodayOrTomorrow } from './utils/subjectUtils.js';
+
 
 // Import state management
 import { 
@@ -43,11 +44,11 @@ import {
   loadTasks, 
   loadStudents
 } from './services/taskService.js';
-import { categorizeTasksByBusinessRules } from './services/taskCategorization.js';
+import { categorizeTask } from './services/taskCategorization.js';
 
 // Import components
 import { initTodayTasks, createEmptyState } from './components/TaskList.js';
-import { initChoreModal } from './components/ChoreModal.js';
+import { initTaskModal } from './components/TaskModal.js';
 import { initArchiveTaskList } from './components/ArchiveTaskList.js';
 
 // Import bootstrap functionality
@@ -66,12 +67,12 @@ const elements = {
   studentNameEl: document.getElementById('studentName'),
   studentPointsEl: document.getElementById('studentPoints'),
   loadingIndicator: document.getElementById('loading-indicator'),
-  addChoreBtn: document.getElementById('addChoreBtn'),
-  choreModal: document.getElementById('choreModal'),
+  addTaskBtn: document.getElementById('addTaskBtn'),
+  taskModal: document.getElementById('taskModal'),
   closeModalBtn: document.getElementById('closeModal'),
-  addChoreSubmitBtn: document.getElementById('addChoreSubmit'),
-  choreDescriptionInput: document.getElementById('choreDescription'),
-  chorePointsInput: document.getElementById('chorePoints')
+  addTaskSubmitBtn: document.getElementById('addTaskSubmit'),
+  taskDescriptionInput: document.getElementById('taskDescription'),
+  taskPointsInput: document.getElementById('taskPoints')
 };
 
 /**
@@ -111,8 +112,8 @@ registerInitStep({
       });
     }
     
-    // Initialize chore modal
-    initChoreModal();
+    // Initialize task modal
+    initTaskModal();
     
     return { initialized: true };
   },
@@ -286,7 +287,7 @@ export async function renderTasks() {
     }
     
     // Apply strict business rules for task categorization
-    const categorizedTasks = categorizeTasksByBusinessRules(tasks);
+    const categorizedTasks = categorizeTaskByContainer(tasks);
     
     console.log('Task categories:', {
       current: categorizedTasks.current.length,
