@@ -4,6 +4,7 @@
  */
 
 import { addChore } from '../services/taskService.js';
+import { getState, setState, dispatch } from '../state/appState.js';
 
 // DOM elements cache
 let choreModal = null;
@@ -102,6 +103,9 @@ export function showModal() {
   
   // Disable scrolling on the body when modal is open
   document.body.style.overflow = 'hidden';
+  
+  // Update state to reflect modal is open
+  setState({ modalOpen: true }, 'choreModal');
 }
 
 /**
@@ -115,6 +119,9 @@ export function hideModal() {
   
   // Re-enable scrolling on the body
   document.body.style.overflow = '';
+  
+  // Update state to reflect modal is closed
+  setState({ modalOpen: false }, 'choreModal');
 }
 
 /**
@@ -164,12 +171,26 @@ async function handleSubmit() {
     // Hide the modal
     hideModal();
     
-    // Show success notification
-    showNotification('Chore added successfully!', 'success');
+    // Show success notification via state
+    setState({
+      notification: {
+        message: 'Chore added successfully!',
+        type: 'success',
+        timestamp: Date.now()
+      }
+    }, 'choreAdded');
     
   } catch (error) {
     console.error('Error adding chore:', error);
-    showNotification('Failed to add chore. Please try again.', 'error');
+    
+    // Show error notification via state
+    setState({
+      notification: {
+        message: 'Failed to add chore. Please try again.',
+        type: 'error',
+        timestamp: Date.now()
+      }
+    }, 'choreAddFailed');
   } finally {
     // Re-enable submit button
     if (addChoreSubmitBtn) {
@@ -185,37 +206,12 @@ async function handleSubmit() {
  * @param {string} type - Type of notification ('success', 'error', 'info')
  */
 function showNotification(message, type = 'info') {
-  // Check if notification container exists, create if not
-  let notificationContainer = document.getElementById('notifications');
-  
-  if (!notificationContainer) {
-    notificationContainer = document.createElement('div');
-    notificationContainer.id = 'notifications';
-    notificationContainer.className = 'notification-container';
-    document.body.appendChild(notificationContainer);
-  }
-  
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.innerHTML = `
-    <div class="notification-content">
-      <p>${message}</p>
-    </div>
-  `;
-  
-  // Add to container
-  notificationContainer.appendChild(notification);
-  
-  // Force reflow
-  void notification.offsetWidth;
-  
-  // Add visible class to trigger animation
-  notification.classList.add('visible');
-  
-  // Remove after animation completes
-  setTimeout(() => {
-    notification.classList.remove('visible');
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
+  // Use state management to display notification
+  setState({
+    notification: {
+      message,
+      type,
+      timestamp: Date.now()
+    }
+  }, 'notification');
 }

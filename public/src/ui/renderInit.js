@@ -11,10 +11,9 @@ import {
 } from '../bootstrap.js';
 import { UI_COMPONENTS_INIT_ID } from './uiInit.js';
 import { TASK_INIT_ID } from '../services/taskInit.js';
-import { getState, setState, dispatch } from '../state/appState.js';
+import { getState, setState, subscribe, dispatch } from '../state/appState.js';
 import { getTodayFinDate } from '../utils/dateUtils.js';
-import { renderTodayTasks } from '../components/TodayTasks.js';
-import { createEmptyState } from '../components/TaskList.js';
+import { renderTodayTasks, createEmptyState } from '../components/TaskList.js';
 import { renderArchiveTasks } from '../components/ArchiveTaskList.js';
 import { categorizeTasksByBusinessRules } from '../services/taskCategorization.js';
 
@@ -32,6 +31,9 @@ const elements = {
   archiveToggle: null,
   noTasksMessage: null
 };
+
+// Store unsubscribe functions
+const unsubscribeFunctions = [];
 
 /**
  * Initialize the renderer
@@ -68,6 +70,9 @@ async function initializeRenderer() {
     
     // Set up event listeners for task updates
     setupEventListeners();
+    
+    // Subscribe to state changes
+    setupStateSubscriptions();
     
     console.log('Centralized task renderer initialized successfully');
     return true;
@@ -134,33 +139,55 @@ function setupEventListeners() {
     setTimeout(() => renderAllComponents(), 100);
   });
   
-  // Add event listener for UI render-tasks events
-  window.addEventListener('ui:render-tasks', () => {
-    console.log('ui:render-tasks event received');
+  // Add event listener for archive toggle
+  if (elements.archiveToggle) {
+    elements.archiveToggle.addEventListener('click', () => {
+      const state = getState();
+      const newShowArchive = !state.showArchive;
+      
+      // Update archive visibility in state
+      setState({ showArchive: newShowArchive }, 'archiveToggled');
+    });
+  }
+}
+
+/**
+ * Set up subscriptions to state changes
+ */
+function setupStateSubscriptions() {
+  // Subscribe to task changes
+  const taskSubscribe = subscribe((state, changes) => {
+    console.log('Tasks changed in state, rendering components');
     renderAllComponents();
-  });
+  }, { path: 'tasks' });
   
-  // Listen for tasks-loaded event from the task service
-  window.addEventListener('tasks-loaded', (event) => {
-    console.log('Tasks loaded, triggering render', event?.detail?.length || 0);
+  unsubscribeFunctions.push(taskSubscribe);
+  
+  // Subscribe to archive visibility changes
+  const archiveSubscribe = subscribe((state, changes) => {
+    console.log('Archive visibility changed:', state.showArchive);
     renderAllComponents();
-  });
+  }, { path: 'showArchive' });
   
-  // Listen for task completion
-  window.addEventListener('task-completed', (event) => {
-    console.log('Task completed, triggering render', event?.detail);
+  unsubscribeFunctions.push(archiveSubscribe);
+  
+  // Subscribe to task-completed events
+  const completedSubscribe = subscribe((payload) => {
+    console.log('Task completed, triggering render:', payload);
     // Give time for the database to update
     setTimeout(() => renderAllComponents(), 300);
-  });
+  }, { event: 'task-completed' });
   
-  // Listen for archive toggle
-  window.addEventListener('archive-toggled', (event) => {
-    console.log('Archive toggled:', event?.detail);
-    // Update state with archive visibility preference
-    setState({ 
-      showArchive: event?.detail?.visible 
-    }, 'archiveToggled');
-  });
+  unsubscribeFunctions.push(completedSubscribe);
+}
+
+/**
+ * Cleanup on module destruction
+ */
+export function cleanupRenderer() {
+  // Unsubscribe from all subscriptions
+  unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+  unsubscribeFunctions.length = 0;
 }
 
 /**
@@ -182,6 +209,15 @@ async function renderAllComponents() {
     // Apply strict business rules to categorize tasks
     const categorizedTasks = categorizeTasksByBusinessRules(tasks);
     
+    // Store categorized tasks in state
+    setState({
+      categorizedTasks: {
+        current: categorizedTasks.current,
+        future: categorizedTasks.future,
+        archive: categorizedTasks.archive
+      }
+    }, 'tasksCategorized');
+    
     console.log('Task categories:', {
       current: categorizedTasks.current.length,
       future: categorizedTasks.future.length,
@@ -200,18 +236,19 @@ async function renderAllComponents() {
       renderComponent('todayTasks', { tasks }),
       renderComponent('currentTasks', { tasks: categorizedTasks.current }),
       renderComponent('futureTasks', { tasks: categorizedTasks.future }),
-      renderComponent('archiveTasks', { 
-        tasks: categorizedTasks.archive,
-        showArchive
-      })
+      renderComponent('archiveTasks', { tasks: categorizedTasks.archive, showArchive })
     ]);
     
   } catch (error) {
-    console.error('Error in renderAllComponents:', error);
-    if (elements.taskContainer) {
-      elements.taskContainer.innerHTML = '';
-      elements.taskContainer.appendChild(createEmptyState('Error rendering tasks. Try refreshing.'));
-    }
+    console.error('Error rendering components:', error);
+    // Show error notification
+    setState({
+      notification: {
+        message: 'Failed to render task components. Please refresh the page.',
+        type: 'error',
+        timestamp: Date.now()
+      }
+    }, 'renderError');
   }
 }
 
@@ -269,8 +306,9 @@ async function renderCurrentTasks(data) {
   
   // Create task cards for each task
   tasks.forEach(task => {
+    // Using createTaskCard from TaskCard.js, which now handles state updates
     const taskCard = createTaskCard(task, (taskId) => {
-      // When completed, task will move to archive
+      // Using dispatch to emit an event that other components can listen to
       dispatch('task-completed', { taskId, task });
     });
     taskList.appendChild(taskCard);
@@ -318,8 +356,9 @@ async function renderFutureTasks(data) {
   
   // Create task cards for each task
   tasks.forEach(task => {
+    // Using createTaskCard from TaskCard.js, which now handles state updates
     const taskCard = createTaskCard(task, (taskId) => {
-      // When completed, task will move to archive
+      // Using dispatch to emit an event that other components can listen to
       dispatch('task-completed', { taskId, task });
     });
     taskList.appendChild(taskCard);
@@ -346,67 +385,20 @@ async function renderArchiveTasksComponent(data) {
 }
 
 /**
- * Create a task card element
- * @param {Object} task - Task data
- * @param {Function} onComplete - Callback for task completion
- * @param {string} [container='standard'] - Container type for styling
- * @returns {HTMLElement} Task card element
- */
-function createTaskCard(task, onComplete, container = 'standard') {
-  // Import is not available here, so we'll implement a basic card creation
-  // In a real implementation, this should use the imported createTaskCard function
-  
-  const card = document.createElement('div');
-  card.className = `task-card ${container}`;
-  card.dataset.id = task.id;
-  
-  // Add completion status class
-  if (task.completed) {
-    card.classList.add('completed');
-  }
-  
-  // Create card content
-  card.innerHTML = `
-    <div class="task-card-content">
-      <div class="task-info">
-        <div class="task-description">${task.description}</div>
-        ${task.subject ? `<div class="task-subject">${task.subject}</div>` : ''}
-      </div>
-      <div class="task-actions">
-        <button class="task-complete-btn">
-          <i class="ri-check-line"></i>
-        </button>
-      </div>
-    </div>
-  `;
-  
-  // Add completion handler
-  const completeBtn = card.querySelector('.task-complete-btn');
-  if (completeBtn) {
-    completeBtn.addEventListener('click', () => {
-      if (onComplete && typeof onComplete === 'function') {
-        onComplete(task.id);
-      }
-    });
-  }
-  
-  return card;
-}
-
-/**
  * Show or hide the no tasks message
  * @param {boolean} show - Whether to show the message
  */
 function showNoTasksMessage(show) {
   if (!elements.noTasksMessage) return;
   
-  elements.noTasksMessage.classList.toggle('hidden', !show);
+  elements.noTasksMessage.style.display = show ? 'block' : 'none';
 }
 
 // Register renderer initialization with bootstrap
 registerInitStep({
   id: RENDER_INIT_ID,
   name: 'Centralized Task Renderer Initialization',
+  run: initializeRenderer,
   dependencies: [UI_COMPONENTS_INIT_ID, TASK_INIT_ID],
-  run: initializeRenderer
+  required: true
 });

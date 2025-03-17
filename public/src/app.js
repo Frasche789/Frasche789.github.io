@@ -25,13 +25,12 @@ import {
 import { categorizeTasksByBusinessRules } from './services/taskCategorization.js';
 
 // Import components
-import { initTodayTasks } from './components/TodayTasks.js';
+import { initTodayTasks, createEmptyState } from './components/TaskList.js';
 import { initChoreModal } from './components/ChoreModal.js';
-import { createEmptyState } from './components/TaskList.js';
 import { initArchiveTaskList } from './components/ArchiveTaskList.js';
 
 // Import bootstrap functionality
-import { bootstrap, registerRenderComponent, renderComponent } from './bootstrap.js';
+import { bootstrap, registerInitStep, registerRenderComponent, renderComponent } from './bootstrap.js';
 
 // DOM elements
 const elements = {
@@ -67,15 +66,67 @@ function showLoading(show) {
   elements.loadingIndicator.style.display = show ? 'flex' : 'none';
 }
 
-/**
- * Initialize app
- */
-export async function initApp() {
-  try {
-    console.log('Initializing app with consolidated rendering architecture...');
+// Register components initialization with bootstrap system
+registerInitStep({
+  id: 'component-dom-references',
+  name: 'Component DOM References Initialization',
+  run: async () => {
+    console.log('Initializing component DOM references...');
     
-    // Initialize component DOM references
-    initComponentDOMReferences();
+    // Initialize today tasks component
+    if (elements.todayTasks && elements.todayEmptyState) {
+      initTodayTasks({
+        todayTasks: elements.todayTasks,
+        todayEmptyState: elements.todayEmptyState
+      });
+    }
+    
+    // Initialize archive task list component
+    if (elements.archiveContainer && elements.archiveToggle) {
+      initArchiveTaskList({
+        archiveContainer: elements.archiveContainer,
+        archiveToggle: elements.archiveToggle,
+        archiveEmptyState: null // Can be provided later if needed
+      });
+    }
+    
+    // Initialize chore modal
+    initChoreModal();
+    
+    return { initialized: true };
+  },
+  dependencies: ['ui'],
+  required: true
+});
+
+// Register event listeners initialization with bootstrap system
+registerInitStep({
+  id: 'app-event-listeners',
+  name: 'Application Event Listeners',
+  run: async () => {
+    console.log('Setting up application event listeners...');
+    
+    // Listen for task updates
+    document.addEventListener('tasks-loaded', handleTasksLoaded);
+    document.addEventListener('task-completed', handleTaskCompleted);
+    document.addEventListener('task-added', handleTaskAdded);
+    document.addEventListener('task-deleted', handleTaskDeleted);
+    
+    // Listen for archive toggle
+    document.addEventListener('archive-toggled', handleArchiveToggled);
+    
+    return { initialized: true };
+  },
+  dependencies: ['component-dom-references'],
+  required: true
+});
+
+// Register app state initialization with bootstrap system
+registerInitStep({
+  id: 'app-state-init',
+  name: 'Application State Initialization',
+  run: async () => {
+    console.log('Initializing application state...');
     
     // Set default app state
     setState({
@@ -84,60 +135,11 @@ export async function initApp() {
       showArchive: false,
     });
     
-    // Initialize component event handlers
-    setupEventListeners();
-    
-    // Start the bootstrap process for the application
-    bootstrap().then(() => {
-      console.log('Bootstrap process completed');
-    }).catch(error => {
-      console.error('Bootstrap process failed:', error);
-    });
-    
-    console.log('App initialization complete');
-  } catch (error) {
-    console.error('Error initializing app:', error);
-  }
-}
-
-/**
- * Initialize component DOM references
- */
-function initComponentDOMReferences() {
-  // Initialize today tasks component
-  if (elements.todayTasks && elements.todayEmptyState) {
-    initTodayTasks({
-      todayTasks: elements.todayTasks,
-      todayEmptyState: elements.todayEmptyState
-    });
-  }
-  
-  // Initialize archive task list component
-  if (elements.archiveContainer && elements.archiveToggle) {
-    initArchiveTaskList({
-      archiveContainer: elements.archiveContainer,
-      archiveToggle: elements.archiveToggle,
-      archiveEmptyState: null // Can be provided later if needed
-    });
-  }
-  
-  // Initialize chore modal
-  initChoreModal();
-}
-
-/**
- * Set up event listeners for the application
- */
-function setupEventListeners() {
-  // Listen for task updates
-  document.addEventListener('tasks-loaded', handleTasksLoaded);
-  document.addEventListener('task-completed', handleTaskCompleted);
-  document.addEventListener('task-added', handleTaskAdded);
-  document.addEventListener('task-deleted', handleTaskDeleted);
-  
-  // Listen for archive toggle
-  document.addEventListener('archive-toggled', handleArchiveToggled);
-}
+    return { initialized: true };
+  },
+  dependencies: [],
+  required: true
+});
 
 /**
  * Handle tasks loaded event
@@ -299,6 +301,3 @@ export async function renderTasks() {
     showLoading(false);
   }
 }
-
-// Initialize app when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initApp);

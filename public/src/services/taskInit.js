@@ -4,7 +4,7 @@
  */
 
 import { registerInitStep } from '../bootstrap.js';
-import { fetchCollection } from './firebaseInit.js';
+import { fetchCollection } from './firebaseService.js';
 import { setState } from '../state/appState.js';
 
 // Registration constants

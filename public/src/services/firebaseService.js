@@ -3,11 +3,115 @@
  * Centralizes Firebase initialization and provides Firebase modules
  */
 
+import { registerInitStep } from '../bootstrap.js';
+import { getState, setState, dispatch } from '../state/appState.js';
+
 // Firebase module cache
 let _firebaseModules = null;
 let _db = null;
 let _initialized = false;
 let _initPromise = null;
+
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
+  authDomain: "questboard-17337.firebaseapp.com",
+  projectId: "questboard-17337", 
+  storageBucket: "questboard-17337.appspot.com",
+  messagingSenderId: "427884628874",
+  appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
+};
+
+/**
+ * Initialize Firebase services
+ * Returns Firebase modules and Firestore instance
+ * @returns {Promise<Object>} Firebase and Firestore instances
+ */
+async function initializeFirebase() {
+  // Log start of initialization
+  console.log('Initializing Firebase...');
+  
+  // If Firebase is already initialized, return the instances
+  if (_initialized && _db && _firebaseModules) {
+    console.log('Firebase already initialized and available');
+    return { db: _db, modules: _firebaseModules };
+  }
+  
+  try {
+    // Check if Firebase SDK is available
+    if (typeof firebase === 'undefined') {
+      throw new Error('Firebase SDK not loaded');
+    }
+    
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    
+    _db = firebase.firestore();
+    
+    // Create firebaseModules with proper wrappers
+    _firebaseModules = {
+      collection: (db, path) => db.collection(path),
+      doc: (collection, id) => collection.doc(id),
+      getDocs: (collection) => collection.get(),
+      getDoc: (docRef) => docRef.get(),
+      updateDoc: (docRef, data) => docRef.update(data),
+      setDoc: (docRef, data) => docRef.set(data),
+      where: firebase.firestore.where,
+      query: firebase.firestore.query,
+      limit: firebase.firestore.limit,
+      orderBy: firebase.firestore.orderBy,
+      startAfter: firebase.firestore.startAfter,
+      endBefore: firebase.firestore.endBefore,
+      Timestamp: firebase.firestore.Timestamp
+    };
+    
+    _initialized = true;
+    
+    // Make Firebase available globally for backward compatibility
+    window.db = _db;
+    window.firebaseModules = _firebaseModules;
+    
+    // Update the app state with Firebase initialization status
+    setState({ 
+      firebase: { 
+        initialized: true,
+        timestamp: Date.now()
+      }
+    }, 'firebaseInitialized');
+    
+    // Dispatch both types of events for compatibility
+    const firebaseReadyEvent = new CustomEvent('firebase-ready', {
+      detail: { db: _db, modules: _firebaseModules }
+    });
+    window.dispatchEvent(firebaseReadyEvent);
+    
+    const bootstrapEvent = new CustomEvent('firebase:ready', {
+      detail: { db: _db, modules: _firebaseModules }
+    });
+    window.dispatchEvent(bootstrapEvent);
+    
+    // Dispatch through state management
+    dispatch('firebase-ready', { db: _db, modules: _firebaseModules });
+    
+    console.log('Firebase initialization completed successfully');
+    return { db: _db, modules: _firebaseModules };
+  } catch (error) {
+    console.error('Firebase initialization failed:', error);
+    
+    // Update state with error
+    setState({ 
+      firebase: { 
+        initialized: false, 
+        error: error.message,
+        timestamp: Date.now()
+      }
+    }, 'firebaseInitFailed');
+    
+    throw error;
+  }
+}
 
 /**
  * Wait for Firebase to be initialized
@@ -33,41 +137,28 @@ export function waitForFirebase() {
       _db = window.db;
       _firebaseModules = window.firebaseModules;
       _initialized = true;
+      
+      // Update state
+      setState({ 
+        firebase: { 
+          initialized: true,
+          timestamp: Date.now()
+        }
+      }, 'firebaseInitialized');
+      
       resolve({ db: _db, modules: _firebaseModules });
       return;
     }
     
-    console.log('Waiting for Firebase to initialize...');
-    
-    // Create a listener that will clean itself up
-    const firebaseReadyListener = () => {
-      console.log('Firebase ready event received');
-      if (window.db && window.firebaseModules) {
-        _db = window.db;
-        _firebaseModules = window.firebaseModules;
-        _initialized = true;
-        clearTimeout(timeoutId);
-        resolve({ db: _db, modules: _firebaseModules });
-      } else {
-        console.error('Firebase ready event received but modules not available');
-        clearTimeout(timeoutId);
-        reject(new Error('Firebase initialized but modules not available'));
-      }
-    };
-    
-    // Add event listener
-    window.addEventListener('firebase-ready', firebaseReadyListener, { once: true });
-    
-    // Set a timeout in case Firebase initialization fails
-    const timeoutId = setTimeout(() => {
-      // Remove event listener to avoid memory leaks
-      window.removeEventListener('firebase-ready', firebaseReadyListener);
-      
-      if (!window.db || !window.firebaseModules) {
-        console.error('Firebase initialization timed out after 8 seconds');
-        reject(new Error('Firebase initialization timed out'));
-      }
-    }, 8000);
+    // If we get here, we need to initialize Firebase ourselves
+    initializeFirebase()
+      .then(result => {
+        resolve(result);
+      })
+      .catch(error => {
+        console.error('Failed to initialize Firebase:', error);
+        reject(error);
+      });
   });
   
   return _initPromise;
@@ -97,8 +188,10 @@ export function getFirebaseModules() {
   return _firebaseModules;
 }
 
-// Cache for query results
-const _queryCache = new Map();
+// Export a function to check Firebase initialization status
+export function isFirebaseInitialized() {
+  return _initialized;
+}
 
 /**
  * Clear the query cache or a specific cached query
@@ -106,9 +199,16 @@ const _queryCache = new Map();
  */
 export function clearCache(cacheKey = null) {
   if (cacheKey) {
-    _queryCache.delete(cacheKey);
+    // Clear specific cache key from state
+    setState(state => {
+      const appCache = state.cache || {};
+      const newCache = { ...appCache };
+      delete newCache[cacheKey];
+      return { cache: newCache };
+    }, `clearCache:${cacheKey}`);
   } else {
-    _queryCache.clear();
+    // Clear all cache
+    setState({ cache: {} }, 'clearAllCache');
   }
 }
 
@@ -138,37 +238,57 @@ export async function fetchCollection(collectionName, options = {}) {
   const { useCache = true, cacheTTL = 60000 } = options;
   const cacheKey = generateCacheKey(collectionName);
   
-  // Check cache first if enabled
-  if (useCache && _queryCache.has(cacheKey)) {
-    const cached = _queryCache.get(cacheKey);
-    if (cached.expiry > Date.now()) {
-      return [...cached.data]; // Return a copy to prevent mutation
+  // Check state cache first if enabled
+  if (useCache) {
+    const state = getState();
+    const appCache = state.cache || {};
+    const cachedItem = appCache[cacheKey];
+    
+    if (cachedItem && cachedItem.expiry > Date.now()) {
+      return [...cachedItem.data]; // Return a copy to prevent mutation
     }
-    // Cache expired, remove it
-    _queryCache.delete(cacheKey);
   }
   
   try {
-    const { collection, getDocs } = _firebaseModules;
-    const querySnapshot = await getDocs(collection(_db, collectionName));
+    // Use the Firestore API directly for compatibility
+    const querySnapshot = await _db.collection(collectionName).get();
     
     const documents = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
     
-    // Cache the result if caching is enabled
+    // Cache the result in state if caching is enabled
     if (useCache) {
-      _queryCache.set(cacheKey, {
-        data: documents,
-        expiry: Date.now() + cacheTTL
-      });
+      setState(state => {
+        const appCache = state.cache || {};
+        return { 
+          cache: {
+            ...appCache,
+            [cacheKey]: {
+              data: documents,
+              expiry: Date.now() + cacheTTL
+            }
+          }
+        };
+      }, `cacheFetch:${cacheKey}`);
     }
     
     return documents;
     
   } catch (error) {
     console.error(`Error fetching collection ${collectionName}:`, error);
+    
+    // Update state with the error
+    setState({
+      errors: {
+        type: 'fetchCollection',
+        collection: collectionName,
+        message: error.message,
+        timestamp: Date.now()
+      }
+    }, 'fetchCollectionError');
+    
     throw error;
   }
 }
@@ -186,23 +306,29 @@ export async function fetchDocument(collectionName, documentId, options = {}) {
   await waitForFirebase();
   
   const { useCache = true, cacheTTL = 60000 } = options;
-  const cacheKey = generateCacheKey(`${collectionName}/${documentId}`);
+  const cacheKey = `${collectionName}:${documentId}`;
   
-  // Check cache first if enabled
-  if (useCache && _queryCache.has(cacheKey)) {
-    const cached = _queryCache.get(cacheKey);
-    if (cached.expiry > Date.now()) {
-      return { ...cached.data }; // Return a copy to prevent mutation
+  // Check state cache first if enabled
+  if (useCache) {
+    const state = getState();
+    const appCache = state.cache || {};
+    const cachedItem = appCache[cacheKey];
+    
+    if (cachedItem && cachedItem.expiry > Date.now()) {
+      return { ...cachedItem.data }; // Return a copy to prevent mutation
     }
-    // Cache expired, remove it
-    _queryCache.delete(cacheKey);
   }
   
   try {
-    const { doc, getDoc } = _firebaseModules;
-    const docSnapshot = await getDoc(doc(_db, collectionName, documentId));
+    // Use the Firestore API directly
+    const docRef = _db.collection(collectionName).doc(documentId);
+    const docSnapshot = await docRef.get();
     
-    if (!docSnapshot.exists()) {
+    if (!docSnapshot.exists) {
+      // Document doesn't exist, clean up cache if it exists
+      if (useCache) {
+        clearCache(cacheKey);
+      }
       return null;
     }
     
@@ -211,18 +337,38 @@ export async function fetchDocument(collectionName, documentId, options = {}) {
       ...docSnapshot.data()
     };
     
-    // Cache the result if caching is enabled
+    // Cache the result in state if caching is enabled
     if (useCache) {
-      _queryCache.set(cacheKey, {
-        data: document,
-        expiry: Date.now() + cacheTTL
-      });
+      setState(state => {
+        const appCache = state.cache || {};
+        return { 
+          cache: {
+            ...appCache,
+            [cacheKey]: {
+              data: document,
+              expiry: Date.now() + cacheTTL
+            }
+          }
+        };
+      }, `cacheDoc:${cacheKey}`);
     }
     
     return document;
     
   } catch (error) {
     console.error(`Error fetching document ${collectionName}/${documentId}:`, error);
+    
+    // Update state with the error
+    setState({
+      errors: {
+        type: 'fetchDocument',
+        collection: collectionName,
+        document: documentId,
+        message: error.message,
+        timestamp: Date.now()
+      }
+    }, 'fetchDocumentError');
+    
     throw error;
   }
 }
@@ -238,15 +384,44 @@ export async function updateDocument(collectionName, documentId, data) {
   await waitForFirebase();
   
   try {
-    const { doc, updateDoc } = _firebaseModules;
-    await updateDoc(doc(_db, collectionName, documentId), data);
+    // Update the document
+    const docRef = _db.collection(collectionName).doc(documentId);
+    await docRef.update({
+      ...data,
+      lastUpdated: new Date().toISOString()
+    });
     
-    // Clear relevant cache entries
-    clearCache(generateCacheKey(collectionName));
-    clearCache(generateCacheKey(`${collectionName}/${documentId}`));
+    // Clear any cache for this document and collection
+    clearCache(`${collectionName}:${documentId}`);
+    clearCache(collectionName);
+    
+    // Update state to indicate this document was updated
+    setState({
+      lastOperation: {
+        type: 'updateDocument',
+        collection: collectionName,
+        documentId,
+        timestamp: Date.now()
+      }
+    }, 'documentUpdated');
+    
+    // Dispatch document updated event
+    dispatch('document-updated', { collectionName, documentId, data });
     
   } catch (error) {
     console.error(`Error updating document ${collectionName}/${documentId}:`, error);
+    
+    // Update state with the error
+    setState({
+      errors: {
+        type: 'updateDocument',
+        collection: collectionName,
+        document: documentId,
+        message: error.message,
+        timestamp: Date.now()
+      }
+    }, 'updateDocumentError');
+    
     throw error;
   }
 }
@@ -262,15 +437,61 @@ export async function setDocument(collectionName, documentId, data) {
   await waitForFirebase();
   
   try {
-    const { doc, setDoc } = _firebaseModules;
-    await setDoc(doc(_db, collectionName, documentId), data);
+    // Set the document
+    const docRef = _db.collection(collectionName).doc(documentId);
+    await docRef.set({
+      ...data,
+      lastUpdated: new Date().toISOString()
+    });
     
-    // Clear relevant cache entries
-    clearCache(generateCacheKey(collectionName));
-    clearCache(generateCacheKey(`${collectionName}/${documentId}`));
+    // Clear any cache for this document and collection
+    clearCache(`${collectionName}:${documentId}`);
+    clearCache(collectionName);
+    
+    // Update state to indicate this document was set
+    setState({
+      lastOperation: {
+        type: 'setDocument',
+        collection: collectionName,
+        documentId,
+        timestamp: Date.now()
+      }
+    }, 'documentSet');
+    
+    // Dispatch document created/updated event
+    dispatch('document-set', { collectionName, documentId, data });
     
   } catch (error) {
     console.error(`Error setting document ${collectionName}/${documentId}:`, error);
+    
+    // Update state with the error
+    setState({
+      errors: {
+        type: 'setDocument',
+        collection: collectionName,
+        document: documentId,
+        message: error.message,
+        timestamp: Date.now()
+      }
+    }, 'setDocumentError');
+    
     throw error;
   }
 }
+
+// Register with bootstrap system
+registerInitStep({
+  id: 'firebase',
+  name: 'Firebase Initialization',
+  run: async () => {
+    try {
+      const { db, modules } = await waitForFirebase();
+      return { db, modules };
+    } catch (error) {
+      console.error('Bootstrap: Firebase initialization failed:', error);
+      throw error;
+    }
+  },
+  dependencies: [], // No dependencies for Firebase
+  required: true
+});

@@ -6,7 +6,7 @@
 import { registerInitStep } from '../bootstrap.js';
 import { TASK_INIT_ID, STUDENT_INIT_ID } from '../services/taskInit.js';
 import { initAnimationStyles } from '../utils/animationUtils.js';
-import { initTodayTasks } from '../components/TodayTasks.js';
+import { initTodayTasks } from '../components/TaskList.js';
 import { initChoreModal } from '../components/ChoreModal.js';
 import { getState, setState, subscribe } from '../state/appState.js';
 

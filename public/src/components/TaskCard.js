@@ -6,6 +6,7 @@
 import { playCompletionAnimation } from '../utils/animationUtils.js';
 import { getSubjectColor } from '../utils/subjectUtils.js';
 import { completeTask } from '../services/taskService.js';
+import { getState, setState, dispatch } from '../state/appState.js';
 
 /**
  * Create a task card element
@@ -49,18 +50,53 @@ export function createTaskCard(task, onCompleted) {
         completeBtn.disabled = true;
         
         try {
+          // Update state to reflect task is being completed
+          setState(state => {
+            const updatedTasks = state.tasks.map(t => 
+              t.id === task.id ? { ...t, completing: true } : t
+            );
+            return { tasks: updatedTasks };
+          }, 'taskCompletionStarted');
+          
           // Complete the task in the backend
           await completeTask(task.id);
           
           // Play completion animation
           await playCompletionAnimation(taskCard);
           
-          // Callback to notify task completion
+          // Update state to reflect task is completed
+          setState(state => {
+            const updatedTasks = state.tasks.map(t => 
+              t.id === task.id ? { ...t, completed: true, completing: false, completedDate: new Date().toLocaleDateString() } : t
+            );
+            return { tasks: updatedTasks };
+          }, 'taskCompleted');
+          
+          // Dispatch event for other components
+          dispatch('task-completed', { taskId: task.id, task });
+          
+          // Callback to notify task completion if provided
           if (onCompleted && typeof onCompleted === 'function') {
             onCompleted(task.id);
           }
         } catch (error) {
           console.error('Error completing task:', error);
+          
+          // Update state to reflect completion failed
+          setState(state => {
+            const updatedTasks = state.tasks.map(t => 
+              t.id === task.id ? { ...t, completing: false } : t
+            );
+            return { 
+              tasks: updatedTasks,
+              notification: {
+                message: 'Failed to complete task. Please try again.',
+                type: 'error',
+                timestamp: Date.now()
+              }
+            };
+          }, 'taskCompletionFailed');
+          
           // Re-enable button if completion failed
           completeBtn.disabled = false;
         }
@@ -121,8 +157,8 @@ function createTaskCardContent(task) {
         </div>
       </div>
       ${!task.completed ? `
-        <button class="complete-btn" aria-label="Complete task">
-          <i class="ri-check-line"></i>
+        <button class="complete-btn" aria-label="Complete task" ${task.completing ? 'disabled' : ''}>
+          ${task.completing ? '<i class="ri-loader-4-line rotating"></i>' : '<i class="ri-check-line"></i>'}
         </button>
       ` : ''}
     </div>
@@ -182,18 +218,53 @@ export function updateTaskCard(taskCard, task, onCompleted) {
         completeBtn.disabled = true;
         
         try {
+          // Update state to reflect task is being completed
+          setState(state => {
+            const updatedTasks = state.tasks.map(t => 
+              t.id === task.id ? { ...t, completing: true } : t
+            );
+            return { tasks: updatedTasks };
+          }, 'taskCompletionStarted');
+          
           // Complete the task in the backend
           await completeTask(task.id);
           
           // Play completion animation
           await playCompletionAnimation(taskCard);
           
-          // Callback to notify task completion
+          // Update state to reflect task is completed
+          setState(state => {
+            const updatedTasks = state.tasks.map(t => 
+              t.id === task.id ? { ...t, completed: true, completing: false, completedDate: new Date().toLocaleDateString() } : t
+            );
+            return { tasks: updatedTasks };
+          }, 'taskCompleted');
+          
+          // Dispatch event for other components
+          dispatch('task-completed', { taskId: task.id, task });
+          
+          // Callback to notify task completion if provided
           if (onCompleted && typeof onCompleted === 'function') {
             onCompleted(task.id);
           }
         } catch (error) {
           console.error('Error completing task:', error);
+          
+          // Update state to reflect completion failed
+          setState(state => {
+            const updatedTasks = state.tasks.map(t => 
+              t.id === task.id ? { ...t, completing: false } : t
+            );
+            return { 
+              tasks: updatedTasks,
+              notification: {
+                message: 'Failed to complete task. Please try again.',
+                type: 'error',
+                timestamp: Date.now()
+              }
+            };
+          }, 'taskCompletionFailed');
+          
           // Re-enable button if completion failed
           completeBtn.disabled = false;
         }

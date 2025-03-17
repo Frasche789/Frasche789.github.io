@@ -85,19 +85,10 @@
       formatFinDate
     } from './src/utils/dateUtils.js';
     
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
-      authDomain: "questboard-17337.firebaseapp.com",
-      projectId: "questboard-17337", 
-      storageBucket: "questboard-17337.appspot.com",
-      messagingSenderId: "427884628874",
-      appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
-    };
+    import { waitForFirebase, getFirestore } from './src/services/firebaseService.js';
     
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // Initialize Firebase using the centralized service
+    let db;
     
     // DOM Elements
     const elements = {
@@ -329,34 +320,44 @@
     }
     
     // Initialize app
-    function init() {
-      // Load student name
-      db.collection('settings').doc('profile').get()
-        .then(doc => {
-          if (doc.exists) {
-            const { name } = doc.data();
-            elements.studentName.textContent = `${name}'s Task Board`;
-          }
-        })
-        .catch(error => console.error('Error loading profile:', error));
-      
-      // Format date
-      formatDateDisplay();
-      
-      // Load tomorrow's classes
-      loadTomorrowClasses();
-      
-      // Load tasks
-      loadTasks();
-      
-      // Set up event listeners
-      elements.archiveToggle.addEventListener('click', () => {
-        elements.archiveContainer.classList.toggle('expanded');
+    async function init() {
+      try {
+        // Wait for Firebase to be initialized
+        const { db: firestore } = await waitForFirebase();
         
-        const isExpanded = elements.archiveContainer.classList.contains('expanded');
-        const toggleText = elements.archiveToggle.querySelector('span');
-        toggleText.textContent = isExpanded ? 'Hide Archive' : 'Show Archive';
-      });
+        // Set global db for compatibility
+        db = firestore;
+        
+        // Load student name
+        db.collection('settings').doc('profile').get()
+          .then(doc => {
+            if (doc.exists) {
+              const { name } = doc.data();
+              elements.studentName.textContent = `${name}'s Task Board`;
+            }
+          })
+          .catch(error => console.error('Error loading profile:', error));
+        
+        // Format date
+        formatDateDisplay();
+        
+        // Load tomorrow's classes
+        loadTomorrowClasses();
+        
+        // Load tasks
+        loadTasks();
+        
+        // Set up event listeners
+        elements.archiveToggle.addEventListener('click', () => {
+          elements.archiveContainer.classList.toggle('expanded');
+          
+          const isExpanded = elements.archiveContainer.classList.contains('expanded');
+          const toggleText = elements.archiveToggle.querySelector('span');
+          toggleText.textContent = isExpanded ? 'Hide Archive' : 'Show Archive';
+        });
+      } catch (error) {
+        console.error('Failed to initialize app:', error);
+      }
     }
     
     // Initialize when DOM is ready
