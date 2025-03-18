@@ -14,7 +14,7 @@ export const DEFAULT_SCHEDULE = {
     "Math": [1, 2, 3, 4], // Monday, Tuesday, Wednesday, Thursday
     "Eco": [1, 4], // Monday, Thursday
     "Crafts": [1], // Monday
-    "PE": [1, 2, 3], // Monday, Tuesday, Wednesday
+    "PE": [1, 2], // Monday, Tuesday
     "Finnish": [2, 3, 4, 5], // Tuesday, Wednesday, Thursday, Friday
     "History": [2], // Tuesday
     "Music": [2], // Tuesday
@@ -76,17 +76,12 @@ export function getSubjectColor(subject) {
 }
 
 /**
- * Check if a subject has class today or tomorrow
+ * Check if a subject has class today
  * @param {string} subject - Subject name
- * @returns {boolean} True if the subject has class today or tomorrow
+ * @returns {boolean} True if the subject has class today
  */
-export function hasClassTodayOrTomorrow(subject) {
+export function hasClassToday(subject) {
   if (!subject) return false;
-  
-  // Get today and tomorrow's day names using the dateUtils function
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
   
   // Get the next class for this subject
   const nextClass = calculateNextClassDay(subject);
@@ -96,9 +91,37 @@ export function hasClassTodayOrTomorrow(subject) {
     return false;
   }
   
-  // Return true if the class is today or tomorrow
-  return nextClass.daysUntil === 0 || nextClass.daysUntil === 1;
+  // Return true if the class is today
+  return nextClass.daysUntil === 0;
+}
 
+/**
+ * Check if a subject has class tomorrow
+ * @param {string} subject - Subject name
+ * @returns {boolean} True if the subject has class tomorrow
+ */
+export function hasClassTomorrow(subject) {
+  if (!subject) return false;
+  
+  // Get the next class for this subject
+  const nextClass = calculateNextClassDay(subject);
+  
+  // If nextClass.found is false or nextClass.daysUntil is undefined, return false
+  if (!nextClass.found || nextClass.daysUntil === undefined) {
+    return false;
+  }
+  
+  // Return true if the class is tomorrow
+  return nextClass.daysUntil === 1;
+}
+
+/**
+ * Check if a subject has class today or tomorrow
+ * @param {string} subject - Subject name
+ * @returns {boolean} True if the subject has class today or tomorrow
+ */
+export function hasClassTodayOrTomorrow(subject) {
+  return hasClassToday(subject) || hasClassTomorrow(subject);
 }
 
 /**

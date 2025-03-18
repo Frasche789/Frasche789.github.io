@@ -19,6 +19,8 @@ import {
   updateTaskWithCalculatedDueDate, 
   getEffectiveDueDate,  
   calculateNextClassDay,
+  hasClassToday,
+  hasClassTomorrow,
   hasClassTodayOrTomorrow
 } from '../utils/subjectUtils.js';
 import { categorizeTask } from '../services/taskCategorization.js';

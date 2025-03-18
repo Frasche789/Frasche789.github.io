@@ -134,7 +134,6 @@ function translateSubjectName(finnishName) {
   }
   
   // If no match found, check if it's already one of our standard English subject names
-  // This prevents "Unknown subject: English" or "Unknown subject: Finnish" messages
   const standardSubjects = subjects.map(s => s.name.toLowerCase());
   if (standardSubjects.includes(lowerName)) {
     // Return the properly capitalized version from our subjects array
@@ -143,21 +142,40 @@ function translateSubjectName(finnishName) {
         return subject.name;
       }
     }
-    // If we don't find it in our array (unlikely), return the original
     return finnishName;
   }
   
   // Check the predefined subjects array for URLs
-  // This is a fallback if the site returns unexpected subject names
   for (const subject of subjects) {
     if (finnishName.includes(subject.url)) {
       return subject.name;
     }
   }
   
-  // If all else fails, return as is but log it for debugging
   console.log(`Unknown subject: ${finnishName}`);
   return finnishName;
+}
+
+// Normalize date format
+function normalizeDate(dateString) {
+  if (!dateString || typeof dateString !== 'string') return '';
+  
+  // Add year if missing (DD.MM -> DD.MM.YYYY)
+  if (/^\d{1,2}\.\d{1,2}$/.test(dateString)) {
+    return `${dateString}.${new Date().getFullYear()}`;
+  }
+  
+  // Convert DD.MM.YY to DD.MM.YYYY
+  if (/^\d{1,2}\.\d{1,2}\.\d{2}$/.test(dateString)) {
+    const parts = dateString.split('.');
+    if (parts.length === 3) {
+      const year = parseInt(parts[2], 10);
+      const fullYear = year < 50 ? 2000 + year : 1900 + year;
+      return `${parts[0]}.${parts[1]}.${fullYear}`;
+    }
+  }
+  
+  return dateString;
 }
 
 // Function to save data to Firestore
@@ -180,35 +198,19 @@ async function saveData(data) {
     let successCount = 0;
     for (const task of data.tasks) {
       // Check if this task already exists in Firestore
-      // We only need to check tasks that were newly added during this run
       if (!task.firestore_id) {
         // Translate subject name for consistency
         let normalizedSubject = translateSubjectName(task.subject);
         
-        // Ensure date is in correct format (DD.MM.YYYY)
-        let normalizedDate = task.date;
-        if (normalizedDate && typeof normalizedDate === 'string') {
-          // Add year if missing
-          if (/^\d{1,2}\.\d{1,2}$/.test(normalizedDate)) {
-            normalizedDate = `${normalizedDate}.${new Date().getFullYear()}`;
-          }
-          
-          // Convert DD.MM.YY to DD.MM.YYYY
-          if (/^\d{1,2}\.\d{1,2}\.\d{2}$/.test(normalizedDate)) {
-            const parts = normalizedDate.split('.');
-            if (parts.length === 3) {
-              const year = parseInt(parts[2], 10);
-              const fullYear = year < 50 ? 2000 + year : 1900 + year;
-              normalizedDate = `${parts[0]}.${parts[1]}.${fullYear}`;
-            }
-          }
-        }
+        // Ensure date is in correct format
+        let normalizedDate = normalizeDate(task.date);
+        let normalizedDueDate = normalizeDate(task.due_date || task.date);
         
         try {
-          // Prepare data with sanitized values - ensure no undefined or invalid values
+          // Prepare data with sanitized values
           const taskData = {
             date: normalizedDate || '',
-            due_date: '',
+            due_date: normalizedDueDate || '',
             description: task.description || '',
             subject: normalizedSubject || 'Unknown',
             type: task.type || 'homework',
@@ -217,8 +219,12 @@ async function saveData(data) {
             completed: Boolean(task.completed) || false
           };
           
-          // Check if task with same properties already exists - more restrictive query
-          // Only query by subject and description to reduce complexity
+          // Add topic field if it exists (for exams)
+          if (task.topic) {
+            taskData.topic = task.topic;
+          }
+          
+          // Check if similar task already exists
           const q = query(
             collection(db, 'tasks'), 
             where('subject', '==', taskData.subject),
@@ -230,7 +236,7 @@ async function saveData(data) {
           if (querySnapshot.empty) {
             // Task doesn't exist yet, add it
             const docRef = await addDoc(collection(db, 'tasks'), taskData);
-            console.log(`Added new task to Firestore with ID: ${docRef.id}`);
+            console.log(`Added new ${task.type} task with ID: ${docRef.id}`);
             successCount++;
           } else {
             console.log(`Task already exists in Firestore, skipping: ${task.description?.substring(0, 30)}...`);
@@ -296,7 +302,6 @@ async function isLoggedIn(page) {
     }
     
     // Check for elements that should only be visible when logged in
-    // Look for specific Wilma elements that are present after login
     const loggedInElements = await page.$('.welcome') || 
                             await page.$('img.logo') ||
                             await page.$('ul.menu') ||
@@ -322,26 +327,70 @@ async function isLoggedIn(page) {
   }
 }
 
-// Helper function to check if a table is related to exams
-function isExamTable(table, headerElement) {
-  if (!table) return false;
+// Function to handle the login process
+async function performLogin(page) {
+  console.log('Performing login...');
   
-  // Check table content for exam-related keywords
-  const tableText = table.textContent.toLowerCase();
-  
-  // Specifically look for future exams section
-  const isFutureExam = tableText.includes('tulevat kokeet') || 
-                       (headerElement && headerElement.textContent.toLowerCase().includes('tulevat kokeet'));
-  
-  // General exam keywords
-  const isExam = tableText.includes('koe') || 
-               tableText.includes('kokeet') || 
-               tableText.includes('exam') || 
-               tableText.includes('test') ||
-               tableText.includes('kokeisiin') ||
-               (headerElement && headerElement.textContent.toLowerCase().includes('koe'));
-               
-  return isFutureExam || isExam;
+  try {
+    // Find login form inputs
+    const inputs = await page.$$('input[type="text"], input[type="password"]');
+    
+    if (inputs.length >= 2) {
+      // Clear any existing values
+      await inputs[0].click({ clickCount: 3 }); // Triple click to select all text
+      await inputs[0].press('Backspace');
+      await inputs[1].click({ clickCount: 3 });
+      await inputs[1].press('Backspace');
+      
+      // First input is username, second is password
+      await inputs[0].type(WILMA_USERNAME, { delay: 100 });
+      await inputs[1].type(WILMA_PASSWORD, { delay: 100 });
+      console.log('Entered credentials');
+      
+      // Submit form by pressing Enter in the password field
+      console.log('Submitting form...');
+      await Promise.all([
+        inputs[1].press('Enter'),
+        page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 })
+      ]);
+      
+      console.log('Navigation completed after form submission');
+      await delay(REQUEST_DELAY);
+      
+      // Check if login was successful
+      return await isLoggedIn(page);
+    } else {
+      console.error('Could not find login form inputs');
+      return false;
+    }
+  } catch (error) {
+    console.error('Error during login:', error);
+    return false;
+  }
+}
+
+// Generate a unique ID for a task
+function generateUniqueId(subject, date, type) {
+  try {
+    // Parse the date (format: "DD.MM.YYYY")
+    const dateParts = date.split('.');
+    if (dateParts.length < 3) return Date.now() + Math.floor(Math.random() * 1000);
+    
+    // Create YYMMDD format
+    const dateCode = dateParts[2].substring(2) + dateParts[1].padStart(2, '0') + dateParts[0].padStart(2, '0');
+    
+    // Get subject initials (first two letters uppercase)
+    const subjectInitials = subject.substring(0, 2).toUpperCase();
+    
+    // Add type indicator
+    const typeIndicator = type === 'exam' ? 'EX' : 'HW';
+    
+    // Create stylized ID: YYMMDD-XX-TT
+    return `${dateCode}-${subjectInitials}-${typeIndicator}`;
+  } catch (error) {
+    console.error('Error generating ID:', error);
+    return Date.now() + Math.floor(Math.random() * 1000);
+  }
 }
 
 // Main scraping function
@@ -363,7 +412,6 @@ async function scrapeWilma() {
     await page.setRequestInterception(true);
     page.on('request', (request) => {
       const resourceType = request.resourceType();
-      // Block non-essential resource types
       if (['image', 'media', 'font', 'stylesheet'].includes(resourceType)) {
         request.abort();
       } else {
@@ -418,14 +466,9 @@ async function scrapeWilma() {
     // Save the cookies for future use
     await saveCookies(page);
     
-    // 3. Process each subject page
-    // NOTE: subjects array is now defined globally at the top of the file
-    
     // Load existing data
     const data = await loadExistingData();
     let newTasksFound = 0;
-    let newHomeworkFound = 0;
-    let newExamsFound = 0;
     
     // Process all subjects
     console.log(`Will process all ${subjects.length} subjects`);
@@ -456,218 +499,188 @@ async function scrapeWilma() {
           await delay(REQUEST_DELAY);
         }
         
-        // 4. Extract homework and exam data
-        const homeworkData = await page.evaluate(() => {
-          console.log('Searching for homework and exam sections...');
+        // Extract task data with a STREAMLINED APPROACH focusing on consistent navigation
+        const pageData = await page.evaluate(() => {
+          // Define section types we're looking for
+          const sectionTypes = {
+            'Tulevat kokeet': { type: 'exam', isPast: false },
+            'Menneet kokeet': { type: 'exam', isPast: true },
+            'Kotitehtävät': { type: 'homework', isPast: false },
+            'Tuntipäiväkirja': { type: 'ignore', isPast: false }
+          };
           
-          // Begin the section identification process
-          console.log('\n--- ANALYZING PAGE STRUCTURE ---');
-          
-          // Extract all major section headers in the page
-          const allSections = Array.from(document.querySelectorAll('h3, h2, h4, div.otsikko'));
-          const sectionMap = new Map();
-          
-          // Categorize sections based on their headers
-          for (const section of allSections) {
-            const sectionText = section.textContent.trim();
-            
-            if (sectionText.includes('Tulevat kokeet')) {
-              console.log(`Found "Tulevat kokeet" section: "${sectionText}"`);
-              sectionMap.set('future_exams', section);
-            } 
-            else if (sectionText.includes('Menneet kokeet')) {
-              console.log(`Found "Menneet kokeet" section: "${sectionText}"`);
-              sectionMap.set('past_exams', section);
-            }
-            else if (sectionText.includes('Kotitehtävät')) {
-              console.log(`Found "Kotitehtävät" section: "${sectionText}"`);
-              sectionMap.set('homework', section);
-            }
-            else if (sectionText.includes('Tuntipäiväkirja')) {
-              console.log(`Found "Tuntipäiväkirja" section: "${sectionText}" - this will be ignored`);
-              sectionMap.set('diary', section);
-            }
+          // Find the main content container - more consistent approach
+          const mainContent = document.querySelector('main#main-content');
+          if (!mainContent) {
+            console.log('Could not find main content area');
+            return { homework: [], futureExams: [], pastExams: [] };
           }
           
-          // Extract data from tables based on section type
-          const homeworkData = [];
-          const futureExamData = [];
-          const pastExamData = [];
+          // Gather all section headers (h3 elements) and their content
+          const sections = {};
+          const headers = mainContent.querySelectorAll('h3');
           
-          // Process each section type
-          for (const [sectionType, sectionHeader] of sectionMap.entries()) {
-            if (sectionType === 'diary') {
-              console.log('Skipping diary section as requested');
-              continue;
+          console.log(`Found ${headers.length} section headers in main content`);
+          
+          // Process each header
+          headers.forEach(header => {
+            const headerText = header.textContent.trim();
+            console.log(`Processing header: "${headerText}"`);
+            
+            // Skip headers that don't match our known sections
+            let sectionConfig = null;
+            for (const [key, config] of Object.entries(sectionTypes)) {
+              if (headerText.includes(key)) {
+                sectionConfig = config;
+                break;
+              }
             }
             
-            console.log(`Processing section: ${sectionType}`);
+            if (!sectionConfig) {
+              console.log(`Skipping unknown section: "${headerText}"`);
+              return;
+            }
             
-            // Find table associated with this section
-            let targetTable = null;
+            if (sectionConfig.type === 'ignore') {
+              console.log(`Ignoring section: "${headerText}" as requested`);
+              return;
+            }
             
-            // First try direct next siblings
-            let currentEl = sectionHeader;
-            for (let i = 0; i < 5; i++) {
-              if (!currentEl.nextElementSibling) break;
-              currentEl = currentEl.nextElementSibling;
+            console.log(`Found ${sectionConfig.type} section: "${headerText}"`);
+            
+            // Find the table associated with this section
+            let table = null;
+            let currentNode = header.nextElementSibling;
+            
+            // Try to find the table in the next siblings
+            while (currentNode && !table) {
+              if (currentNode.tagName === 'TABLE') {
+                table = currentNode;
+              } else if (currentNode.querySelector('table')) {
+                table = currentNode.querySelector('table');
+              }
               
-              if (currentEl.tagName === 'TABLE') {
-                targetTable = currentEl;
-                console.log(`Found table directly after ${sectionType} header`);
-                break;
-              } else if (currentEl.querySelector('table')) {
-                targetTable = currentEl.querySelector('table');
-                console.log(`Found table in container after ${sectionType} header`);
-                break;
+              if (!table) {
+                currentNode = currentNode.nextElementSibling;
               }
             }
             
-            // If not found, try parent container
-            if (!targetTable) {
-              let container = sectionHeader;
-              for (let i = 0; i < 3; i++) {
-                if (!container.parentElement) break;
-                container = container.parentElement;
-                
-                const tables = container.querySelectorAll('table');
-                if (tables.length > 0) {
-                  targetTable = tables[0];
-                  console.log(`Found table in parent container for ${sectionType}`);
-                  break;
-                }
-              }
+            if (!table) {
+              console.log(`Could not find table for section: "${headerText}"`);
+              return;
             }
+            
+            console.log(`Found table for section: "${headerText}"`);
             
             // Process the table based on section type
-            if (targetTable) {
-              const rows = targetTable.querySelectorAll('tr');
-              console.log(`Table has ${rows.length} rows`);
-              
+            if (sectionConfig.type === 'exam') {
+              // Process exam table with more consistent column mapping
+              const rows = table.querySelectorAll('tr');
               if (rows.length <= 1) {
-                console.log('Table only has header row, skipping');
-                continue;
+                console.log('Table contains only headers, skipping');
+                return;
               }
               
-              // Get column headers to determine the structure
+              // Extract column headers to map fields correctly
               const headerRow = rows[0];
               const headerCells = headerRow.querySelectorAll('th');
-              const headerTexts = Array.from(headerCells).map(cell => cell.textContent.trim().toLowerCase());
-              console.log(`Column headers: ${headerTexts.join(' | ')}`);
+              const headerTexts = Array.from(headerCells).map(cell => 
+                cell.textContent.trim().toLowerCase());
               
-              // For each section type, process the data differently
-              if (sectionType === 'homework') {
-                // Process rows for homework
-                for (let i = 1; i < rows.length; i++) {
-                  const cells = rows[i].querySelectorAll('td');
-                  if (cells.length < 2) continue;
-                  
-                  // Homework typically has date and description
-                  let date = cells[0].textContent.trim();
-                  let homework = cells[1].textContent.trim();
-                  
-                  if (date && homework && /\d+\.\d+/.test(date)) {
-                    console.log(`Found homework: ${date} - ${homework.substring(0, 30)}...`);
-                    homeworkData.push({ date, homework });
-                  }
-                }
-              } 
-              else if (sectionType === 'future_exams' || sectionType === 'past_exams') {
-                // Extract column indexes based on headers
-                const pvmIndex = headerTexts.findIndex(text => text.includes('pvm'));
-                const kloIndex = headerTexts.findIndex(text => text.includes('klo'));
-                const aiheIndex = headerTexts.findIndex(text => text.includes('aihe'));
-                const lisatiedotIndex = headerTexts.findIndex(text => text.includes('lisätiedot'));
+              console.log(`Exam table headers: ${headerTexts.join(' | ')}`);
+              
+              // Map column indices based on headers
+              const columnIndices = {
+                dueDate: headerTexts.findIndex(text => text.includes('pvm')),
+                time: headerTexts.findIndex(text => text.includes('klo')),
+                topic: headerTexts.findIndex(text => text.includes('aihe')),
+                description: headerTexts.findIndex(text => text.includes('lisätiedot'))
+              };
+              
+              console.log(`Column mapping - Due Date: ${columnIndices.dueDate}, Topic: ${columnIndices.topic}, Description: ${columnIndices.description}`);
+              
+              // Process data rows
+              const exams = [];
+              for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].querySelectorAll('td');
+                if (cells.length < 2) continue;
                 
-                console.log(`Column mapping - Pvm: ${pvmIndex}, Klo: ${kloIndex}, Aihe: ${aiheIndex}, Lisätiedot: ${lisatiedotIndex}`);
+                const examData = {
+                  due_date: columnIndices.dueDate >= 0 && cells[columnIndices.dueDate] 
+                    ? cells[columnIndices.dueDate].textContent.trim() : '',
+                  topic: columnIndices.topic >= 0 && cells[columnIndices.topic]
+                    ? cells[columnIndices.topic].textContent.trim() : '',
+                  description: columnIndices.description >= 0 && cells[columnIndices.description]
+                    ? cells[columnIndices.description].textContent.trim() : '',
+                  type: 'exam',
+                  isPast: sectionConfig.isPast
+                };
                 
-                // Process rows for exams
-                for (let i = 1; i < rows.length; i++) {
-                  const cells = rows[i].querySelectorAll('td');
-                  if (cells.length < 2) continue;
-                  
-                  let examData = {
-                    due_date: pvmIndex >= 0 && pvmIndex < cells.length ? cells[pvmIndex].textContent.trim() : '',
-                    time: kloIndex >= 0 && kloIndex < cells.length ? cells[kloIndex].textContent.trim() : '',
-                    topic: aiheIndex >= 0 && aiheIndex < cells.length ? cells[aiheIndex].textContent.trim() : '',
-                    description: lisatiedotIndex >= 0 && lisatiedotIndex < cells.length ? cells[lisatiedotIndex].textContent.trim() : '',
-                    type: 'exam',
-                    isPast: sectionType === 'past_exams'
-                  };
-                  
-                  // If there's no proper mapping, fall back to sequential columns
-                  if (!examData.due_date && cells.length >= 1) examData.due_date = cells[0].textContent.trim();
-                  if (!examData.topic && cells.length >= 2) examData.topic = cells[1].textContent.trim();
-                  if (!examData.description && cells.length >= 3) examData.description = cells[2].textContent.trim();
-                  
-                  // Only include if we have at least a date and topic or description
-                  if (examData.due_date && /\d+\.\d+/.test(examData.due_date) && (examData.topic || examData.description)) {
-                    console.log(`Found ${sectionType === 'past_exams' ? 'past' : 'future'} exam: ${examData.due_date} - ${examData.topic || examData.description}`);
-                    
-                    // Add to appropriate array
-                    if (sectionType === 'future_exams') {
-                      futureExamData.push(examData);
-                    } else {
-                      pastExamData.push(examData);
-                    }
-                  }
+                // If we have a valid date and either topic or description, add the exam
+                if (examData.due_date && /\d+\.\d+/.test(examData.due_date) && 
+                   (examData.topic || examData.description)) {
+                  console.log(`Found ${sectionConfig.isPast ? 'past' : 'future'} exam: ${examData.due_date} - ${examData.topic || examData.description}`);
+                  exams.push(examData);
                 }
               }
-            } else {
-              console.log(`No table found for section: ${sectionType}`);
+              
+              // Add exams to the appropriate array
+              if (sectionConfig.isPast) {
+                if (!sections.pastExams) sections.pastExams = [];
+                sections.pastExams.push(...exams);
+              } else {
+                if (!sections.futureExams) sections.futureExams = [];
+                sections.futureExams.push(...exams);
+              }
+            } 
+            else if (sectionConfig.type === 'homework') {
+              // Process homework table
+              const rows = table.querySelectorAll('tr');
+              if (rows.length <= 1) {
+                console.log('Table contains only headers, skipping');
+                return;
+              }
+              
+              // Process rows for homework
+              const homeworkItems = [];
+              for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].querySelectorAll('td');
+                if (cells.length < 2) continue;
+                
+                // Homework typically has date and description
+                const date = cells[0].textContent.trim();
+                const homework = cells[1].textContent.trim();
+                
+                if (date && homework && /\d+\.\d+/.test(date)) {
+                  console.log(`Found homework: ${date} - ${homework.substring(0, 30)}...`);
+                  homeworkItems.push({ date, homework });
+                }
+              }
+              
+              if (!sections.homework) sections.homework = [];
+              sections.homework.push(...homeworkItems);
             }
-          }
+          });
           
-          // Combine and return all data
-          console.log(`\nData collection summary:`);
-          console.log(`- Homework items: ${homeworkData.length}`);
-          console.log(`- Future exam items: ${futureExamData.length}`);
-          console.log(`- Past exam items: ${pastExamData.length}`);
-          
+          // Prepare return data with default empty arrays
           return {
-            homework: homeworkData,
-            futureExams: futureExamData,
-            pastExams: pastExamData
+            homework: sections.homework || [],
+            futureExams: sections.futureExams || [],
+            pastExams: sections.pastExams || []
           };
         });
         
-        console.log(`Found ${homeworkData.homework.length} homework items for ${subject.name}`);
-        console.log(`Found ${homeworkData.futureExams.length} future exam items for ${subject.name}`);
-        console.log(`Found ${homeworkData.pastExams.length} past exam items for ${subject.name}`);
-        
-        // Process all data types with improved structure
-        let newHomeworkFound = 0;
-        let newFutureExamsFound = 0;
-        let newPastExamsFound = 0;
+        console.log(`Found ${pageData.homework.length} homework items for ${subject.name}`);
+        console.log(`Found ${pageData.futureExams.length} future exam items for ${subject.name}`);
+        console.log(`Found ${pageData.pastExams.length} past exam items for ${subject.name}`);
         
         // Process homework data
-        for (const hw of homeworkData.homework) {
-          const normalizedSubject = subject.name;
-          
-          // Normalize date format
-          let normalizedDate = hw.date;
-          if (normalizedDate && typeof normalizedDate === 'string') {
-            // Add year if missing
-            if (/^\d{1,2}\.\d{1,2}$/.test(normalizedDate)) {
-              normalizedDate = `${normalizedDate}.${new Date().getFullYear()}`;
-            }
-            
-            // Convert DD.MM.YY to DD.MM.YYYY
-            if (/^\d{1,2}\.\d{1,2}\.\d{2}$/.test(normalizedDate)) {
-              const parts = normalizedDate.split('.');
-              if (parts.length === 3) {
-                const year = parseInt(parts[2], 10);
-                const fullYear = year < 50 ? 2000 + year : 1900 + year;
-                normalizedDate = `${parts[0]}.${parts[1]}.${fullYear}`;
-              }
-            }
-          }
-          
-          // Clean description
+        for (const hw of pageData.homework) {
+          const normalizedDate = normalizeDate(hw.date);
           const cleanDescription = hw.homework ? 
             hw.homework.trim().replace(/\s+/g, ' ').substring(0, 1000) : 
             '';
-            
+          
           if (!cleanDescription) {
             console.log('Skipping homework item with empty description');
             continue;
@@ -676,19 +689,19 @@ async function scrapeWilma() {
           // Check if this homework already exists in the data
           const exists = data.tasks.some(task => 
             task.date === normalizedDate && 
-            task.subject === normalizedSubject && 
+            task.subject === subject.name && 
             task.description === cleanDescription && 
             task.type === 'homework' &&
             task.student_id === 1
           );
           
           if (!exists) {
-            // Add new task with sanitized values
+            // Add new task
             const newTask = {
-              id: generateUniqueId(normalizedSubject, normalizedDate, 'homework'),
+              id: generateUniqueId(subject.name, normalizedDate, 'homework'),
               date: normalizedDate,
               due_date: normalizedDate,
-              subject: normalizedSubject,
+              subject: subject.name,
               description: cleanDescription,
               type: 'homework',
               status: 'open',
@@ -696,258 +709,158 @@ async function scrapeWilma() {
             };
             
             data.tasks.push(newTask);
-            newHomeworkFound++;
-            console.log(`[HOMEWORK] Added new homework for ${normalizedSubject}: ${cleanDescription.substring(0, 50)}${cleanDescription.length > 50 ? '...' : ''}`);
+            newTasksFound++;
+            console.log(`[HOMEWORK] Added new homework for ${subject.name}: ${cleanDescription.substring(0, 50)}${cleanDescription.length > 50 ? '...' : ''}`);
           } else {
-            console.log(`Task already exists in Firestore, skipping homework for ${normalizedSubject}: ${cleanDescription.substring(0, 30)}...`);
+            console.log(`Task already exists, skipping homework for ${subject.name}: ${cleanDescription.substring(0, 30)}...`);
           }
         }
         
-        // Process future exam data
-        for (const exam of homeworkData.futureExams) {
-          const normalizedSubject = subject.name;
+        // Process future exam data - IMPROVED to properly handle topic field
+        for (const exam of pageData.futureExams) {
+          const normalizedDueDate = normalizeDate(exam.due_date);
+          const normalizedDate = new Date().toLocaleDateString('fi-FI').replace(/\//g, '.'); // Today's date for creation date
           
-          // Normalize date format
-          let normalizedDate = exam.due_date;
-          if (normalizedDate && typeof normalizedDate === 'string') {
-            // Add year if missing
-            if (/^\d{1,2}\.\d{1,2}$/.test(normalizedDate)) {
-              normalizedDate = `${normalizedDate}.${new Date().getFullYear()}`;
-            }
+          const cleanDescription = exam.description ? 
+            exam.description.trim().replace(/\s+/g, ' ').substring(0, 1000) : 
+            '';
             
-            // Convert DD.MM.YY to DD.MM.YYYY
-            if (/^\d{1,2}\.\d{1,2}\.\d{2}$/.test(normalizedDate)) {
-              const parts = normalizedDate.split('.');
-              if (parts.length === 3) {
-                const year = parseInt(parts[2], 10);
-                const fullYear = year < 50 ? 2000 + year : 1900 + year;
-                normalizedDate = `${parts[0]}.${parts[1]}.${fullYear}`;
-              }
-            }
-          }
+          const cleanTopic = exam.topic ?
+            exam.topic.trim().replace(/\s+/g, ' ').substring(0, 200) :
+            '';
           
-          // Process the description (no longer combining with topic)
-          let cleanDescription = '';
-          if (exam.description) {
-            cleanDescription = exam.description.trim().replace(/\s+/g, ' ').substring(0, 1000);
-          }
-          
-          if (!cleanDescription && !exam.topic) {
-            console.log('Skipping past exam item with empty description and topic');
+          if (!cleanTopic && !cleanDescription) {
+            console.log('Skipping exam item with empty topic and description');
             continue;
           }
           
-          // Check if this exam already exists in the data
+          // Check if this exam already exists in the data - now checking topic field
           const exists = data.tasks.some(task => 
-            task.date === normalizedDate && 
-            task.subject === normalizedSubject && 
-            ((task.description === cleanDescription && task.topic === (exam.topic || '')) || 
-             (task.description === '' && task.topic === exam.topic)) && 
+            task.due_date === normalizedDueDate && 
+            task.subject === subject.name && 
+            (task.topic === cleanTopic || 
+             (task.description === cleanDescription && cleanDescription)) && 
             task.type === 'exam' &&
             task.student_id === 1
           );
           
           if (!exists) {
-            // Add new exam task
+            // Add new exam task with topic field
             const newTask = {
-              id: generateUniqueId(normalizedSubject, normalizedDate, 'exam'),
-              date: normalizedDate,
-              due_date: normalizedDate,
-              subject: normalizedSubject,
+              id: generateUniqueId(subject.name, normalizedDueDate, 'exam'),
+              date: normalizedDate, // Creation date
+              due_date: normalizedDueDate, // The exam date
+              subject: subject.name,
               description: cleanDescription,
-              topic: exam.topic || '',
+              topic: cleanTopic, // Store topic in a separate field
               type: 'exam',
               status: 'open',
               student_id: 1,
             };
             
             data.tasks.push(newTask);
-            newFutureExamsFound++;
+            newTasksFound++;
             
-            const topicDisplay = exam.topic ? `Topic: ${exam.topic.substring(0, 30)}${exam.topic.length > 30 ? '...' : ''}` : '';
+            const topicDisplay = cleanTopic ? `Topic: ${cleanTopic.substring(0, 30)}${cleanTopic.length > 30 ? '...' : ''}` : '';
             const descDisplay = cleanDescription ? `Description: ${cleanDescription.substring(0, 30)}${cleanDescription.length > 30 ? '...' : ''}` : '';
-            console.log(`[FUTURE EXAM] Added new exam for ${normalizedSubject}: ${topicDisplay}${topicDisplay && descDisplay ? ' | ' : ''}${descDisplay}`);
+            console.log(`[FUTURE EXAM] Added new exam for ${subject.name}: ${topicDisplay}${topicDisplay && descDisplay ? ' | ' : ''}${descDisplay}`);
           } else {
-            const topicDisplay = exam.topic ? `Topic: ${exam.topic.substring(0, 20)}${exam.topic.length > 20 ? '...' : ''}` : '';
+            const topicDisplay = cleanTopic ? `Topic: ${cleanTopic.substring(0, 20)}${cleanTopic.length > 20 ? '...' : ''}` : '';
             const descDisplay = cleanDescription ? `Description: ${cleanDescription.substring(0, 20)}${cleanDescription.length > 20 ? '...' : ''}` : '';
-            console.log(`Task already exists in Firestore, skipping exam for ${normalizedSubject}: ${topicDisplay}${topicDisplay && descDisplay ? ' | ' : ''}${descDisplay}`);
+            console.log(`Task already exists, skipping exam for ${subject.name}: ${topicDisplay}${topicDisplay && descDisplay ? ' | ' : ''}${descDisplay}`);
           }
         }
         
-        // Process past exam data if needed
-        for (const exam of homeworkData.pastExams) {
-          const normalizedSubject = subject.name;
-          
-          // Normalize date format
-          let normalizedDate = exam.due_date;
-          if (normalizedDate && typeof normalizedDate === 'string') {
-            // Add year if missing
-            if (/^\d{1,2}\.\d{1,2}$/.test(normalizedDate)) {
-              normalizedDate = `${normalizedDate}.${new Date().getFullYear()}`;
+        // Process past exam data if needed - IMPROVED to properly handle topic field
+        for (const exam of pageData.pastExams) {
+            const normalizedDueDate = normalizeDate(exam.due_date);
+            const normalizedDate = new Date().toLocaleDateString('fi-FI').replace(/\//g, '.'); // Today's date for creation date
+            
+            const cleanDescription = exam.description ? 
+              exam.description.trim().replace(/\s+/g, ' ').substring(0, 1000) : 
+              '';
+              
+            const cleanTopic = exam.topic ?
+              exam.topic.trim().replace(/\s+/g, ' ').substring(0, 200) :
+              '';
+            
+            if (!cleanTopic && !cleanDescription) {
+              console.log('Skipping past exam item with empty topic and description');
+              continue;
             }
             
-            // Convert DD.MM.YY to DD.MM.YYYY
-            if (/^\d{1,2}\.\d{1,2}\.\d{2}$/.test(normalizedDate)) {
-              const parts = normalizedDate.split('.');
-              if (parts.length === 3) {
-                const year = parseInt(parts[2], 10);
-                const fullYear = year < 50 ? 2000 + year : 1900 + year;
-                normalizedDate = `${parts[0]}.${parts[1]}.${fullYear}`;
-              }
+            // Check if this exam already exists in the data - now checking topic field
+            const exists = data.tasks.some(task => 
+              task.due_date === normalizedDueDate && 
+              task.subject === subject.name && 
+              (task.topic === cleanTopic || 
+               (task.description === cleanDescription && cleanDescription)) && 
+              task.type === 'exam' &&
+              task.student_id === 1
+            );
+            
+            if (!exists) {
+              // Add new exam task with topic field
+              const newTask = {
+                id: generateUniqueId(subject.name, normalizedDueDate, 'past_exam'),
+                date: normalizedDate, // Creation date
+                due_date: normalizedDueDate, // The exam date
+                subject: subject.name,
+                description: cleanDescription,
+                topic: cleanTopic, // Store topic in a separate field
+                type: 'exam',
+                status: 'completed',  // Past exams are marked as completed
+                student_id: 1,
+              };
+              
+              data.tasks.push(newTask);
+              newTasksFound++;
+              
+              const topicDisplay = cleanTopic ? `Topic: ${cleanTopic.substring(0, 30)}${cleanTopic.length > 30 ? '...' : ''}` : '';
+              const descDisplay = cleanDescription ? `Description: ${cleanDescription.substring(0, 30)}${cleanDescription.length > 30 ? '...' : ''}` : '';
+              console.log(`[PAST EXAM] Added new past exam for ${subject.name}: ${topicDisplay}${topicDisplay && descDisplay ? ' | ' : ''}${descDisplay}`);
+            } else {
+              const topicDisplay = cleanTopic ? `Topic: ${cleanTopic.substring(0, 20)}${cleanTopic.length > 20 ? '...' : ''}` : '';
+              const descDisplay = cleanDescription ? `Description: ${cleanDescription.substring(0, 20)}${cleanDescription.length > 20 ? '...' : ''}` : '';
+              console.log(`Task already exists, skipping past exam for ${subject.name}: ${topicDisplay}${topicDisplay && descDisplay ? ' | ' : ''}${descDisplay}`);
             }
           }
           
-          // Process the description (no longer combining with topic)
-          let cleanDescription = '';
-          if (exam.description) {
-            cleanDescription = exam.description.trim().replace(/\s+/g, ' ').substring(0, 1000);
-          }
+          // Wait between subject processing to avoid overloading the server
+          await delay(REQUEST_DELAY * 2);
           
-          if (!cleanDescription && !exam.topic) {
-            console.log('Skipping past exam item with empty description and topic');
-            continue;
-          }
-          
-          // Check if this exam already exists in the data
-          const exists = data.tasks.some(task => 
-            task.date === normalizedDate && 
-            task.subject === normalizedSubject && 
-            ((task.description === cleanDescription && task.topic === (exam.topic || '')) || 
-             (task.description === '' && task.topic === exam.topic)) && 
-            task.type === 'exam' &&
-            task.student_id === 1
-          );
-          
-          if (!exists) {
-            // Add new exam task
-            const newTask = {
-              id: generateUniqueId(normalizedSubject, normalizedDate, 'past_exam'),
-              date: normalizedDate,
-              due_date: normalizedDate,
-              subject: normalizedSubject,
-              description: cleanDescription,
-              topic: exam.topic || '',
-              type: 'exam',
-              status: 'completed',  // Past exams are marked as completed
-              student_id: 1,
-            };
-            
-            data.tasks.push(newTask);
-            newPastExamsFound++;
-            
-            const topicDisplay = exam.topic ? `Topic: ${exam.topic.substring(0, 30)}${exam.topic.length > 30 ? '...' : ''}` : '';
-            const descDisplay = cleanDescription ? `Description: ${cleanDescription.substring(0, 30)}${cleanDescription.length > 30 ? '...' : ''}` : '';
-            console.log(`[PAST EXAM] Added new past exam for ${normalizedSubject}: ${topicDisplay}${topicDisplay && descDisplay ? ' | ' : ''}${descDisplay}`);
-          } else {
-            const topicDisplay = exam.topic ? `Topic: ${exam.topic.substring(0, 20)}${exam.topic.length > 20 ? '...' : ''}` : '';
-            const descDisplay = cleanDescription ? `Description: ${cleanDescription.substring(0, 20)}${cleanDescription.length > 20 ? '...' : ''}` : '';
-            console.log(`Task already exists in Firestore, skipping past exam for ${normalizedSubject}: ${topicDisplay}${topicDisplay && descDisplay ? ' | ' : ''}${descDisplay}`);
-          }
+        } catch (error) {
+          console.error(`Error processing ${subject.name}:`, error);
+          await page.screenshot({ path: `${subject.name}_error.png` });
         }
-        
-        console.log(`\n===== SCRAPING SUMMARY =====`);
-        console.log(`Found ${newHomeworkFound} new homework tasks`);
-        console.log(`Found ${newFutureExamsFound} new future exam tasks`);
-        console.log(`Found ${newPastExamsFound} new past exam tasks`);
-        console.log(`Total: ${newHomeworkFound + newFutureExamsFound + newPastExamsFound} new tasks`);
-        
-        // Wait between subject processing to avoid overloading the server
-        await delay(REQUEST_DELAY * 2);
-        
-      } catch (error) {
-        console.error(`Error processing ${subject.name}:`, error);
-        await page.screenshot({ path: `${subject.name}_error.png` });
       }
+      
+      // Print summary statistics
+      console.log(`\n===== SCRAPING SUMMARY =====`);
+      console.log(`Found ${newTasksFound} new tasks in total`);
+      
+      // Save updated data
+      await saveData(data);
+      console.log('Scraping completed successfully');
+    } catch (error) {
+      console.error('Scraping error:', error);
+      // Take a screenshot of the error state
+      try {
+        const page = (await browser.pages())[0];
+        await page.screenshot({ path: 'error_state.png' });
+      } catch (screenshotError) {
+        console.error('Failed to take error screenshot:', screenshotError);
+      }
+    } finally {
+      console.log('Closing browser...');
+      await browser.close().catch(err => console.error('Error closing browser:', err));
     }
-    
-    // Save updated data
-    await saveData(data);
-    console.log('Scraping completed successfully');
-  } catch (error) {
-    console.error('Scraping error:', error);
-    // Take a screenshot of the error state
-    try {
-      const page = (await browser.pages())[0];
-      await page.screenshot({ path: 'error_state.png' });
-    } catch (screenshotError) {
-      console.error('Failed to take error screenshot:', screenshotError);
-    }
-  } finally {
-    console.log('Closing browser...');
-    await browser.close().catch(err => console.error('Error closing browser:', err));
   }
-}
-
-// Function to handle the login process
-async function performLogin(page) {
-  console.log('Performing login...');
   
-  try {
-    // Find login form inputs
-    const inputs = await page.$$('input[type="text"], input[type="password"]');
-    
-    if (inputs.length >= 2) {
-      // Clear any existing values
-      await inputs[0].click({ clickCount: 3 }); // Triple click to select all text
-      await inputs[0].press('Backspace');
-      await inputs[1].click({ clickCount: 3 });
-      await inputs[1].press('Backspace');
-      
-      // First input is username, second is password
-      await inputs[0].type(WILMA_USERNAME, { delay: 100 });
-      await inputs[1].type(WILMA_PASSWORD, { delay: 100 });
-      console.log('Entered credentials');
-      
-      // Submit form by pressing Enter in the password field
-      console.log('Submitting form...');
-      await Promise.all([
-        inputs[1].press('Enter'),
-        page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 })
-      ]);
-      
-      console.log('Navigation completed after form submission');
-      await delay(REQUEST_DELAY);
-      
-      // Check if login was successful by looking for common elements on the home page
-      return await isLoggedIn(page);
-    } else {
-      console.error('Could not find login form inputs');
-      return false;
-    }
-  } catch (error) {
-    console.error('Error during login:', error);
-    return false;
-  }
-}
-
-// Generate a unique ID for a task
-function generateUniqueId(subject, date, type) {
-  try {
-    // Parse the date (format: "DD.MM.YYYY")
-    const dateParts = date.split('.');
-    if (dateParts.length < 3) return Date.now() + Math.floor(Math.random() * 1000);
-    
-    // Create YYMMDD format
-    const dateCode = dateParts[2].substring(2) + dateParts[1].padStart(2, '0') + dateParts[0].padStart(2, '0');
-    
-    // Get subject initials (first two letters uppercase)
-    const subjectInitials = subject.substring(0, 2).toUpperCase();
-    
-    // Add type indicator
-    const typeIndicator = type === 'exam' ? 'EX' : 'HW';
-    
-    // Create stylized ID: YYMMDD-XX-TT
-    return `${dateCode}-${subjectInitials}-${typeIndicator}`;
-  } catch (error) {
-    console.error('Error generating ID:', error);
-    return Date.now() + Math.floor(Math.random() * 1000);
-  }
-}
-
-// Run the scraper
-scrapeWilma().catch(console.error);
-
-/*
-To run this:
-node scraper.js
-*/
+  // Run the scraper
+  scrapeWilma().catch(console.error);
+  
+  /*
+  To run this:
+  node scraper_2.js
+  */

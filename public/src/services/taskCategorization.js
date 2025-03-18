@@ -4,7 +4,7 @@
  */
 
 import { parseFinDate, getDaysBetweenDates, getTodayFinDate, isDateOlderThan } from '../utils/dateUtils.js';
-import { hasClassTodayOrTomorrow } from '../utils/subjectUtils.js';
+import { hasClassToday, hasClassTomorrow, hasClassTodayOrTomorrow } from '../utils/subjectUtils.js';
 import { appConfig } from '../app.js';
 
 /**
@@ -48,7 +48,10 @@ export function categorizeTask(task) {
       console.log(`Task ${task.id} has no subject, categorized as: future`);
       return 'future';
     }
+    
+    // Check if there's a class today or tomorrow for this subject
     const hasClassSoon = hasClassTodayOrTomorrow(task.subject);
+    
     console.log(`Task ${task.id} categorized as: ${hasClassSoon ? 'current' : 'future'}`);
     return hasClassSoon ? 'current' : 'future';
   }

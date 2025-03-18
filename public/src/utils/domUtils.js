@@ -22,6 +22,9 @@ const elements = {
     studentNameEl: null,
     currentDateEl: null,
     
+    // Subject lists
+    tomorrowClasses: null,
+    
     // Modal elements
     taskModal: null,
     closeModalBtn: null,
@@ -53,6 +56,9 @@ const elements = {
     // Header
     elements.studentNameEl = document.getElementById('studentName');
     elements.currentDateEl = document.getElementById('currentDate');
+    
+    // Subject lists
+    elements.tomorrowClasses = document.getElementById('tomorrowClasses');
     
     // Alias mappings for compatibility with existing code
     // This allows components to reference elements in different ways

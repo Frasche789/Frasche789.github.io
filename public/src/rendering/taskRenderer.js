@@ -7,6 +7,7 @@ import { getElements } from '../utils/domUtils.js';
 import { getState, subscribe, dispatch } from '../state/appState.js';
 import { createTaskCard } from '../components/TaskCard.js';
 import { categorizeTaskByContainer } from '../services/taskCategorization.js';
+import { DEFAULT_SCHEDULE, getSubjectColor, hasClassTomorrow } from '../utils/subjectUtils.js';
 
 // Event names for rendering coordination
 export const EVENTS = {
@@ -87,6 +88,9 @@ export function renderAllTasks() {
   // Update state with categorized tasks (for other components to use)
   // This is done through dispatch to avoid circular update loops
   dispatch('tasks-categorized', categorizedTasks);
+  
+  // Render the subject bubbles for tomorrow's classes
+  renderTomorrowClasses();
   
   // Render each container section
   renderCurrentTasks(categorizedTasks.current);
@@ -240,6 +244,37 @@ function renderArchiveTasks(tasks, visible = false) {
       countElement.textContent = tasks.length;
     }
   }
+}
+
+/**
+ * Render tomorrow's classes as subject bubbles
+ */
+function renderTomorrowClasses() {
+  const elements = getElements();
+  const container = elements.tomorrowClasses;
+  
+  if (!container) {
+    console.error('Tomorrow classes container not found');
+    return;
+  }
+  
+  // Clear container
+  container.innerHTML = '';
+  
+  // Get all subjects from the schedule
+  const subjects = Object.keys(DEFAULT_SCHEDULE.main);
+  
+  // Filter to only include subjects with class tomorrow
+  const tomorrowSubjects = subjects.filter(subject => hasClassTomorrow(subject));
+  
+  // Create subject bubbles
+  tomorrowSubjects.forEach(subject => {
+    const bubble = document.createElement('div');
+    bubble.className = 'subject-pill';
+    bubble.textContent = subject;
+    bubble.style.backgroundColor = getSubjectColor(subject);
+    container.appendChild(bubble);
+  });
 }
 
 /**
