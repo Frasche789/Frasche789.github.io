@@ -44,6 +44,10 @@ export function categorizeTask(task) {
     return (dueDate === todayFormatted || dueDate === tomorrowFormatted) ? 'current' : 'future';
   } else {
     // For homework/subject tasks or any other type, use the subject's class schedule
+    if (!task.subject) {
+      console.log(`Task ${task.id} has no subject, categorized as: future`);
+      return 'future';
+    }
     const hasClassSoon = hasClassTodayOrTomorrow(task.subject);
     console.log(`Task ${task.id} categorized as: ${hasClassSoon ? 'current' : 'future'}`);
     return hasClassSoon ? 'current' : 'future';
@@ -72,7 +76,10 @@ export function categorizeTaskByContainer(tasks) {
   
   tasks.forEach(task => {
     // Skip tasks with invalid data
-    if (!task) return;
+    if (!task) {
+      console.warn('Skipping undefined task in categorizeTaskByContainer');
+      return;
+    }
     
     // Use categorizeTask to decide which container the task belongs to
     const container = categorizeTask(task);

@@ -3,7 +3,7 @@
  * Centralizes Firebase initialization and provides Firebase modules
  */
 
-import { registerInitStep } from '../bootstrap.js';
+import { registerInitStep } from '../core/appBootstrap.js';
 import { getState, setState, dispatch } from '../state/appState.js';
 
 // Firebase module cache

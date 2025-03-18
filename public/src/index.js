@@ -4,7 +4,7 @@
  */
 
 // Import the bootstrap module and service initializers
-import { bootstrap, subscribeToBootstrap, StepStatus } from './bootstrap.js';
+import { bootstrap, subscribeToBootstrap, StepStatus } from './core/appBootstrap.js';
 
 // Import application configuration
 // (Already included with app.js import below)
@@ -13,8 +13,8 @@ import { bootstrap, subscribeToBootstrap, StepStatus } from './bootstrap.js';
 // (The imports themselves register the steps via side effects)
 import './services/firebaseService.js';
 import './services/taskInit.js';
-import './ui/uiInit.js';
-import './ui/renderInit.js';
+import './rendering/uiInit.js';
+import './rendering/renderInit.js';
 import './app.js'; // Import app.js to register its initialization steps
 
 // Initialize the application when the DOM is fully loaded

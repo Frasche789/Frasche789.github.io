@@ -3,7 +3,7 @@
  * Handles initializing UI components after data dependencies are available
  */
 
-import { registerInitStep } from '../bootstrap.js';
+import { registerInitStep } from '../core/appBootstrap.js';
 import { TASK_INIT_ID, STUDENT_INIT_ID } from '../services/taskInit.js';
 import { initAnimationStyles } from '../utils/animationUtils.js';
 import { initTodayTasks } from '../components/TaskList.js';

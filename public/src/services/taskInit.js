@@ -3,7 +3,7 @@
  * Handles loading tasks and students from Firebase
  */
 
-import { registerInitStep } from '../bootstrap.js';
+import { registerInitStep } from '../core/appBootstrap.js';
 import { fetchCollection } from './firebaseService.js';
 import { setState } from '../state/appState.js';
 

@@ -518,3 +518,64 @@ header p {
     font-size: 1.1rem;
   }
 }
+
+/* Container-specific task styling for ADHD-friendly visual hierarchy */
+
+/* Current tasks - highest visual priority */
+.container-current {
+  border-left-width: 6px;
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+}
+
+/* Future tasks - medium visual priority */
+.container-future {
+  border-left-width: 4px;
+  opacity: 0.9;
+}
+
+/* Archive tasks - lowest visual priority */
+.container-archive {
+  border-left-width: 2px;
+  opacity: 0.7;
+  background-color: #f9f9f9;
+}
+
+/* Exam styling for increased visibility */
+.exam-task.container-current {
+  border: 2px solid var(--exam-color);
+  border-left-width: 8px;
+  box-shadow: 0 4px 15px rgba(230, 57, 70, 0.25);
+}
+
+/* Today's tasks emphasis */
+.today-task-card {
+  position: relative;
+}
+
+.today-task-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  height: 4px;
+  background-color: var(--primary-color);
+  border-top-left-radius: var(--card-radius);
+  border-top-right-radius: var(--card-radius);
+}
+
+/* Task status emphasis */
+.task-card .complete-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Animation for completion feedback */
+@keyframes taskComplete {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.task-complete-animation {
+  animation: taskComplete 0.3s ease;
+}

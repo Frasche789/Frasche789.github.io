@@ -48,6 +48,20 @@ export function createTaskCard(task, onCompleted) {
   // Create and append content
   taskCard.innerHTML = createTaskCardContent(task);
   
+  // Add container-specific styling
+  if (task.container) {
+    taskCard.classList.add(`container-${task.container}`);
+
+  // Add specific styling for container types
+    if (task.container === 'current') {
+    taskCard.classList.add('priority-task');
+  } else if (task.container === 'future') {
+    taskCard.classList.add('upcoming-task');
+  } else if (task.container === 'archive') {
+    taskCard.classList.add('archive-task');
+  }
+}
+  
   // Add event listeners
   if (!task.completed) {
     const completeBtn = taskCard.querySelector('.complete-btn');

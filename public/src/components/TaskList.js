@@ -174,35 +174,36 @@ function createGenericTaskList(tasks, onTaskCompleted, additionalClass = '') {
   return taskList;
 }
 
-/* UNIFIED TODAY TASKS IMPLEMENTATION */
-
 /**
  * Initialize the Today Tasks component
  * @param {Object} elements - DOM elements object
  */
 export function initTodayTasks(elements) {
-  // Log the object structure we received
-  console.log('initTodayTasks called with elements:', JSON.stringify(elements));
+  // More resilient element assignment
+  todayTasksEl = elements.todayTasks || elements.currentTasks;
+  todayEmptyStateEl = elements.todayEmptyState || elements.emptyCurrentTasks;
   
-  // Assign elements to module variables
-  todayTasksEl = elements.todayTasks;
-  todayEmptyStateEl = elements.todayEmptyState;
+  console.log('Initializing today tasks with elements:', {
+    todayTasks: todayTasksEl?.id,
+    todayEmptyState: todayEmptyStateEl?.id
+  });
   
-  // Validate that we have the required elements
+  // Try to find elements if they're still missing
   if (!todayTasksEl) {
-    console.error('Today tasks element not found - todayTasks');
-    return;
+    console.warn('Today tasks element not found, trying to find by ID');
+    todayTasksEl = document.getElementById('currentTasks');
   }
   
   if (!todayEmptyStateEl) {
-    console.error('Today empty state element not found - todayEmptyState');
-    return;
+    console.warn('Today empty state element not found, trying to find by ID');
+    todayEmptyStateEl = document.getElementById('emptyCurrentTasks');
   }
   
-  console.log('Today tasks elements initialized successfully:', {
-    todayTasksEl: todayTasksEl,
-    todayEmptyStateEl: todayEmptyStateEl
-  });
+  // Final check before continuing
+  if (!todayTasksEl) {
+    console.error('Critical: Unable to find today tasks container element');
+    return;
+  }
   
   // Subscribe to task updates
   const unsubscribe = subscribe((state, changes) => {

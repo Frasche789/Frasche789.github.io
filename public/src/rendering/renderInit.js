@@ -8,7 +8,7 @@ import {
   registerInitStep, 
   registerRenderComponent, 
   renderComponent 
-} from '../bootstrap.js';
+} from '../core/appBootstrap.js';
 import { UI_COMPONENTS_INIT_ID } from './uiInit.js';
 import { TASK_INIT_ID } from '../services/taskInit.js';
 import { getState, setState, subscribe, dispatch } from '../state/appState.js';
