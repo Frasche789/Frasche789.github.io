@@ -44,36 +44,45 @@ import {
   loadTasks, 
   loadStudents
 } from './services/taskService.js';
-import { categorizeTask } from './services/taskCategorization.js';
+import { categorizeTask, categorizeTaskByContainer } from './services/taskCategorization.js';
 
 // Import components
 import { initTodayTasks, createEmptyState } from './components/TaskList.js';
 import { initTaskModal } from './components/TaskModal.js';
 import { initArchiveTaskList } from './components/ArchiveTaskList.js';
 
+// Import UI initialization
+import { UI_INIT_ID } from './ui/uiInit.js';
+
 // Import bootstrap functionality
 import { bootstrap, registerInitStep, registerRenderComponent, renderComponent } from './bootstrap.js';
 
 // DOM elements
 const elements = {
-  todayTasks: document.getElementById('today-tasks'),
-  todayEmptyState: document.getElementById('today-empty-state'),
-  taskContainer: document.getElementById('task-container'),
-  currentTasksContainer: document.getElementById('current-tasks-container'),
-  futureTasksContainer: document.getElementById('future-tasks-container'),
-  archiveContainer: document.getElementById('archive-container'),
-  archiveToggle: document.getElementById('archive-toggle'),
-  noTasksMessage: document.getElementById('no-tasks'),
+  // Main content containers
+  archiveContainer: document.getElementById('archiveContainer'),
+  archiveTasks: document.getElementById('archiveTasks'), 
+  currentTasks: document.getElementById('currentTasks'),
+  futureTasks: document.getElementById('futureTasks'),
+  tomorrowClasses: document.getElementById('tomorrowClasses'),
+  
+  // Empty state containers
+  emptyArchive: document.getElementById('emptyArchive'),
+  emptyCurrentTasks: document.getElementById('emptyCurrentTasks'),
+  emptyFutureTasks: document.getElementById('emptyFutureTasks'),
+  
+  // User interface elements
+  archiveToggle: document.getElementById('archiveToggle'),
+  archiveCount: document.getElementById('archiveCount'),
   studentNameEl: document.getElementById('studentName'),
-  studentPointsEl: document.getElementById('studentPoints'),
-  loadingIndicator: document.getElementById('loading-indicator'),
-  addTaskBtn: document.getElementById('addTaskBtn'),
-  taskModal: document.getElementById('taskModal'),
-  closeModalBtn: document.getElementById('closeModal'),
-  addTaskSubmitBtn: document.getElementById('addTaskSubmit'),
-  taskDescriptionInput: document.getElementById('taskDescription'),
-  taskPointsInput: document.getElementById('taskPoints')
+  currentDateEl: document.getElementById('currentDate')
 };
+
+// Define references to missing elements to avoid errors
+elements.taskContainer = elements.currentTasks; // Use currentTasks as main task container
+elements.todayTasks = elements.currentTasks; // Map todayTasks to currentTasks
+elements.todayEmptyState = elements.emptyCurrentTasks; // Map todayEmptyState to emptyCurrentTasks
+elements.loadingIndicator = document.createElement('div'); // Create a dummy loading indicator
 
 /**
  * Toggle the loading indicator visibility
@@ -96,10 +105,20 @@ registerInitStep({
     console.log('Initializing component DOM references...');
     
     // Initialize today tasks component
-    if (elements.todayTasks && elements.todayEmptyState) {
+    if (elements.todayTasks && elements.emptyCurrentTasks) {
+      console.log('Initializing today tasks with elements:', {
+        todayTasks: elements.todayTasks,
+        todayEmptyState: elements.emptyCurrentTasks
+      });
+      
       initTodayTasks({
         todayTasks: elements.todayTasks,
-        todayEmptyState: elements.todayEmptyState
+        todayEmptyState: elements.emptyCurrentTasks
+      });
+    } else {
+      console.error('Cannot initialize today tasks - missing required elements:', {
+        todayTasks: !!elements.todayTasks,
+        emptyCurrentTasks: !!elements.emptyCurrentTasks
       });
     }
     
@@ -108,16 +127,20 @@ registerInitStep({
       initArchiveTaskList({
         archiveContainer: elements.archiveContainer,
         archiveToggle: elements.archiveToggle,
-        archiveEmptyState: null // Can be provided later if needed
+        archiveEmptyState: elements.emptyArchive // Can be provided later if needed
       });
     }
     
     // Initialize task modal
-    initTaskModal();
+    if (elements.taskModal) {
+      initTaskModal({
+        modalElement: elements.taskModal
+      });
+    }
     
     return { initialized: true };
   },
-  dependencies: ['ui'],
+  dependencies: [UI_INIT_ID], // Depend on UI initialization
   required: true
 });
 
@@ -139,7 +162,7 @@ registerInitStep({
     
     return { initialized: true };
   },
-  dependencies: ['component-dom-references'],
+  dependencies: ['component-dom-references', UI_INIT_ID],
   required: true
 });
 
@@ -253,8 +276,8 @@ export async function renderTasks() {
     // Verify container elements exist
     const requiredContainers = [
       elements.taskContainer,
-      elements.currentTasksContainer,
-      elements.futureTasksContainer
+      elements.currentTasks,
+      elements.futureTasks
     ];
     
     const missingContainers = requiredContainers
@@ -265,8 +288,8 @@ export async function renderTasks() {
       console.error(`${missingContainers} required container elements not found`);
       // Try to refresh DOM references
       elements.taskContainer = document.getElementById('task-container');
-      elements.currentTasksContainer = document.getElementById('current-tasks-container');
-      elements.futureTasksContainer = document.getElementById('future-tasks-container');
+      elements.currentTasks = document.getElementById('currentTasks');
+      elements.futureTasks = document.getElementById('futureTasks');
     }
     
     // Get tasks from state
@@ -323,3 +346,47 @@ export async function renderTasks() {
     showLoading(false);
   }
 }
+
+/**
+ * Main application initialization
+ */
+// Execute the bootstrap process when the DOM is ready
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOM loaded, initializing app...');
+  
+  try {
+    // Start the bootstrap process
+    await bootstrap();
+    
+    // Initialize Firebase
+    await waitForFirebase();
+    
+    // Load tasks and students data
+    await loadTasks();
+    await loadStudents();
+    
+    // Set up date formatting
+    if (elements.studentNameEl) {
+      const today = new Date();
+      const options = { weekday: 'long', month: 'long', day: 'numeric' };
+      elements.studentNameEl.textContent = elements.studentNameEl.textContent || 'Task Board';
+      
+      if (document.getElementById('currentDate')) {
+        document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', options);
+      }
+    }
+    
+    // Hide loading indicator
+    showLoading(false);
+    
+    console.log('App initialization completed successfully');
+  } catch (error) {
+    console.error('Error initializing app:', error);
+    showLoading(false);
+    // Show error message to user
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'error-message';
+    errorMessage.textContent = 'Failed to initialize the application. Please reload the page.';
+    document.body.appendChild(errorMessage);
+  }
+});

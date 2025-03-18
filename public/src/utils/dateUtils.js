@@ -79,6 +79,17 @@ export function formatFinDate(finDate, options = { month: 'long', day: 'numeric'
 }
 
 /**
+ * Format a date string for display
+ * Serve as an alias to formatFinDate for compatibility with existing code
+ * @param {string} date - Date string in Finnish format (DD.MM.YYYY)
+ * @param {Object} options - Formatting options
+ * @returns {string} - Formatted date string
+ */
+export function formatDate(date, options = { month: 'long', day: 'numeric' }) {
+  return formatFinDate(date, options);
+}
+
+/**
  * Compare two dates and determine their relation
  * @param {string} date1 - First date in Finnish format
  * @param {string} date2 - Second date in Finnish format
@@ -252,4 +263,3 @@ export function isDateOlderThan(dateString, days = 14) {
   
   return diffDays > days;
 }
-

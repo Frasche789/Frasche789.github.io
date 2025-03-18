@@ -98,7 +98,9 @@ export function hasClassTodayOrTomorrow(subject) {
   
   // Return true if the class is today or tomorrow
   return nextClass.daysUntil === 0 || nextClass.daysUntil === 1;
+
 }
+
 /**
  * Calculate the next class day for a given subject
  * @param {string} subject - The subject to check

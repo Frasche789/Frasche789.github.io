@@ -160,7 +160,7 @@ function createTaskCardContent(task) {
       <div class="task-card-content">
         <div class="task-card-header">
           ${task.subject ? `<div class="task-subject" style="background-color: ${color};">${task.subject}</div>` : ''}
-          ${task.type === 'chore' ? '<div class="task-type task-badge">Task</div>' : ''}
+          ${task.type === 'task' ? '<div class="task-type task-badge">Task</div>' : ''}
           ${task.type === 'exam' ? `<div class="task-type exam-badge">${examBadgeText}</div>` : ''}
           ${task.completed ? '<div class="completed-stamp">DONE</div>' : ''}
         </div>

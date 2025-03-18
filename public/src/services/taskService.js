@@ -16,7 +16,6 @@ import {
   compareDates, 
 } from '../utils/dateUtils.js';
 import { 
-  calculateDueDate, 
   updateTaskWithCalculatedDueDate, 
   getEffectiveDueDate,  
   calculateNextClassDay,
@@ -219,84 +218,57 @@ export async function addHomework(taskData) {
 }
 
 /**
+ * Mark a task as complete
+ * @param {string} taskId - ID of the task to mark as complete
+ * @returns {Promise<void>}
+ */
+export async function markTaskComplete(taskId) {
+  try {
+    console.log('Marking task as complete:', taskId);
+    
+    // Get today's date in Finnish format
+    const today = getTodayFinDate();
+    
+    // Update the task in Firestore
+    await updateDocument('tasks', taskId, {
+      completed: true,
+      completedDate: today,
+      updatedAt: Date.now()
+    });
+    
+    console.log('Task marked as complete in Firestore');
+    
+    // Update local state
+    const currentTasks = getState().tasks || [];
+    setState({ 
+      tasks: currentTasks.map(task => 
+        task.id === taskId 
+          ? { ...task, completed: true, completedDate: today, updatedAt: Date.now() } 
+          : task
+      ) 
+    }, 'taskService.markTaskComplete');
+    
+    // Dispatch task completed event
+    dispatch('task-completed', { taskId });
+    
+    // Refresh tasks after completion
+    await loadTasks({ useCache: false });
+    
+    return taskId;
+  } catch (error) {
+    console.error('Error completing task:', error);
+    throw error;
+  }
+}
+
+/**
  * Complete a task
  * @param {string} taskId - ID of the task to complete
  * @returns {Promise<Object>} The updated task
  */
 export async function completeTask(taskId) {
-  try {
-    // Get the current state
-    const state = getState();
-    const { tasks, students } = state;
-    
-    // Find the task in state
-    const taskIndex = tasks.findIndex(task => task.id === taskId);
-    
-    if (taskIndex === -1) {
-      throw new Error(`Task with ID ${taskId} not found`);
-    }
-    
-    const task = tasks[taskIndex];
-    
-    // Get today's date in Finnish format
-    const today = getTodayFinDate();
-    
-    // Update task data
-    const updatedTask = {
-      ...task,
-      completed: true,
-      completedDate: today,
-      updatedAt: Date.now()
-    };
-    
-    // Determine container after completion
-    updatedTask.container = categorizeTask(updatedTask);
-    
-    // Update in Firestore
-    await updateDocument('tasks', taskId, {
-      completed: true,
-      completedDate: today,
-      updatedAt: Date.now(),
-      container: updatedTask.container
-    });
-    
-    // Update student points if needed
-    if (students && students.length > 0) {
-      // Assuming the first student is the active one
-      const student = students[0];
-      
-      // Calculate new points
-      const newPoints = (student.points || 0) + (task.points || 0);
-      
-      // Update student in Firestore
-      await updateDocument('students', student.id, {
-        points: newPoints,
-        updatedAt: Date.now()
-      });
-      
-      // Update student in state
-      const updatedStudents = students.map(s => 
-        s.id === student.id ? { ...s, points: newPoints } : s
-      );
-      
-      setState({ students: updatedStudents }, 'taskService.completeTask');
-    }
-    
-    // Update task in state
-    const updatedTasks = [...tasks];
-    updatedTasks[taskIndex] = updatedTask;
-    
-    setState({ tasks: updatedTasks }, 'taskService.completeTask');
-    
-    // Dispatch task completed event
-    dispatch('task-completed', updatedTask);
-    
-    return updatedTask;
-    
-  } catch (error) {
-    console.error('Error completing task:', error);
-    throw error;
-  }
+  // Simply use the markTaskComplete function to maintain consistency
+  return markTaskComplete(taskId);
 }
 
 /**
@@ -414,6 +386,7 @@ export async function resetTaskDueDate(taskId) {
     throw error;
   }
 }
+
 /**
  * Group tasks by container (Archive, Current, Future)
  * @param {Array} tasks - Array of task objects

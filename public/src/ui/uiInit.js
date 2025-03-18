@@ -7,7 +7,7 @@ import { registerInitStep } from '../bootstrap.js';
 import { TASK_INIT_ID, STUDENT_INIT_ID } from '../services/taskInit.js';
 import { initAnimationStyles } from '../utils/animationUtils.js';
 import { initTodayTasks } from '../components/TaskList.js';
-import { initChoreModal } from '../components/TaskModal.js';
+import { initTaskModal } from '../components/TaskModal.js';
 import { getState, setState, subscribe } from '../state/appState.js';
 
 // Registration constants
@@ -17,62 +17,77 @@ export const UI_EVENTS_INIT_ID = 'ui-events';
 
 // DOM elements
 const elements = {
-  todayTasks: null,
-  todayEmptyState: null,
-  taskContainer: null,
-  noTasksMessage: null,
+  currentTasks: null,
+  futureTasks: null,
+  archiveTasks: null,
+  tomorrowClasses: null,
+  emptyCurrentTasks: null,
+  emptyFutureTasks: null,
+  emptyArchive: null,
+  archiveToggle: null,
+  archiveContainer: null,
   studentNameEl: null,
+  currentDateEl: null,
+  taskContainer: null,
+  todayTasks: null,
+  noTasksMessage: null,
   studentPointsEl: null,
   loadingIndicator: null,
   filterButtons: null,
   recentFilterText: null,
-  addChoreBtn: null,
-  choreModal: null,
+  addTaskBtn: null,
+  taskModal: null,
   closeModalBtn: null,
-  addChoreSubmitBtn: null,
-  choreDescriptionInput: null,
-  chorePointsInput: null,
-  archiveIndicator: null,
-  archiveToggle: null
+  addTaskSubmitBtn: null,
+  taskDescriptionInput: null,
+  taskPointsInput: null,
+  archiveIndicator: null
 };
 
 /**
- * Initialize DOM element references
- * @returns {Object} Object containing DOM element references
+ * Initialize DOM element references - this provides a central place for DOM references
+ * in case we need to rebuild them later, e.g. after template changes
  */
 function initDomElements() {
-  console.log('Initializing DOM element references...');
-  
-  elements.todayTasks = document.getElementById('today-tasks');
-  elements.todayEmptyState = document.getElementById('today-empty-state');
-  elements.taskContainer = document.getElementById('task-container');
-  elements.noTasksMessage = document.getElementById('no-tasks');
-  elements.studentNameEl = document.getElementById('studentName');
-  elements.studentPointsEl = document.getElementById('studentPoints');
-  elements.loadingIndicator = document.getElementById('loading-indicator');
-  elements.filterButtons = document.querySelectorAll('.filter-btn');
-  elements.recentFilterText = document.getElementById('recentText');
-  elements.addChoreBtn = document.getElementById('addChoreBtn');
-  elements.choreModal = document.getElementById('choreModal');
-  elements.closeModalBtn = document.getElementById('closeModal');
-  elements.addChoreSubmitBtn = document.getElementById('addChoreSubmit');
-  elements.choreDescriptionInput = document.getElementById('choreDescription');
-  elements.chorePointsInput = document.getElementById('chorePoints');
-  
-  // Validate required elements
-  const missingElements = [];
-  
-  ['todayTasks', 'taskContainer', 'loadingIndicator'].forEach(key => {
-    if (!elements[key]) {
-      missingElements.push(key);
-    }
-  });
-  
-  if (missingElements.length > 0) {
-    console.warn(`Missing required DOM elements: ${missingElements.join(', ')}`);
+  console.log('Initializing UI DOM element references...');
+  try {
+    // Task container elements
+    elements.currentTasks = document.getElementById('currentTasks');
+    elements.futureTasks = document.getElementById('futureTasks');
+    elements.archiveTasks = document.getElementById('archiveTasks');
+    elements.tomorrowClasses = document.getElementById('tomorrowClasses');
+    
+    // Empty state elements
+    elements.emptyCurrentTasks = document.getElementById('emptyCurrentTasks');
+    elements.emptyFutureTasks = document.getElementById('emptyFutureTasks');
+    elements.emptyArchive = document.getElementById('emptyArchive');
+    
+    // UI control elements
+    elements.archiveToggle = document.getElementById('archiveToggle');
+    elements.archiveContainer = document.getElementById('archiveContainer');
+    elements.studentNameEl = document.getElementById('studentName');
+    elements.currentDateEl = document.getElementById('currentDate');
+    
+    // Map legacy element names to new ones to maintain compatibility
+    elements.taskContainer = elements.currentTasks; // Main task container is now currentTasks
+    elements.todayTasks = elements.currentTasks;
+
+    console.log('DOM element references initialized:', {
+      currentTasks: !!elements.currentTasks,
+      futureTasks: !!elements.futureTasks,
+      archiveTasks: !!elements.archiveTasks,
+      emptyCurrentTasks: !!elements.emptyCurrentTasks,
+      emptyFutureTasks: !!elements.emptyFutureTasks,
+      emptyArchive: !!elements.emptyArchive,
+      archiveToggle: !!elements.archiveToggle,
+      archiveContainer: !!elements.archiveContainer
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error initializing DOM elements:', error);
+    return false;
   }
-  
-  return elements;
 }
 
 /**
@@ -91,9 +106,9 @@ async function initializeUIComponents() {
       initTodayTasks(elements);
     }
     
-    // Initialize Chore Modal component
-    if (elements.choreModal) {
-      initChoreModal(elements);
+    // Initialize Task Modal component
+    if (elements.taskModal) {
+      initTaskModal(elements);
     }
     
     // Create archive controls
@@ -227,15 +242,21 @@ function createArchiveControls() {
   elements.taskContainer.parentNode.insertBefore(indicator, elements.taskContainer.nextSibling);
   elements.archiveIndicator = indicator;
   
-  // Create archive toggle
-  const toggle = document.createElement('button');
-  toggle.className = 'archive-toggle';
-  toggle.innerHTML = `
-    <i class="ri-archive-line"></i>
-    <span>Show Archive</span>
-  `;
-  elements.taskContainer.parentNode.insertBefore(toggle, elements.taskContainer.nextSibling);
-  elements.archiveToggle = toggle;
+  // Check if an archive toggle button already exists
+  if (!elements.archiveToggle) {
+    console.log('No archive toggle found, creating one');
+    // Create archive toggle
+    const toggle = document.createElement('button');
+    toggle.className = 'archive-toggle';
+    toggle.innerHTML = `
+      <i class="ri-archive-line"></i>
+      <span>Show Archive</span>
+    `;
+    elements.taskContainer.parentNode.insertBefore(toggle, elements.taskContainer.nextSibling);
+    elements.archiveToggle = toggle;
+  } else {
+    console.log('Archive toggle already exists, using existing one');
+  }
 }
 
 /**

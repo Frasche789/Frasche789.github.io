@@ -12,10 +12,12 @@ import {
 import { UI_COMPONENTS_INIT_ID } from './uiInit.js';
 import { TASK_INIT_ID } from '../services/taskInit.js';
 import { getState, setState, subscribe, dispatch } from '../state/appState.js';
-import { getTodayFinDate } from '../utils/dateUtils.js';
+import { getTodayFinDate, formatFinDate } from '../utils/dateUtils.js';
 import { renderTodayTasks, createEmptyState } from '../components/TaskList.js';
 import { renderArchiveTasks } from '../components/ArchiveTaskList.js';
-import { categorizeTasksByBusinessRules } from '../services/taskCategorization.js';
+import { categorizeTaskByContainer } from '../services/taskCategorization.js';
+import { createTaskCard } from '../components/TaskCard.js';
+import { markTaskComplete } from '../services/taskService.js';
 
 // Registration constants
 export const RENDER_INIT_ID = 'render';
@@ -25,11 +27,15 @@ const elements = {
   todayTasks: null,
   todayEmptyState: null,
   taskContainer: null,
+  currentTasks: null,
   currentTasksContainer: null,
+  futureTasks: null,
   futureTasksContainer: null,
   archiveContainer: null,
   archiveToggle: null,
-  noTasksMessage: null
+  noTasksMessage: null,
+  emptyCurrentTasks: null,
+  emptyFutureTasks: null
 };
 
 // Store unsubscribe functions
@@ -44,25 +50,33 @@ async function initializeRenderer() {
   
   try {
     // Populate DOM elements from document
-    elements.todayTasks = document.getElementById('today-tasks');
-    elements.todayEmptyState = document.getElementById('today-empty-state');
+    elements.todayTasks = document.getElementById('currentTasks'); // Map to existing element
+    elements.todayEmptyState = document.getElementById('emptyCurrentTasks'); // Map to existing element
     elements.taskContainer = document.getElementById('task-container');
+    elements.currentTasks = document.getElementById('currentTasks');
     elements.currentTasksContainer = document.getElementById('current-tasks-container');
+    elements.futureTasks = document.getElementById('futureTasks');
     elements.futureTasksContainer = document.getElementById('future-tasks-container');
-    elements.archiveContainer = document.getElementById('archive-container');
-    elements.archiveToggle = document.getElementById('archive-toggle');
+    elements.archiveContainer = document.getElementById('archiveContainer');
+    elements.archiveToggle = document.getElementById('archiveToggle');
     elements.noTasksMessage = document.getElementById('no-tasks');
+    elements.emptyCurrentTasks = document.getElementById('emptyCurrentTasks');
+    elements.emptyFutureTasks = document.getElementById('emptyFutureTasks');
     
     // Log element availability status
     console.log('Element initialization status:', {
       todayTasks: !!elements.todayTasks,
       todayEmptyState: !!elements.todayEmptyState,
       taskContainer: !!elements.taskContainer,
+      currentTasks: !!elements.currentTasks,
       currentTasksContainer: !!elements.currentTasksContainer,
+      futureTasks: !!elements.futureTasks,
       futureTasksContainer: !!elements.futureTasksContainer,
       archiveContainer: !!elements.archiveContainer,
       archiveToggle: !!elements.archiveToggle,
-      noTasksMessage: !!elements.noTasksMessage
+      noTasksMessage: !!elements.noTasksMessage,
+      emptyCurrentTasks: !!elements.emptyCurrentTasks,
+      emptyFutureTasks: !!elements.emptyFutureTasks
     });
     
     // Register components with explicit dependencies
@@ -139,6 +153,12 @@ function setupEventListeners() {
     setTimeout(() => renderAllComponents(), 100);
   });
   
+  // Add event listener for 'ui:render-tasks' event
+  document.addEventListener('ui:render-tasks', (event) => {
+    console.log('ui:render-tasks event received, rendering components', event.detail);
+    renderAllComponents();
+  });
+  
   // Add event listener for archive toggle
   if (elements.archiveToggle) {
     elements.archiveToggle.addEventListener('click', () => {
@@ -207,7 +227,7 @@ async function renderAllComponents() {
     const { tasks, showArchive = false } = state;
     
     // Apply strict business rules to categorize tasks
-    const categorizedTasks = categorizeTasksByBusinessRules(tasks);
+    const categorizedTasks = categorizeTaskByContainer(tasks);
     
     // Store categorized tasks in state
     setState({
@@ -273,7 +293,7 @@ async function renderTodayTasksComponent(data) {
  * @returns {Promise<void>}
  */
 async function renderCurrentTasks(data) {
-  if (!elements.currentTasksContainer) {
+  if (!elements.currentTasks) {
     console.error('Current tasks container element not found');
     return;
   }
@@ -281,14 +301,23 @@ async function renderCurrentTasks(data) {
   const { tasks } = data;
   
   // Clear existing content
-  elements.currentTasksContainer.innerHTML = '';
+  elements.currentTasks.innerHTML = '';
   
   // Handle empty state
   if (!tasks || tasks.length === 0) {
-    elements.currentTasksContainer.appendChild(
-      createEmptyState('No current tasks')
-    );
+    if (elements.emptyCurrentTasks) {
+      elements.emptyCurrentTasks.style.display = 'block';
+    } else {
+      elements.currentTasks.appendChild(
+        createEmptyState('No current tasks')
+      );
+    }
     return;
+  }
+  
+  // Hide empty state if we have tasks
+  if (elements.emptyCurrentTasks) {
+    elements.emptyCurrentTasks.style.display = 'none';
   }
   
   // Create header
@@ -298,7 +327,7 @@ async function renderCurrentTasks(data) {
     <h2 class="container-title">Current Tasks</h2>
     <div class="container-description">Tasks with class today or tomorrow</div>
   `;
-  elements.currentTasksContainer.appendChild(header);
+  elements.currentTasks.appendChild(header);
   
   // Create task list
   const taskList = document.createElement('div');
@@ -314,7 +343,7 @@ async function renderCurrentTasks(data) {
     taskList.appendChild(taskCard);
   });
   
-  elements.currentTasksContainer.appendChild(taskList);
+  elements.currentTasks.appendChild(taskList);
 }
 
 /**
@@ -323,7 +352,7 @@ async function renderCurrentTasks(data) {
  * @returns {Promise<void>}
  */
 async function renderFutureTasks(data) {
-  if (!elements.futureTasksContainer) {
+  if (!elements.futureTasks) {
     console.error('Future tasks container element not found');
     return;
   }
@@ -331,14 +360,23 @@ async function renderFutureTasks(data) {
   const { tasks } = data;
   
   // Clear existing content
-  elements.futureTasksContainer.innerHTML = '';
+  elements.futureTasks.innerHTML = '';
   
   // Handle empty state
   if (!tasks || tasks.length === 0) {
-    elements.futureTasksContainer.appendChild(
-      createEmptyState('No future tasks')
-    );
+    if (elements.emptyFutureTasks) {
+      elements.emptyFutureTasks.style.display = 'block';
+    } else {
+      elements.futureTasks.appendChild(
+        createEmptyState('No future tasks')
+      );
+    }
     return;
+  }
+  
+  // Hide empty state if we have tasks
+  if (elements.emptyFutureTasks) {
+    elements.emptyFutureTasks.style.display = 'none';
   }
   
   // Create header
@@ -348,7 +386,7 @@ async function renderFutureTasks(data) {
     <h2 class="container-title">Future Tasks</h2>
     <div class="container-description">Tasks for later days</div>
   `;
-  elements.futureTasksContainer.appendChild(header);
+  elements.futureTasks.appendChild(header);
   
   // Create task list
   const taskList = document.createElement('div');
@@ -364,7 +402,7 @@ async function renderFutureTasks(data) {
     taskList.appendChild(taskCard);
   });
   
-  elements.futureTasksContainer.appendChild(taskList);
+  elements.futureTasks.appendChild(taskList);
 }
 
 /**
@@ -382,6 +420,65 @@ async function renderArchiveTasksComponent(data) {
   
   // Use ArchiveTaskList component to render archive
   renderArchiveTasks(tasks, showArchive);
+}
+
+/**
+ * Render a list of tasks into a container
+ * @param {HTMLElement} container - Container element to render tasks into
+ * @param {HTMLElement} emptyState - Empty state element to show when no tasks
+ * @param {Array} tasks - Array of tasks to render
+ */
+export function renderTaskList(container, emptyState, tasks) {
+  if (!container) return;
+  
+  // Clear container first
+  container.innerHTML = '';
+  
+  // Check if there are tasks to display
+  if (!tasks || tasks.length === 0) {
+    // Show empty state if available
+    if (emptyState) {
+      emptyState.style.display = 'block';
+    }
+    return;
+  }
+  
+  // Hide empty state if we have tasks
+  if (emptyState) {
+    emptyState.style.display = 'none';
+  }
+  
+  // Sort tasks by due date (if available)
+  const sortedTasks = [...tasks].sort((a, b) => {
+    const dateA = a.dueDate || a.date || '';
+    const dateB = b.dueDate || b.date || '';
+    
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    
+    // Parse dates and compare
+    const datePartsA = dateA.split('.');
+    const datePartsB = dateB.split('.');
+    
+    // Convert to YYYY-MM-DD format for string comparison
+    const compA = `${datePartsA[2]}-${datePartsA[1]}-${datePartsA[0]}`;
+    const compB = `${datePartsB[2]}-${datePartsB[1]}-${datePartsB[0]}`;
+    
+    return compA.localeCompare(compB);
+  });
+  
+  // Render each task
+  sortedTasks.forEach(task => {
+    // Create task card using the component
+    const taskCard = createTaskCard(task, (taskId) => {
+      // Handle task completion
+      markTaskComplete(taskId);
+    });
+    
+    // Add to container
+    container.appendChild(taskCard);
+  });
 }
 
 /**

@@ -42,7 +42,7 @@
   --exam-color: #e63946;
   --exam-today-color: #d00000;
   --exam-tomorrow-color: #e85d04;
-  --chore-color: #118ab2;
+  --task-color: #118ab2;
   
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -401,9 +401,9 @@ header p {
   min-width: 80px;
 }
 
-/* Chore badge styling */
-.task-card .chore-badge {
-  background-color: var(--chore-color);
+/* Task badge styling */
+.task-card .task-badge {
+  background-color: var(--task-color);
   color: white;
 }
 

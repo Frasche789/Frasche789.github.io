@@ -14,6 +14,7 @@ import { appConfig } from '../app.js';
  * @returns {string} Category name: 'archive', 'current', or 'future'
  */
 export function categorizeTask(task) {
+  console.log(`Categorizing task: ${task?.class}`);
   if (!task) {
     console.error("Task must be a valid object");
     return 'future'; // Default to future if no task provided
@@ -44,8 +45,10 @@ export function categorizeTask(task) {
   } else {
     // For homework/subject tasks or any other type, use the subject's class schedule
     const hasClassSoon = hasClassTodayOrTomorrow(task.subject);
+    console.log(`Task ${task.id} categorized as: ${hasClassSoon ? 'current' : 'future'}`);
     return hasClassSoon ? 'current' : 'future';
   }
+  
 }
 
 

@@ -181,13 +181,28 @@ function createGenericTaskList(tasks, onTaskCompleted, additionalClass = '') {
  * @param {Object} elements - DOM elements object
  */
 export function initTodayTasks(elements) {
+  // Log the object structure we received
+  console.log('initTodayTasks called with elements:', JSON.stringify(elements));
+  
+  // Assign elements to module variables
   todayTasksEl = elements.todayTasks;
   todayEmptyStateEl = elements.todayEmptyState;
   
-  if (!todayTasksEl || !todayEmptyStateEl) {
-    console.error('Today tasks elements not found');
+  // Validate that we have the required elements
+  if (!todayTasksEl) {
+    console.error('Today tasks element not found - todayTasks');
     return;
   }
+  
+  if (!todayEmptyStateEl) {
+    console.error('Today empty state element not found - todayEmptyState');
+    return;
+  }
+  
+  console.log('Today tasks elements initialized successfully:', {
+    todayTasksEl: todayTasksEl,
+    todayEmptyStateEl: todayEmptyStateEl
+  });
   
   // Subscribe to task updates
   const unsubscribe = subscribe((state, changes) => {
