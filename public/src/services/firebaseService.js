@@ -3,7 +3,6 @@
  * Centralizes Firebase initialization and provides Firebase modules
  */
 
-import { registerInitStep } from '../core/appBootstrap.js';
 import { getState, setState, dispatch } from '../state/appState.js';
 
 // Firebase module cache
@@ -472,20 +471,3 @@ export async function setDocument(collectionName, documentId, data) {
     throw error;
   }
 }
-
-// Register with bootstrap system
-registerInitStep({
-  id: 'firebase',
-  name: 'Firebase Initialization',
-  run: async () => {
-    try {
-      const { db, modules } = await waitForFirebase();
-      return { db, modules };
-    } catch (error) {
-      console.error('Bootstrap: Firebase initialization failed:', error);
-      throw error;
-    }
-  },
-  dependencies: [], // No dependencies for Firebase
-  required: true
-});

@@ -2,9 +2,6 @@
  * app.js - Task Board ADHD-Optimized UI
  * Main entry point with simplified architecture
  */
-
-import { initializeApp } from './core/appBootstrap.js';
-
 // App configuration
 export const appConfig = {
   tasks: {
@@ -26,21 +23,37 @@ export const appConfig = {
   }
 };
 
+import { initializeDomReferences } from './utils/domUtils.js';
+import { initializeRenderer } from './rendering/taskRenderer.js';
+import { waitForFirebase } from './services/firebaseService.js';
+import { loadTasks, loadStudents } from './services/taskService.js';
+
 // Initialize the application when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('DOM loaded, initializing app...');
   
   try {
-    const result = await initializeApp();
+    // Initialize DOM references first
+    const elements = initializeDomReferences();
     
-    if (!result.success) {
-      throw new Error(result.error || 'Unknown initialization error');
+    // Initialize Firebase
+    await waitForFirebase();
+    
+    // Initialize the renderer with DOM elements
+    const cleanupRenderer = initializeRenderer(elements);
+    
+    // Load data after renderer is ready
+    await loadTasks();
+    await loadStudents();
+    
+    // Request initial render
+    if (window.requestRender) {
+      window.requestRender();
     }
     
-    console.log('App startup completed successfully');
-    
+    console.log('App initialization completed successfully');
   } catch (error) {
-    console.error('Error during app startup:', error);
+    console.error('Error initializing app:', error);
     
     // Show error message to user
     const errorMessage = document.createElement('div');
@@ -63,13 +76,3 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Make the render request function globally available for event handlers
 window.requestRender = requestRender;
-
-// Error handling for initialization
-window.addEventListener('error', (error) => {
-  console.error('Error initializing app:', error);
-  // Show error message to user
-  const errorMessage = document.createElement('div');
-  errorMessage.className = 'error-message';
-  errorMessage.textContent = 'Failed to initialize the application. Please reload the page.';
-  document.body.appendChild(errorMessage);
-});

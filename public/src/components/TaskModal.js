@@ -5,6 +5,7 @@
 
 import { addTask, addHomework } from '../services/taskService.js';
 import { getState, setState, dispatch } from '../state/appState.js';
+import { getElements } from '../utils/domUtils.js';
 
 // DOM elements cache
 let taskModal = null;

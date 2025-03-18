@@ -7,7 +7,6 @@ import { getElements } from '../utils/domUtils.js';
 import { getState, subscribe, dispatch } from '../state/appState.js';
 import { createTaskCard } from '../components/TaskCard.js';
 import { categorizeTaskByContainer } from '../services/taskCategorization.js';
-import { isToday, isTomorrow, getRelativeDateText, getTodayFinDate } from '../utils/dateUtils.js';
 
 // Event names for rendering coordination
 export const EVENTS = {
@@ -250,3 +249,6 @@ function renderArchiveTasks(tasks, visible = false) {
 export function requestRender() {
   document.dispatchEvent(new CustomEvent(EVENTS.RENDER_REQUESTED));
 }
+
+// Make the render request function globally available for event handlers
+window.requestRender = requestRender;
