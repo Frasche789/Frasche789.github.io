@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import TaskList from './components/tasks/TaskList';
 
 // Import CSS to apply existing styling
-import '../styles.css';
+import './/styles.css';
 
 /**
  * Main App component that serves as the entry point for the Task Board application
@@ -78,7 +78,7 @@ function App() {
         <TaskList 
           title="What's up today" 
           tasks={todayTasks} 
-          onTaskComplete={toggleTaskCompletion}
+          onComplete={toggleTaskCompletion}
           emptyMessage="No tasks for today - enjoy your free time!" 
         />
         
@@ -86,7 +86,7 @@ function App() {
         <TaskList 
           title="Coming up" 
           tasks={otherTasks} 
-          onTaskComplete={toggleTaskCompletion} 
+          onComplete={toggleTaskCompletion} 
           emptyMessage="No upcoming tasks" 
         />
         
@@ -94,7 +94,7 @@ function App() {
         <TaskList 
           title="Completed" 
           tasks={completedTasks} 
-          onTaskComplete={toggleTaskCompletion}
+          onComplete={toggleTaskCompletion}
           emptyMessage="Nothing completed yet" 
         />
       </div>
