@@ -2,31 +2,61 @@
 
 An ADHD/autism-friendly task management system designed specifically for neurodivergent children to visualize and complete their tasks more effectively.
 
+## Component Structure
+
+src/
+├── components/           # UI components
+│   ├── layout/           # Structural components
+│   │   ├── AppHeader.jsx
+│   │   └── Container.jsx
+│   ├── tasks/            # Task-related components
+│   │   ├── TaskCard.jsx  # Individual task display
+│   │   ├── TaskList.jsx  # Group of tasks
+│   │   ├── TaskModal.jsx # Add/edit task dialog
+│   │   └── TaskFilters.jsx
+│   ├── subjects/         # Subject-related components
+│   │   ├── SubjectPill.jsx
+│   │   └── TomorrowClasses.jsx
+│   └── common/           # Shared UI elements
+│       ├── EmptyState.jsx
+│       └── CompletionButton.jsx
+├── hooks/                # Custom React hooks
+│   ├── useTaskData.js    # Data fetching and management
+│   ├── useCategories.js  # Task categorization logic
+│   └── useSubjects.js    # Subject-related operations
+├── services/             # External service integration
+│   └── firebase.js       # Firebase setup and API
+├── utils/                # Pure utility functions
+│   ├── dateUtils.js      # Date parsing/formatting
+│   └── taskUtils.js      # Task manipulation/filtering
+├── context/              # React context providers
+│   ├── TaskContext.js    # Central task data management
+│   └── ThemeContext.js   # (Optional) UI theming
+└── App.jsx               # Application root
+
 ## Features
 
-- 📱 **Mobile-first design**: Optimized for phones (80% of usage) with touch targets ≥48px
-- 📋 **Today's tasks at a glance**: Fixed "What's up today" section for immediate task visibility
-- 🔄 **Infinite scroll day-based layout**: Chronological organization of tasks with clear day separators
+- 📱 **Mobile-first design**: Optimized for phones with touch targets ≥48px
+- 📋 **Today's tasks at a glance**: Prominent "What's up today" section for immediate task visibility
+- 🔄 **Infinite scroll day-based layout**: Chronological organization of tasks in distinct containers (archive, current, future)
 - 🎯 **Visually distinct task cards**: Color-coded by subject with prominent completion controls
 - ⏱️ **Due date visualization**: Clear visual distinction between today/tomorrow/later tasks
-
-- 🎉 **Celebration animations**: Positive reinforcement through visual feedback
-- 🔎 **Filtering system**: Sort by task type, completion status, and recency
-- ⚡ **Performance optimized**: Fast loading and rendering for low-end devices
+- 📅 **Archive**: Container for completed tasks (older than X days or tasks marked as completed)
+- 📅 **Current**: Container for current tasks (today & tomorrow)
+- 📅 **Future**: Container for future tasks (after tomorrow)
 
 
 ## Planned Future Features
 - 🔥 **Streak tracking**: Motivation system to encourage regular app usage
 - 📊 **Scroll position memory**: Remembers where you left off between sessions
+- 🎉 **Celebration animations**: Positive reinforcement through visual feedback
+- ⚡ **Performance optimized**: Fast loading and rendering for low-end devices
 
 ## Technical Implementation
 
 ### Frontend Architecture
 
-- **HTML5**: Semantic structure prioritizing accessibility and clear information hierarchy
-- **CSS3**: Component-based styling with mobile-first responsive design
-- **JavaScript**: Modern ES6+ for task rendering, Firebase integration, and UI interactions
-- **Animations**: Custom celebration and completion effects for positive reinforcement
+- **React**: Modern JavaScript framework for building user interfaces
 
 ### Backend Integration
 
@@ -59,14 +89,6 @@ An ADHD/autism-friendly task management system designed specifically for neurodi
 4. Complete tasks with a single tap on the completion button
 5. Add new chores using the floating action button
 6. Track your usage streak to build consistent habits
-
-## Future Enhancements
-
-- Google Calendar API integration
-- Additional customization options for neurodivergent preferences
-- Expanded animation and reward systems
-- Parent/teacher monitoring dashboard
-- Offline functionality for connectivity issues
 
 ---
 
