@@ -24,7 +24,7 @@ export const appConfig = {
 };
 
 import { initializeDomReferences } from './utils/domUtils.js';
-import { initializeRenderer } from './rendering/taskRenderer.js';
+import { initializeRenderer } from '../../taskRenderer_legacy.js';
 import { waitForFirebase } from './services/firebaseService.js';
 import { loadTasks, loadStudents } from './services/taskService.js';
 

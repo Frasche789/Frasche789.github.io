@@ -3,6 +3,55 @@
  * Contains functions for date parsing, formatting, and comparison
  * Focused on Finnish date format (DD.MM.YYYY)
  */
+// Date Formats
+
+const FORMATS = {
+  FINNISH: 'DD.MM.YYYY',
+  ISO: 'YYYY-MM-DD',
+};
+
+// Convert between date formats
+function convertDateFormat(dateString, fromFormat, toFormat) {
+  // Handle empty or invalid dates
+  if (!dateString || typeof dateString !== 'string') {
+    console.warn('Invalid date string provided:', dateString);
+    return null;
+  }
+
+  try {
+    // Parse according to the fromFormat
+    let dateObj;
+    
+    if (fromFormat === FORMATS.FINNISH) {
+      dateObj = convertDateFormat(dateString, FORMATS.FINNISH, FORMATS.ISO);
+    } else if (fromFormat === FORMATS.ISO) {
+      const [year, month, day] = dateString.split('-').map(part => parseInt(part, 10));
+      dateObj = new Date(year, month - 1, day);
+    } else {
+      console.warn('Unsupported fromFormat:', fromFormat);
+      return null;
+    }
+    
+    if (!dateObj) {
+      return null;
+    }
+    
+    // Format according to the toFormat
+    if (toFormat === FORMATS.FINNISH) {
+      return `${dateObj.getDate().toString().padStart(2, '0')}.${(dateObj.getMonth() + 1).toString().padStart(2, '0')}.${dateObj.getFullYear()}`;
+    } else if (toFormat === FORMATS.ISO) {
+      return `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')}`;
+    } else {
+      console.warn('Unsupported toFormat:', toFormat);
+      return null;
+    }
+  } catch (error) {
+    console.warn('Error converting date format:', error, { dateString, fromFormat, toFormat });
+    return null;
+  }
+}
+
+export { convertDateFormat, FORMATS };
 
 /**
  * Get today's date in Finnish format (DD.MM.YYYY)
@@ -10,60 +59,9 @@
  */
 export function getTodayFinDate() {
   const today = new Date();
-  return `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
+  return convertDateFormat(today, FORMATS.ISO, FORMATS.FINNISH);
 }
 
-/**
- * Parse a Finnish format date string (DD.MM.YYYY) into a JavaScript Date object
- * @param {string} finDate - Date string in Finnish format (DD.MM.YYYY)
- * @returns {Date|null} JavaScript Date object or null for invalid/missing dates
- */
-export function parseFinDate(finDate) {
-  // Handle empty dates or "No Due Date" case
-  if (!finDate || typeof finDate !== 'string' || finDate === 'No Due Date') {
-    if (finDate !== undefined && finDate !== 'No Due Date') {
-      console.warn('Invalid date format received:', finDate);
-    }
-    return null; // Return null for missing/invalid dates
-  }
-  
-  try {
-    // Basic validation for Finnish date format DD.MM.YYYY
-    if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(finDate)) {
-      console.warn('Date format does not match DD.MM.YYYY:', finDate);
-      return null; // Return null for invalid format
-    }
-    
-    // Split the date into components
-    const [day, month, year] = finDate.split('.').map(part => parseInt(part, 10));
-    
-    // Validate day, month, and year values
-    const isValidDay = day >= 1 && day <= 31;
-    const isValidMonth = month >= 1 && month <= 12;
-    const isValidYear = year >= 1000 && year <= 9999;
-    
-    if (!isValidDay || !isValidMonth || !isValidYear) {
-      console.warn('Invalid date components:', { day, month, year });
-      return null; // Return null for invalid components
-    }
-    
-    // Create a new Date (months are 0-indexed in JS Date)
-    const dateObj = new Date(year, month - 1, day);
-    
-    // Check if date is valid (for example, 31.04.2023 would become 01.05.2023)
-    if (dateObj.getDate() !== day) {
-      console.warn('Date was adjusted by browser:', { 
-        original: finDate, 
-        adjusted: `${dateObj.getDate()}.${dateObj.getMonth() + 1}.${dateObj.getFullYear()}`
-      });
-    }
-    
-    return dateObj;
-  } catch (error) {
-    console.warn('Error parsing date:', error, finDate);
-    return null; // Return null for any parsing errors
-  }
-}
 
 /**
  * Format a Finnish date (DD.MM.YYYY) to a more readable format (e.g., "March 16")
@@ -72,7 +70,7 @@ export function parseFinDate(finDate) {
  * @returns {string} Formatted date string
  */
 export function formatFinDate(finDate, options = { month: 'long', day: 'numeric' }) {
-  const date = parseFinDate(finDate);
+  const date = convertDateFormat(finDate, FORMATS.FINNISH, FORMATS.ISO);
   if (!date) return 'Invalid date';
   
   return date.toLocaleDateString('en-US', options);
@@ -97,8 +95,8 @@ export function formatDate(date, options = { month: 'long', day: 'numeric' }) {
  *                    2 if date1 is invalid, 3 if date2 is invalid, 4 if both are invalid
  */
 export function compareDates(date1, date2) {
-  const d1 = parseFinDate(date1);
-  const d2 = parseFinDate(date2);
+  const d1 = convertDateFormat(date1, FORMATS.FINNISH, FORMATS.ISO);
+  const d2 = convertDateFormat(date2, FORMATS.FINNISH, FORMATS.ISO);
   
   // Handle null values (invalid dates)
   if (!d1 && !d2) return 4; // Both dates invalid
@@ -135,8 +133,8 @@ export function getRelativeDateText(finDate, todayDate = getTodayFinDate()) {
   
   if (comparison === 0) return 'Today';
   
-  const date = parseFinDate(finDate);
-  const today = parseFinDate(todayDate);
+  const date = convertDateFormat(finDate, FORMATS.FINNISH, FORMATS.ISO);
+  const today = convertDateFormat(todayDate, FORMATS.FINNISH, FORMATS.ISO);
   
   // Safety check
   if (!date || !today) {
@@ -178,7 +176,7 @@ export function isToday(finDate) {
  * @returns {boolean} True if the date is tomorrow
  */
 export function isTomorrow(finDate) {
-  const today = parseFinDate(getTodayFinDate());
+  const today = convertDateFormat(getTodayFinDate(), FORMATS.FINNISH, FORMATS.ISO);
   if (!today) return false;
   
   const tomorrow = new Date(today);
@@ -199,7 +197,7 @@ export function getDateRelativeToToday(days) {
   const targetDate = new Date(today);
   targetDate.setDate(today.getDate() + days);
   
-  return `${targetDate.getDate().toString().padStart(2, '0')}.${(targetDate.getMonth() + 1).toString().padStart(2, '0')}.${targetDate.getFullYear()}`;
+  return convertDateFormat(targetDate, FORMATS.ISO, FORMATS.FINNISH);
 }
 
 /**
@@ -217,8 +215,8 @@ export function getTomorrowFinDate() {
  * @returns {number|null} Number of days between dates or null if dates are invalid
  */
 export function getDaysBetweenDates(date1, date2) {
-  const d1 = parseFinDate(date1);
-  const d2 = parseFinDate(date2);
+  const d1 = convertDateFormat(date1, FORMATS.FINNISH, FORMATS.ISO);
+  const d2 = convertDateFormat(date2, FORMATS.FINNISH, FORMATS.ISO);
   
   if (!d1 || !d2) return null;
   
@@ -249,7 +247,7 @@ export function getDayName(date = new Date()) {
 export function isDateOlderThan(dateString, days = 14) {
   if (!dateString) return false;
   
-  const date = parseFinDate(dateString);
+  const date = convertDateFormat(dateString, FORMATS.FINNISH, FORMATS.ISO);
   if (!date) return false;
   
   const today = new Date();
