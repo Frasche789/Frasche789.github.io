@@ -1,70 +1,37 @@
-// App.jsx - Main application component
-import React, { useState, useCallback } from 'react';
+// src/App.jsx - Main application component
+import React from 'react';
 import TaskList from './components/tasks/TaskList';
+import { TaskProvider, useTaskContext } from './context/TaskContext';
 
-// Import CSS to apply existing styling
+// Import CSS
 import './/styles.css';
 
-/**
- * Main App component that serves as the entry point for the Task Board application
- * 
- * @returns {JSX.Element} The rendered App component
- */
-function App() {
-  // Sample task data - would be replaced with real data from Firebase in the future
-  const [tasks, setTasks] = useState([
-    {
-      id: '1',
-      description: 'Complete math homework',
-      subject: 'math',
-      type: 'homework',
-      dueDate: 'Today',
-      completed: false
-    },
-    {
-      id: '2',
-      description: 'Study for English exam',
-      subject: 'english',
-      type: 'exam',
-      dueDate: 'Tomorrow',
-      completed: false
-    },
-    {
-      id: '3',
-      description: 'Prepare history presentation',
-      subject: 'history',
-      type: 'task',
-      dueDate: 'Next week',
-      completed: true
-    }
-  ]);
+// Main App content component
+function AppContent() {
+  const { 
+    todayTasks, 
+    upcomingTasks, 
+    completedTasks, 
+    loading, 
+    error, 
+    completeTask 
+  } = useTaskContext();
 
-  /**
-   * Toggle the completion status of a task
-   * @param {string} taskId - ID of the task to toggle
-   */
-  const toggleTaskCompletion = useCallback((taskId) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId 
-          ? { ...task, completed: !task.completed } 
-          : task
-      )
+  if (loading) {
+    return (
+      <div className="container">
+        <div className="loading">Loading tasks...</div>
+      </div>
     );
-  }, []);
+  }
 
-  // Group tasks by completion status
-  const todayTasks = tasks.filter(task => 
-    task.dueDate === 'Today' && !task.completed
-  );
-  
-  const otherTasks = tasks.filter(task => 
-    task.dueDate !== 'Today' && !task.completed
-  );
-  
-  const completedTasks = tasks.filter(task => 
-    task.completed
-  );
+  if (error) {
+    return (
+      <div className="container">
+        <div className="error">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -78,15 +45,15 @@ function App() {
         <TaskList 
           title="What's up today" 
           tasks={todayTasks} 
-          onComplete={toggleTaskCompletion}
+          onTaskComplete={completeTask}
           emptyMessage="No tasks for today - enjoy your free time!" 
         />
         
         {/* Upcoming tasks section */}
         <TaskList 
           title="Coming up" 
-          tasks={otherTasks} 
-          onComplete={toggleTaskCompletion} 
+          tasks={upcomingTasks} 
+          onTaskComplete={completeTask} 
           emptyMessage="No upcoming tasks" 
         />
         
@@ -94,11 +61,20 @@ function App() {
         <TaskList 
           title="Completed" 
           tasks={completedTasks} 
-          onComplete={toggleTaskCompletion}
+          onTaskComplete={completeTask}
           emptyMessage="Nothing completed yet" 
         />
       </div>
     </div>
+  );
+}
+
+// Main App component with Context Provider
+function App() {
+  return (
+    <TaskProvider>
+      <AppContent />
+    </TaskProvider>
   );
 }
 

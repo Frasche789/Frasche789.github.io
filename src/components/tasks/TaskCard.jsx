@@ -1,4 +1,4 @@
-// TaskCard.jsx - Individual task display component
+// src/components/tasks/TaskCard.jsx - Individual task display component
 import React from 'react';
 
 /**
@@ -6,74 +6,69 @@ import React from 'react';
  * 
  * @param {Object} props - Component props
  * @param {Object} props.task - Task data object
- * @param {string} props.task.id - Unique identifier for the task
- * @param {string} props.task.description - Task description/title
- * @param {string} props.task.subject - Subject category (math, english, etc.)
- * @param {string} props.task.type - Type indicator (homework/exam/task)
- * @param {string} props.task.dueDate - Due date of the task
- * @param {boolean} props.task.completed - Completion status of the task
  * @param {Function} props.onComplete - Callback function when task is marked complete
  */
 function TaskCard({ task, onComplete }) {
-  // Default values for missing props
+  // Destructure task properties with defaults for missing values
   const {
     id,
     description = 'Untitled Task',
     subject = 'other',
     type = 'task',
-    dueDate = 'No due date',
+    due_date = 'No due date',
     completed = false
   } = task;
 
-  /**
-   * Handle task completion click
-   * @param {Event} e - Click event
-   */
+  // Handle completion button click
   const handleCompleteClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    onComplete?.(id);
+    if (onComplete && !completed) {
+      onComplete(id);
+    }
   };
 
   // Determine CSS classes based on task properties
   const cardClasses = [
     'task-card',
     `subject-${subject.toLowerCase()}`,
-    completed ? 'completed' : '',
+    completed ? 'completed-task' : '',
+    type === 'exam' ? 'exam-task' : ''
   ].filter(Boolean).join(' ');
-
-  // Get the appropriate type indicator class
-  const typeClass = type === 'exam' ? 'exam-indicator' : 'task-indicator';
 
   return (
     <div className={cardClasses}>
-      <div className="task-content">
-        {/* Subject pill with appropriate color coding */}
-        <div className={`subject-badge ${subject.toLowerCase()}`}>
-          {subject}
-        </div>
-        
-        {/* Type indicator (homework/exam/task) */}
-        <div className={typeClass}>
-          {type}
-        </div>
-        
-        {/* Task description */}
-        <h3 className="task-description">{description}</h3>
-        
-        {/* Due date information */}
-        <div className="task-due-date">
-          Due: {dueDate}
-        </div>
-        
-        {/* Completion button */}
+      <div className="task-card-inner">
         <button 
-          className={`completion-button ${completed ? 'completed' : ''}`}
+          className="complete-btn" 
           onClick={handleCompleteClick}
-          aria-label={completed ? "Completed task" : "Mark as complete"}
+          disabled={completed}
+          aria-label={completed ? "Task completed" : "Mark as complete"}
         >
-          {completed ? '✓' : 'Complete'}
+          {completed ? '✓' : ''}
         </button>
+        
+        <div className="task-card-content">
+          <div className="task-card-header">
+            <span className={`task-subject subject-badge ${subject.toLowerCase()}`}>
+              {subject}
+            </span>
+            
+            <span className={`task-type ${type === 'exam' ? 'exam-badge' : 'task-badge'}`}>
+              {type}
+            </span>
+          </div>
+          
+          <div className="task-description">
+            {description}
+          </div>
+          
+          <div className="task-meta">
+            <span>Due: {due_date}</span>
+          </div>
+          
+          {completed && <div className="completed-stamp">Completed</div>}
+        </div>
       </div>
     </div>
   );

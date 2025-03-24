@@ -1,4 +1,4 @@
-// TaskList.jsx - Component for displaying a list of tasks
+// src/components/tasks/TaskList.jsx - Component for displaying a list of tasks
 import React from 'react';
 import TaskCard from './TaskCard';
 
