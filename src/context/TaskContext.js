@@ -1,105 +1,39 @@
-// src/context/TaskContext.js - Provides task data and operations across components
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db, getFirestore } from '../firebase';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 
-// Create context
-const TaskContext = createContext();
+// Creates a central source of truth for tasks
+export const TaskContext = createContext();
 
-// Custom hook to use the task context
-export const useTaskContext = () => useContext(TaskContext);
-
-// Provider component
-export const TaskProvider = ({ children }) => {
+export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Fetch tasks from Firestore
+  
+  // Load tasks from Firebase
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        const tasksCollection = collection(db, 'tasks');
-        const taskSnapshot = await getDocs(tasksCollection);
-        
-        const taskList = taskSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          // Normalize task data structure
-          description: doc.data().description || '',
-          subject: doc.data().subject || 'other',
-          type: doc.data().type || 'task',
-          due_date: doc.data().due_date || 'No due date',
-          completed: doc.data().status === 'completed' || false
-        }));
-        
-        setTasks(taskList);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching tasks:', err);
-        setError('Failed to load tasks. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
+    // Fetch tasks and update state
   }, []);
-
-  // Mark a task as complete
-  const completeTask = async (taskId) => {
-    try {
-      // Update in Firestore
-      const taskRef = doc(db, 'tasks', taskId);
-      await updateDoc(taskRef, {
-        status: 'completed'
-      });
-      
-      // Update local state
-      setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === taskId 
-            ? { ...task, completed: true, status: 'completed' } 
-            : task
-        )
-      );
-    } catch (err) {
-      console.error('Error completing task:', err);
-      setError('Failed to update task. Please try again.');
-    }
-  };
-
-  // Group tasks by completion and date
-  const getTodayTasks = () => tasks.filter(task => 
-    !task.completed && 
-    task.due_date && 
-    (task.due_date === new Date().toLocaleDateString('fi-FI') || 
-     task.due_date === new Date().toLocaleDateString('en-US'))
-  );
   
-  const getUpcomingTasks = () => tasks.filter(task => 
-    !task.completed && 
-    !getTodayTasks().includes(task)
-  );
+  // Functions to filter tasks
+  const getTodayTasks = () => tasks.filter(task => isToday(task.dueDate));
+  const getTomorrowTasks = () => tasks.filter(task => isTomorrow(task.dueDate));
+  const getFutureTasks = () => tasks.filter(task => isFuture(task.dueDate));
+  const getArchiveTasks = () => tasks.filter(task => task.completed);
   
-  const getCompletedTasks = () => tasks.filter(task => 
-    task.completed || task.status === 'completed'
-  );
-
-  const value = {
-    allTasks: tasks,
-    todayTasks: getTodayTasks(),
-    upcomingTasks: getUpcomingTasks(),
-    completedTasks: getCompletedTasks(),
-    loading,
-    error,
-    completeTask
+  // Functions to modify tasks
+  const completeTask = (taskId) => {
+    // Update task in state AND in Firebase
   };
-
+  
   return (
-    <TaskContext.Provider value={value}>
+    <TaskContext.Provider value={{
+      tasks,
+      loading,
+      getTodayTasks,
+      getTomorrowTasks,
+      getFutureTasks,
+      getArchiveTasks,
+      completeTask
+    }}>
       {children}
     </TaskContext.Provider>
   );
-};
+}

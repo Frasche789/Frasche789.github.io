@@ -117,7 +117,7 @@ async function performLogin(page) {
     // Click login and wait for navigation
     console.log('Submitting login...');
     await Promise.all([
-      page.click('input[type="submit"]'),
+      page.keyboard.press('Enter'),
       page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 20000 })
     ]);
     

@@ -9,14 +9,13 @@ import React from 'react';
  * @param {Function} props.onComplete - Callback function when task is marked complete
  */
 function TaskCard({ task, onComplete }) {
-  // Destructure task properties with defaults for missing values
   const {
     id,
-    description = 'Untitled Task',
-    subject = 'other',
-    type = 'task',
-    due_date = 'No due date',
-    completed = false
+    subject,
+    description,
+    due_date,
+    type,
+    completed
   } = task;
 
   // Handle completion button click
@@ -28,16 +27,8 @@ function TaskCard({ task, onComplete }) {
     }
   };
 
-  // Determine CSS classes based on task properties
-  const cardClasses = [
-    'task-card',
-    `subject-${subject.toLowerCase()}`,
-    completed ? 'completed-task' : '',
-    type === 'exam' ? 'exam-task' : ''
-  ].filter(Boolean).join(' ');
-
   return (
-    <div className={cardClasses}>
+    <div className="task-card">
       <div className="task-card-inner">
         <button 
           className="complete-btn" 

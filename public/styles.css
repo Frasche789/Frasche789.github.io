@@ -1,0 +1,663 @@
+/* 
+ * styles.css - Task Board ADHD-Optimized UI
+ * Streamlined, well-structured stylesheet with dark blue theme
+ */
+
+/***************************************
+ * 1. CSS VARIABLES AND RESET
+ ***************************************/
+ :root {
+  /* Color system - dark blue theme */
+  --bg-primary: #0d1b2a;
+  --bg-secondary: #1b263b;
+  --bg-card: #243b55;
+  --bg-card-hover: #2c4c6b;
+  
+  /* Text colors */
+  --text-primary: #e0e1dd;
+  --text-secondary: #c7c8c9;
+  --text-muted: #9ca0a3;
+  --text-accent: #ffffff;
+  
+  /* Accent colors */
+  --accent-primary: #4CC9F0;
+  --accent-secondary: #F72585;
+  --accent-success: #4BC99C;
+  --accent-danger: #F25F5C;
+  --accent-warning: #FFD166;
+  
+  /* Subject colors - brighter for contrast against dark theme */
+  --subject-math: #4CC9F0;
+  --subject-finnish: #90E0EF;
+  --subject-english: #F72585;
+  --subject-history: #B5179E; 
+  --subject-civics: #7209B7;
+  --subject-ethics: #6A00F4;
+  --subject-pe: #480CA8;
+  --subject-music: #D100D1;
+  --subject-art: #F15BB5;
+  --subject-crafts: #FEE440;
+  --subject-eco: #06D6A0;
+  --subject-digi: #118AB2;
+  
+  /* Task indicators */
+  --exam-color: #F25F5C;
+  --exam-today-color: #FF5A5F;
+  --exam-tomorrow-color: #FF9E00;
+  --task-color: #118AB2;
+  
+  /* Spacing system */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem; 
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  
+  /* UI elements */
+  --border-radius-sm: 8px;
+  --border-radius: 12px;
+  --border-radius-lg: 16px;
+  --touch-target: 48px; /* Accessible tap target size */
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  
+  /* Animation */
+  --transition-speed: 0.2s;
+  --transition-function: ease-in-out;
+}
+
+/* Base reset */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/***************************************
+ * 2. BASE TYPOGRAPHY & DOCUMENT
+ ***************************************/
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+  line-height: 1.2;
+  color: var(--text-accent);
+}
+
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+
+p { margin-bottom: var(--space-md); }
+
+/***************************************
+ * 3. LAYOUT CONTAINERS
+ ***************************************/
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-md);
+}
+
+/* Base card component */
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-lg);
+  transition: transform var(--transition-speed) var(--transition-function),
+              box-shadow var(--transition-speed) var(--transition-function);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Section headers */
+.section-title {
+  color: var(--accent-primary);
+  margin-bottom: var(--space-md);
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--bg-card-hover);
+  padding-bottom: var(--space-sm);
+}
+
+/***************************************
+ * 4. HEADER & APP BAR
+ ***************************************/
+header.card {
+  text-align: center;
+  background-color: var(--bg-secondary);
+  border-bottom: 3px solid var(--accent-primary);
+}
+
+header h1 {
+  color: var(--text-accent);
+  margin-bottom: var(--space-xs);
+}
+
+header p {
+  color: var(--text-secondary);
+  margin-bottom: 0;
+}
+
+/***************************************
+ * 5. ARCHIVE TOGGLE & CONTAINER
+ ***************************************/
+.archive-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--accent-primary);
+  border-radius: var(--border-radius);
+  padding: var(--space-md);
+  margin: var(--space-md) auto;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-speed) var(--transition-function), 
+              transform var(--transition-speed) var(--transition-function);
+  height: var(--touch-target);
+  min-width: 240px;
+  max-width: 80%;
+  margin-bottom: var(--space-lg);
+}
+
+.archive-toggle svg {
+  margin-right: var(--space-xs);
+}
+
+.archive-toggle:hover, 
+.archive-toggle:focus {
+  background-color: var(--accent-primary);
+  color: var(--bg-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.archive-toggle:active {
+  transform: translateY(0);
+}
+
+/* Archive container */
+.archive-container {
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-lg);
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+  overflow: hidden;
+}
+
+.archive-container.visible {
+  display: block;
+  opacity: 1;
+  max-height: 2000px;
+}
+
+.archive-container.hidden {
+  display: block;
+  opacity: 0;
+  max-height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/***************************************
+ * 6. TASK CARDS & LISTS
+ ***************************************/
+/* Task list container */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Task card base style */
+.task-card {
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-left: 4px solid;
+  overflow: hidden;
+  min-height: 120px;
+  transition: transform var(--transition-speed) var(--transition-function),
+              box-shadow var(--transition-speed) var(--transition-function);
+}
+
+.task-card:hover {
+  box-shadow: var(--shadow);
+}
+
+/* Task card internal layout */
+.task-card-inner {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.task-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.task-description {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+  flex-grow: 1;
+}
+
+.task-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: auto;
+}
+
+/* Subject styling */
+.task-subject {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--bg-primary);
+  min-width: 40px;
+  height: 28px;
+}
+
+/* Task type badges */
+.task-type {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  min-width: 40px;
+  height: 24px;
+}
+
+/* Task badge styling */
+.task-badge {
+  background-color: var(--task-color);
+  color: var(--text-accent);
+}
+
+/* Exam badge styling */
+.exam-badge {
+  background-color: var(--exam-color);
+  color: var(--text-accent);
+  font-weight: 800;
+  animation: pulse 2s infinite ease-in-out;
+  font-size: 0.7rem;
+  min-width: 80px;
+}
+
+/* Complete button styling */
+.complete-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--border-radius-sm);
+  background-color: transparent;
+  border: 2px solid var(--text-muted);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.25rem;
+  transition: all var(--transition-speed) var(--transition-function);
+}
+
+.complete-btn:hover {
+  background-color: var(--accent-success);
+  border-color: var(--accent-success);
+  color: var(--bg-primary);
+  transform: scale(1.1);
+}
+
+.complete-btn:disabled {
+  background-color: var(--accent-success);
+  border-color: var(--accent-success);
+  color: var(--bg-primary);
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+/***************************************
+ * 7. SUBJECT-SPECIFIC STYLING
+ ***************************************/
+/* Subject pills for tomorrow's classes */
+.subject-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.subject-pill {
+  color: var(--bg-primary);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  min-height: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Subject badge colors - using CSS variables */
+.subject-math, .subject-badge.math { background-color: var(--subject-math); }
+.subject-finnish, .subject-badge.finnish { background-color: var(--subject-finnish); }
+.subject-english, .subject-badge.english { background-color: var(--subject-english); }
+.subject-history, .subject-badge.history { background-color: var(--subject-history); }
+.subject-civics, .subject-badge.civics { background-color: var(--subject-civics); }
+.subject-ethics, .subject-badge.ethics { background-color: var(--subject-ethics); }
+.subject-pe, .subject-badge.pe { background-color: var(--subject-pe); }
+.subject-music, .subject-badge.music { background-color: var(--subject-music); }
+.subject-art, .subject-badge.art { background-color: var(--subject-art); }
+.subject-crafts, .subject-badge.crafts { background-color: var(--subject-crafts); }
+.subject-eco, .subject-badge.eco { background-color: var(--subject-eco); }
+.subject-digi, .subject-badge.digi { background-color: var(--subject-digi); }
+.subject-other, .subject-badge.other { background-color: var(--text-muted); }
+
+/* Task card subject-based left borders */
+.task-card.subject-math { border-left-color: var(--subject-math); }
+.task-card.subject-finnish { border-left-color: var(--subject-finnish); }
+.task-card.subject-english { border-left-color: var(--subject-english); }
+.task-card.subject-history { border-left-color: var(--subject-history); }
+.task-card.subject-civics { border-left-color: var(--subject-civics); }
+.task-card.subject-ethics { border-left-color: var(--subject-ethics); }
+.task-card.subject-pe { border-left-color: var(--subject-pe); }
+.task-card.subject-music { border-left-color: var(--subject-music); }
+.task-card.subject-art { border-left-color: var(--subject-art); }
+.task-card.subject-crafts { border-left-color: var(--subject-crafts); }
+.task-card.subject-eco { border-left-color: var(--subject-eco); }
+.task-card.subject-digi { border-left-color: var(--subject-digi); }
+.task-card.subject-other { border-left-color: var(--text-muted); }
+
+/***************************************
+ * 8. TASK CONTAINER STYLING 
+ ***************************************/
+/* Tasks section */
+.tasks-section {
+  margin-top: var(--space-lg);
+}
+
+.tasks-section h3 {
+  color: var(--text-accent);
+  margin-bottom: var(--space-md);
+}
+
+/* Empty state styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  color: var(--text-muted);
+  text-align: center;
+  border: 1px dashed var(--text-muted);
+  border-radius: var(--border-radius);
+  margin: var(--space-md) 0;
+}
+
+/* Specific task status styling */
+.task-card.completed-task {
+  opacity: 0.7;
+  border-left-color: var(--accent-success);
+}
+
+.task-card.completed-task .description {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Exam task styling */
+.task-card.exam-task {
+  box-shadow: 0 0 8px rgba(242, 95, 92, 0.3);
+  border: 1px solid var(--exam-color);
+}
+
+/* Due today exam styling */
+.task-card.exam-due-today .exam-badge {
+  background-color: var(--exam-today-color);
+  animation: pulse-urgent 1.5s infinite ease-in-out;
+}
+
+.task-card.exam-due-today {
+  box-shadow: 0 0 12px rgba(255, 90, 95, 0.4);
+  border: 2px solid var(--exam-today-color);
+}
+
+/* Due tomorrow exam styling */
+.task-card.exam-due-tomorrow .exam-badge {
+  background-color: var(--exam-tomorrow-color);
+}
+
+.task-card.exam-due-tomorrow {
+  box-shadow: 0 0 10px rgba(255, 158, 0, 0.3);
+  border: 1px solid var(--exam-tomorrow-color);
+}
+
+/* Completed stamp */
+.completed-stamp {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--accent-success);
+  color: var(--bg-primary);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  font-weight: 800;
+  font-size: 0.7rem;
+  transform: rotate(5deg);
+  box-shadow: var(--shadow-sm);
+}
+
+/***************************************
+ * 9. ANIMATIONS
+ ***************************************/
+/* Pulse animation for exam badges */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(242, 95, 92, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(242, 95, 92, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(242, 95, 92, 0);
+  }
+}
+
+/* More urgent pulse animation for today's exams */
+@keyframes pulse-urgent {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 90, 95, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 90, 95, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 90, 95, 0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn var(--transition-speed) ease;
+}
+
+.slide-in {
+  animation: slideInUp var(--transition-speed) ease;
+}
+
+/* Completion animation */
+@keyframes taskComplete {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.task-complete-animation {
+  animation: taskComplete 0.3s ease;
+}
+
+/* Rotating loading icon */
+@keyframes rotating {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.rotating {
+  animation: rotating 1s linear infinite;
+}
+
+/***************************************
+ * 10. UTILITY CLASSES
+ ***************************************/
+/* Visibility utilities */
+.hidden {
+  display: none !important;
+}
+
+.visible {
+  display: block !important;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Flex utilities */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-sm {
+  gap: var(--space-sm);
+}
+
+.gap-md {
+  gap: var(--space-md);
+}
+
+/***************************************
+ * 11. MEDIA QUERIES
+ ***************************************/
+@media (min-width: 600px) {
+  h1 {
+    font-size: 2rem;
+  }
+  
+  .container {
+    padding: var(--space-lg);
+  }
+  
+  .archive-toggle {
+    min-width: 300px;
+    font-size: 1.1rem;
+  }
+  
+  .task-card {
+    padding: var(--space-lg);
+  }
+}
+
+/* Prefers reduced motion - accessibility */
+@media (prefers-reduced-motion) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

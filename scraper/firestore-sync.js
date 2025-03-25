@@ -89,7 +89,7 @@ async function saveNewTasks(tasks) {
       
       // Ensure date is in correct format
       let normalizedDate = normalizeDate(task.date);
-      let normalizedDueDate = normalizeDate(task.due_date || task.date);
+      let normalizedDueDate = normalizeDate(task.date_added);
       
       try {
         // Prepare data with sanitized values

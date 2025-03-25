@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1200">
+  <!-- Background -->
+  <rect width="800" height="1200" fill="#0d1b2a" />
+  
+  <!-- Mobile device frame -->
+  <rect x="150" y="50" width="500" height="1100" rx="30" ry="30" fill="#070d15" stroke="#243b55" stroke-width="5" />
+  
+  <!-- Screen area -->
+  <rect x="170" y="70" width="460" height="1060" rx="15" ry="15" fill="#1b263b" />
+  
+  <!-- APP HEADER -->
+  <rect x="190" y="90" width="420" height="100" rx="10" ry="10" fill="#243b55" stroke="#4CC9F0" stroke-width="2" />
+  <text x="400" y="130" font-family="Arial" font-size="24" fill="#e0e1dd" text-anchor="middle" font-weight="bold">Nuno's Task Board</text>
+  <text x="400" y="160" font-family="Arial" font-size="16" fill="#9ca0a3" text-anchor="middle">Tuesday, March 25</text>
+  
+  <!-- Component label -->
+  <rect x="620" y="90" width="130" height="30" rx="5" ry="5" fill="rgba(76, 201, 240, 0.3)" />
+  <text x="685" y="110" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">APP HEADER</text>
+  
+  <!-- ARCHIVE TOGGLE -->
+  <rect x="220" y="210" width="360" height="50" rx="10" ry="10" fill="#1b263b" stroke="#4CC9F0" stroke-width="2" />
+  <text x="400" y="243" font-family="Arial" font-size="18" fill="#e0e1dd" text-anchor="middle">📦 Show Archive (67)</text>
+  
+  <!-- Component label -->
+  <rect x="620" y="210" width="130" height="30" rx="5" ry="5" fill="rgba(76, 201, 240, 0.3)" />
+  <text x="685" y="230" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">ARCHIVE TOGGLE</text>
+  
+  <!-- TOMORROW'S CLASSES -->
+  <rect x="190" y="280" width="420" height="150" rx="10" ry="10" fill="#243b55" />
+  <text x="220" y="310" font-family="Arial" font-size="18" fill="#4CC9F0" text-anchor="start">TOMORROW'S CLASSES</text>
+  
+  <!-- Subject Pills -->
+  <circle cx="240" cy="350" r="30" fill="#90E0EF" />
+  <text x="240" y="355" font-family="Arial" font-size="14" fill="#0d1b2a" text-anchor="middle">Finnish</text>
+  
+  <circle cx="310" cy="350" r="30" fill="#F15BB5" />
+  <text x="310" y="355" font-family="Arial" font-size="14" fill="#0d1b2a" text-anchor="middle">Art</text>
+  
+  <circle cx="380" cy="350" r="30" fill="#7209B7" />
+  <text x="380" y="355" font-family="Arial" font-size="14" fill="#0d1b2a" text-anchor="middle">Civics</text>
+  
+  <circle cx="450" cy="350" r="30" fill="#118AB2" />
+  <text x="450" y="355" font-family="Arial" font-size="14" fill="#0d1b2a" text-anchor="middle">Digi</text>
+  
+  <!-- Component label -->
+  <rect x="620" y="310" width="130" height="30" rx="5" ry="5" fill="rgba(76, 201, 240, 0.3)" />
+  <text x="685" y="330" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">SUBJECT PILLS</text>
+  
+  <!-- CURRENT CONTAINER -->
+  <rect x="190" y="450" width="420" height="40" rx="0" ry="0" fill="#243b55" />
+  <text x="220" y="475" font-family="Arial" font-size="18" fill="#e0e1dd" text-anchor="start" font-weight="bold">Tasks To Complete:</text>
+  
+  <!-- Component label -->
+  <rect x="620" y="450" width="130" height="30" rx="5" ry="5" fill="rgba(76, 201, 240, 0.3)" />
+  <text x="685" y="470" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">CURRENT CONTAINER</text>
+  
+  <!-- Task Card 1 (Exam) -->
+  <rect x="190" y="500" width="420" height="130" rx="10" ry="10" fill="#1b263b" stroke="#243b55" stroke-width="2" />
+  
+  <!-- Subject pill -->
+  <rect x="210" y="520" width="100" height="30" rx="15" ry="15" fill="#7209B7" />
+  <text x="260" y="540" font-family="Arial" font-size="14" fill="#e0e1dd" text-anchor="middle">CIVICS</text>
+  
+  <!-- Exam badge -->
+  <rect x="320" y="520" width="160" height="30" rx="15" ry="15" fill="#F25F5C" />
+  <text x="400" y="540" font-family="Arial" font-size="14" fill="#e0e1dd" text-anchor="middle">EXAM TOMORROW</text>
+  
+  <!-- Task description -->
+  <text x="210" y="570" font-family="Arial" font-size="16" fill="#e0e1dd" text-anchor="start">Ostamisen maailmassa s.49-66</text>
+  
+  <!-- Due date -->
+  <text x="210" y="600" font-family="Arial" font-size="14" fill="#9ca0a3" text-anchor="start">Due: 21.03.2025</text>
+  <text x="400" y="600" font-family="Arial" font-size="14" fill="#9ca0a3" text-anchor="start">Created: 18.3.2025</text>
+  
+  <!-- Complete checkbox -->
+  <rect x="540" y="550" width="30" height="30" rx="5" ry="5" fill="transparent" stroke="#9ca0a3" stroke-width="2" />
+  
+  <!-- Component label -->
+  <rect x="620" y="520" width="130" height="30" rx="5" ry="5" fill="rgba(76, 201, 240, 0.3)" />
+  <text x="685" y="540" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">TASK CARD (EXAM)</text>
+  
+  <!-- Task Card 2 (Homework) -->
+  <rect x="190" y="650" width="420" height="130" rx="10" ry="10" fill="#1b263b" stroke="#243b55" stroke-width="2" />
+  
+  <!-- Subject pill -->
+  <rect x="210" y="670" width="100" height="30" rx="15" ry="15" fill="#90E0EF" />
+  <text x="260" y="690" font-family="Arial" font-size="14" fill="#0d1b2a" text-anchor="middle">FINNISH</text>
+  
+  <!-- Exam badge -->
+  <rect x="320" y="670" width="160" height="30" rx="15" ry="15" fill="#F25F5C" />
+  <text x="400" y="690" font-family="Arial" font-size="14" fill="#e0e1dd" text-anchor="middle">EXAM TOMORROW</text>
+  
+  <!-- Task description -->
+  <text x="210" y="720" font-family="Arial" font-size="16" fill="#e0e1dd" text-anchor="start">Sanaluokat s.26-43, harjoituskirja</text>
+  
+  <!-- Due date -->
+  <text x="210" y="750" font-family="Arial" font-size="14" fill="#9ca0a3" text-anchor="start">Due: 21.03.2025</text>
+  <text x="400" y="750" font-family="Arial" font-size="14" fill="#9ca0a3" text-anchor="start">Created: 18.3.2025</text>
+  
+  <!-- Complete checkbox -->
+  <rect x="540" y="700" width="30" height="30" rx="5" ry="5" fill="transparent" stroke="#9ca0a3" stroke-width="2" />
+  
+  <!-- FUTURE CONTAINER -->
+  <rect x="190" y="800" width="420" height="40" rx="0" ry="0" fill="#243b55" />
+  <text x="220" y="825" font-family="Arial" font-size="18" fill="#4CC9F0" text-anchor="start">UPCOMING TASKS</text>
+  
+  <!-- Component label -->
+  <rect x="620" y="800" width="130" height="30" rx="5" ry="5" fill="rgba(76, 201, 240, 0.3)" />
+  <text x="685" y="820" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">FUTURE CONTAINER</text>
+  
+  <!-- Future Task Card (less emphasis) -->
+  <rect x="190" y="850" width="420" height="130" rx="10" ry="10" fill="#1b263b" stroke="#243b55" stroke-width="2" stroke-opacity="0.5" />
+  
+  <!-- Subject pill -->
+  <rect x="210" y="870" width="100" height="30" rx="15" ry="15" fill="#B5179E" />
+  <text x="260" y="890" font-family="Arial" font-size="14" fill="#e0e1dd" text-anchor="middle">HISTORY</text>
+  
+  <!-- Exam badge -->
+  <rect x="320" y="870" width="100" height="30" rx="15" ry="15" fill="#F25F5C" />
+  <text x="370" y="890" font-family="Arial" font-size="14" fill="#e0e1dd" text-anchor="middle">EXAM</text>
+  
+  <!-- Task description -->
+  <text x="210" y="920" font-family="Arial" font-size="16" fill="#e0e1dd" text-anchor="start">Ancient Rome chapter 3</text>
+  
+  <!-- Due date -->
+  <text x="210" y="950" font-family="Arial" font-size="14" fill="#9ca0a3" text-anchor="start">Due: 28.03.2025 (in 7 days)</text>
+  
+  <!-- Complete checkbox -->
+  <rect x="540" y="900" width="30" height="30" rx="5" ry="5" fill="transparent" stroke="#9ca0a3" stroke-width="2" />
+  
+  <!-- ARCHIVE CONTAINER (collapsed) -->
+  <rect x="190" y="1000" width="420" height="40" rx="0" ry="0" fill="#243b55" opacity="0.5" />
+  <text x="220" y="1025" font-family="Arial" font-size="18" fill="#9ca0a3" text-anchor="start">ARCHIVED TASKS (hidden)</text>
+  
+  <!-- Component label -->
+  <rect x="620" y="1000" width="130" height="30" rx="5" ry="5" fill="rgba(76, 201, 240, 0.3)" />
+  <text x="685" y="1020" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">ARCHIVE CONTAINER</text>
+  
+  <!-- LEGEND -->
+  <rect x="50" y="50" width="80" height="240" rx="5" ry="5" fill="#243b55" />
+  <text x="90" y="75" font-family="Arial" font-size="14" fill="#e0e1dd" text-anchor="middle" font-weight="bold">LEGEND</text>
+  
+  <rect x="60" y="90" width="60" height="20" rx="10" ry="10" fill="#7209B7" />
+  <text x="90" y="105" font-family="Arial" font-size="10" fill="#e0e1dd" text-anchor="middle">Civics</text>
+  
+  <rect x="60" y="120" width="60" height="20" rx="10" ry="10" fill="#90E0EF" />
+  <text x="90" y="135" font-family="Arial" font-size="10" fill="#0d1b2a" text-anchor="middle">Finnish</text>
+  
+  <rect x="60" y="150" width="60" height="20" rx="10" ry="10" fill="#F15BB5" />
+  <text x="90" y="165" font-family="Arial" font-size="10" fill="#0d1b2a" text-anchor="middle">Art</text>
+  
+  <rect x="60" y="180" width="60" height="20" rx="10" ry="10" fill="#118AB2" />
+  <text x="90" y="195" font-family="Arial" font-size="10" fill="#0d1b2a" text-anchor="middle">Digi</text>
+  
+  <rect x="60" y="210" width="60" height="20" rx="10" ry="10" fill="#B5179E" />
+  <text x="90" y="225" font-family="Arial" font-size="10" fill="#e0e1dd" text-anchor="middle">History</text>
+  
+  <rect x="60" y="240" width="60" height="20" rx="10" ry="10" fill="#F25F5C" />
+  <text x="90" y="255" font-family="Arial" font-size="10" fill="#e0e1dd" text-anchor="middle">Exam</text>
+</svg>

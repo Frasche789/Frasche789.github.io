@@ -23,3 +23,9 @@ Thumbs.db
 # Optional: Other common files to ignore
 .vscode/
 .firebase/hosting.cHVibGlj.cache
+
+# Scraper
+.scraper/scraper.js
+.scraper/data
+.scraper/school-portal.js
+.scraper/firestore-sync.js

@@ -1,47 +1,53 @@
-// src/components/tasks/TaskList.jsx - Component for displaying a list of tasks
+// TaskList.jsx
 import React from 'react';
 import TaskCard from './TaskCard';
+import EmptyState from '../common/EmptyState';
+import { useTaskData } from '../../hooks/useTaskData';
 
-/**
- * Component that renders multiple TaskCard components
- * 
- * @param {Object} props - Component props
- * @param {Array} props.tasks - Array of task objects to display
- * @param {Function} props.onTaskComplete - Callback function when a task is completed
- * @param {string} [props.title] - Optional title for the task list section
- * @param {string} [props.emptyMessage] - Optional message to display when no tasks are available
- */
-function TaskList({ 
-  tasks = [], 
-  onTaskComplete,
-  title,
-  emptyMessage = 'No tasks available'
-}) {
-  // Handle case when there are no tasks
+function TaskList({ title, tasks, emptyMessage, onComplete }) {
   if (tasks.length === 0) {
-    return (
-      <div className="task-list-container">
-        {title && <h2 className="section-title">{title}</h2>}
-        <div className="empty-state">
-          <p>{emptyMessage}</p>
-        </div>
-      </div>
-    );
+    return <EmptyState message={emptyMessage} />;
   }
   
   return (
-    <div className="task-list-container">
-      {title && <h2 className="section-title">{title}</h2>}
-      <div className="task-list">
-        {tasks.map(task => (
-          <TaskCard 
-            key={task.id} 
-            task={task} 
-            onComplete={onTaskComplete}
-          />
-        ))}
-      </div>
+    <div className="task-list">
+      <h2>{title}</h2>
+      {tasks.map(task => (
+        <TaskCard 
+          key={task.id} 
+          task={task} 
+          onComplete={onComplete}
+        />
+      ))}
     </div>
+  );
+}
+
+// These components use the TaskList with specific data
+export function CurrentTaskList() {
+  const { todayTasks, tomorrowTasks, completeTask } = useTaskData();
+  const combinedTasks = [...todayTasks, ...tomorrowTasks];
+  
+  return (
+    <TaskList
+      title="Tasks To Complete" 
+      tasks={combinedTasks}
+      onComplete={completeTask}
+      emptyMessage="Nothing left to do! Well done!" 
+    />
+  );
+}
+
+export function FutureTaskList() {
+  const { futureTasks, completeTask } = useTaskData();
+  
+  return (
+    <TaskList 
+      title="Upcoming Tasks" 
+      tasks={futureTasks}
+      onComplete={completeTask}
+      emptyMessage="No upcoming tasks" 
+    />
   );
 }
 
