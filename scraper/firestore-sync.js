@@ -87,15 +87,17 @@ async function saveNewTasks(tasks) {
       // Translate subject name for consistency
       let normalizedSubject = translateSubjectName(task.subject);
       
-      // Ensure date is in correct format
-      let normalizedDate = normalizeDate(task.date);
-      let normalizedDueDate = normalizeDate(task.date_added);
+      // Ensure due_date is in correct format if it exists
+      let normalizedDueDate = normalizeDate(task.due_date);
+
+      // Ensure date_added is in correct format if it exists
+      let normalizedDateAdded = normalizeDate(task.date_added);
       
       try {
         // Prepare data with sanitized values
         const taskData = {
-          date: normalizedDate || '',
           due_date: normalizedDueDate || '',
+          date_added: normalizedDateAdded || '',
           description: task.description || '',
           subject: normalizedSubject || 'Unknown',
           type: task.type || 'homework',
@@ -129,8 +131,9 @@ async function saveNewTasks(tasks) {
       } catch (error) {
         console.error('Error adding specific task to Firestore:', error);
         console.error('Problematic task data:', { 
-          date: normalizedDate, 
+          due_date: normalizedDueDate, 
           subject: normalizedSubject,
+          topic: task.topic,
           description: task.description?.substring(0, 50) || 'undefined'
         });
       }

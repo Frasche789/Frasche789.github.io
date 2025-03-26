@@ -8,18 +8,6 @@ async function runScraper() {
   try {
     console.log('Starting Wilma scraper...');
     
-    // Load schedule data
-    console.log('Loading schedule data...');
-    let scheduleData = '';
-    try {
-      const schedulePath = path.join(__dirname, '..', 'schedule.txt');
-      scheduleData = fs.readFileSync(schedulePath, 'utf8');
-      console.log('Schedule data loaded successfully');
-    } catch (error) {
-      console.error('Error loading schedule data:', error);
-      console.log('Will use default due date calculation');
-    }
-    
     // 1. Login and access school portal
     console.log('Logging into school portal...');
     const browser = await schoolPortal.login();
@@ -30,7 +18,7 @@ async function runScraper() {
     
     // 3. Process and normalize data with schedule
     console.log('Processing extracted data...');
-    const processedTasks = taskProcessor.processExtractedData(extractedData, scheduleData);
+    const processedTasks = taskProcessor.processExtractedData(extractedData);
     console.log(`Processed ${processedTasks.length} tasks`);
     
     // 4. Sync with firestore

@@ -134,9 +134,8 @@ function generateUniqueId(subject, date, type) {
 }
 
 // Process raw extracted data
-function processExtractedData(subjectsData, scheduleData) {
+function processExtractedData(subjectsData) {
   const processedTasks = [];
-  const todayIso = getTodayIsoDate();
 
   // Process each subject
   for (const subjectInfo of subjectsData) {
@@ -147,11 +146,8 @@ function processExtractedData(subjectsData, scheduleData) {
     // Process homework
     for (const homework of data.homework || []) {
       // For homework, we store the date added (when it was posted) in the date field
-      const dateAdded = normalizeDate(homework.due_date);
-      
-      // Calculate the actual due date based on the schedule
-      const calculatedDueDate = calculateHomeworkDueDate(subject, dateAdded, scheduleData);
-      
+      const dateAdded = normalizeDate(homework.date_added);
+      // Clean up the description by removing extra whitespace and limiting length to 1000 characters
       const cleanDescription = homework.description ? 
         homework.description.trim().replace(/\s+/g, ' ').substring(0, 1000) : 
         '';
@@ -163,10 +159,10 @@ function processExtractedData(subjectsData, scheduleData) {
       // Create a task object - now using ISO dates
       processedTasks.push({
         id: generateUniqueId(subject, dateAdded, 'homework'),
-        date: dateAdded, // Date the homework was posted (in ISO format)
-        due_date: calculatedDueDate, // Calculated due date (in ISO format)
+        date_added: dateAdded, // Date the homework was posted (in ISO format)
         subject: subject,
         description: cleanDescription,
+        topic: homework.topic,
         type: 'homework',
         status: 'open',
         student_id: 1,
@@ -176,87 +172,30 @@ function processExtractedData(subjectsData, scheduleData) {
     // Process exams - for exams, the due_date is the exam date
     for (const exam of data.futureExams || []) {
       const examDate = normalizeDate(exam.due_date);
+      // Clean up the description by removing extra whitespace and limiting length to 1000 characters
+      const cleanDescription = exam.description ? 
+        exam.description.trim().replace(/\s+/g, ' ').substring(0, 1000) : 
+        '';
+        
+      if (!cleanDescription) {
+        continue; // Skip entries with empty descriptions
+      }
       
-      // ...rest of exam processing using ISO dates...
+      // Create a task object - now using ISO dates
+      processedTasks.push({
+        id: generateUniqueId(subject, examDate, 'exam'),
+        due_date: examDate, // Exam date (in ISO format)
+        subject: subject,
+        description: cleanDescription,
+        topic: exam.topic,
+        type: 'exam',
+        status: 'open',
+        student_id: 1,
+      });
     }
-    
-    // ...similarly update past exams processing...
   }
   
   return processedTasks;
-}
-
-// New function to calculate homework due date based on schedule
-function calculateHomeworkDueDate(subject, dateAddedIso, scheduleData) {
-  try {
-    // Parse the schedule data to find when this subject occurs next
-    const schedule = parseSchedule(scheduleData);
-    
-    // Default to 1 week later if we can't determine from schedule
-    if (!schedule || !subject) {
-      const defaultDueDate = new Date(dateAddedIso);
-      defaultDueDate.setDate(defaultDueDate.getDate() + 7);
-      return defaultDueDate.toISOString().split('T')[0];
-    }
-    
-    // Get the current day of week (0 = Sunday, 1 = Monday, etc.)
-    const dateAdded = new Date(dateAddedIso);
-    const currentDayOfWeek = dateAdded.getDay();
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    
-    // Find the next occurrence of this subject in the schedule
-    let daysToAdd = 0;
-    let found = false;
-    
-    // Check up to 7 days ahead
-    for (let i = 1; i <= 7; i++) {
-      const checkDay = (currentDayOfWeek + i) % 7;
-      const dayName = dayNames[checkDay];
-      
-      // Skip weekends
-      if (checkDay === 0 || checkDay === 6) continue;
-      
-      // Check if this subject occurs on this day
-      if (schedule[dayName] && schedule[dayName].includes(subject)) {
-        daysToAdd = i;
-        found = true;
-        break;
-      }
-    }
-    
-    // If not found in schedule, default to 7 days
-    if (!found) daysToAdd = 7;
-    
-    // Calculate the due date
-    const dueDate = new Date(dateAdded);
-    dueDate.setDate(dueDate.getDate() + daysToAdd);
-    
-    // Return in ISO format (YYYY-MM-DD)
-    return dueDate.toISOString().split('T')[0];
-  } catch (error) {
-    console.error('Error calculating homework due date:', error);
-    // Default to 7 days later if something goes wrong
-    const defaultDueDate = new Date(dateAddedIso);
-    defaultDueDate.setDate(defaultDueDate.getDate() + 7);
-    return defaultDueDate.toISOString().split('T')[0];
-  }
-}
-
-// Helper function to parse the schedule data
-function parseSchedule(scheduleText) {
-  if (!scheduleText) return null;
-  
-  const schedule = {};
-  const lines = scheduleText.trim().split('\n');
-  
-  for (const line of lines) {
-    const [day, subjects] = line.split(':');
-    if (day && subjects) {
-      schedule[day.trim()] = subjects.split(',').map(subject => subject.trim());
-    }
-  }
-  
-  return schedule;
 }
         
 

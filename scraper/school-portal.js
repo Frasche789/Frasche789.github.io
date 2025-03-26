@@ -386,13 +386,13 @@ async function extractSubjectData(page, subject) {
           
           // Map columns
           const columnIndices = {
-            dueDate: headerTexts.findIndex(text => text.includes('pvm')),
+            date_added: headerTexts.findIndex(text => text.includes('pvm')),
             description: headerTexts.findIndex(text => text.includes('kuvaus'))
           };
           
           // If we can't find the expected columns, try generic mapping
-          if (columnIndices.dueDate < 0 || columnIndices.description < 0) {
-            columnIndices.dueDate = 0;
+          if (columnIndices.date_added < 0 || columnIndices.description < 0) {
+            columnIndices.date_added = 0;
             columnIndices.description = 1;
           }
           
@@ -404,7 +404,7 @@ async function extractSubjectData(page, subject) {
             if (cells.length < 2) continue;
             
             const homeworkItem = {
-              due_date: cells[columnIndices.dueDate].textContent.trim(),
+              date_added: cells[columnIndices.date_added].textContent.trim(),
               description: cells[columnIndices.description].textContent.trim()
             };
             

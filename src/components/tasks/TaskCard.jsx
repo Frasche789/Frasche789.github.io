@@ -13,6 +13,7 @@ function TaskCard({ task, onComplete }) {
     id,
     subject,
     description,
+    date_added,
     due_date,
     type,
     completed
@@ -55,7 +56,7 @@ function TaskCard({ task, onComplete }) {
           </div>
           
           <div className="task-meta">
-            <span>Due: {due_date}</span>
+            <span>Added: {date_added}</span>
           </div>
           
           {completed && <div className="completed-stamp">Completed</div>}
