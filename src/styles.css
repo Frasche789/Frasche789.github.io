@@ -202,29 +202,73 @@ header p {
   transform: translateY(0);
 }
 
-/* Archive container */
-.archive-container {
-  margin-top: var(--space-md);
-  margin-bottom: var(--space-lg);
-  transition: opacity 0.3s ease, max-height 0.3s ease;
+
+.archive-tasks-container {
+  margin-top: 1.5rem;
+  border-radius: 8px;
+  background-color: var(--background-secondary);
   overflow: hidden;
 }
 
-.archive-container.visible {
-  display: block;
-  opacity: 1;
-  max-height: 2000px;
+.archive-content {
+  opacity: 0.6; /* Reduced opacity for visual de-emphasis */
+  padding: 0.5rem; /* Reduced spacing */
 }
 
-.archive-container.hidden {
-  display: block;
-  opacity: 0;
-  max-height: 0;
-  padding: 0;
-  margin: 0;
-  border: none;
-  box-shadow: none;
+/* Override task card styles for archive */
+.archive-content .task-list {
+  margin-bottom: 0.5rem; /* Reduced spacing */
 }
+
+.archive-content .task-list h2 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Apply grayscale to subject colors but keep the left border for identification */
+.archive-content .task-card {
+  filter: grayscale(70%);
+  margin-bottom: 0.5rem; /* Reduced spacing between cards */
+  padding: 0.5rem; /* Reduced internal padding */
+}
+
+/* Maintain left border subject color for visual continuity */
+.archive-content .task-card .subject-color {
+  opacity: 0.8; /* Slight emphasis on subject color for identification */
+}
+
+/* Special styling for container toggle */
+.archive-tasks-container .container-toggle {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.archive-tasks-container .container-toggle button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+}
+
+.archive-tasks-container .container-toggle p {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.archive-tasks-container .toggle-icon {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
 
 /***************************************
  * 6. TASK CARDS & LISTS
@@ -660,4 +704,129 @@ header p {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/***************************************
+ * 12. TIME-BASED TASK CONTAINER STYLING
+ ***************************************/
+.current-tasks-container {
+  margin-top: 1.5rem;
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.current-tasks-container.today-mode {
+  border-left: 4px solid var(--color-primary);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.1);
+}
+
+.current-tasks-container.tomorrow-mode {
+  border-left: 4px solid var(--color-secondary);
+  box-shadow: 0 2px 8px rgba(var(--secondary-rgb), 0.1);
+}
+
+.time-indicator {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  background-color: var(--background-tertiary);
+}
+
+.today-mode .time-indicator {
+  color: var(--color-primary);
+  background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+.tomorrow-mode .time-indicator {
+  color: var(--color-secondary);
+  background-color: rgba(var(--secondary-rgb), 0.1);
+}
+
+.current-tasks-container .task-list h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.current-tasks-container .task-card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.current-tasks-container .task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.current-tasks-container .task-card[data-task-type="exam"] {
+  background-color: rgba(var(--warning-rgb), 0.05);
+  border: 1px solid rgba(var(--warning-rgb), 0.2);
+}
+
+/***************************************
+ * 13. FUTURE TASKS CONTAINER STYLING
+ ***************************************/
+.future-tasks-container {
+  margin-top: 1.5rem;
+  border-radius: 8px;
+  background-color: var(--background-secondary);
+  padding: 1rem;
+  opacity: 0.9; /* Moderate visual emphasis (90% opacity) */
+}
+
+.future-tasks-container .container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.future-tasks-container .container-header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.future-tasks-container .task-count {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background-color: var(--background-tertiary);
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+}
+
+/* Task list styling specific to future container */
+.future-tasks-container .task-list h2 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Preserve subject color coding via left border */
+.future-tasks-container .task-card {
+  border-left-width: 4px;
+  border-left-style: solid;
+  transition: transform 0.2s ease;
+}
+
+.future-tasks-container .task-card:hover {
+  transform: translateY(-1px);
+}
+
+/* Visual differentiation for exam tasks */
+.future-tasks-container .task-card[data-task-type="exam"] {
+  background-color: rgba(var(--warning-rgb), 0.03);
+  border-left-width: 4px;
+}
+
+/* Date display for future tasks */
+.future-tasks-container .task-due-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
 }

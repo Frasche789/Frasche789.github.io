@@ -1,3 +1,33 @@
+/**
+ * TaskList
+ * 
+ * Generic task list renderer used by all container components.
+ * Implements consistent visual grammar for tasks across containers.
+ * 
+ * Core responsibilities:
+ * - Renders consistent task cards for all containers
+ * - Applies container-specific visual styling via containerType prop
+ * - Handles empty states with appropriate messaging
+ * - Propagates completion events back to container
+ * 
+ * Visual grammar implementation:
+ * - Consistent left-to-right information flow (subject → action)
+ * - Subject color applied to left border and subject badge
+ * - Position hierarchy follows strict chronological ordering
+ * - Shape language: pill-shaped subject badges, consistent rounding
+ * 
+ * Expected props:
+ * - tasks: Array - filtered tasks to display
+ * - containerType: String - "archive"|"current"|"future" for styling
+ * - onComplete: Function - handler for task completion
+ * - emptyMessage: String - contextual message when no tasks exist
+ * 
+ * Implementation considerations:
+ * - Pure rendering component that maintains styling consistency
+ * - Applies information density appropriate to container type
+ * - Preserves subject color continuity across all containers
+ */
+
 // TaskList.jsx
 import React from 'react';
 import TaskCard from './TaskCard';
