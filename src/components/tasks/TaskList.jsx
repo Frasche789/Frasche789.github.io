@@ -30,28 +30,38 @@
 
 // TaskList.jsx
 import React from 'react';
+import PropTypes from 'prop-types';
 import TaskCard from './TaskCard';
 import EmptyState from '../common/EmptyState';
 import { useTaskData } from '../../hooks/useTaskData';
 
-function TaskList({ title, tasks, emptyMessage, onComplete }) {
+function TaskList({ title, tasks, emptyMessage, onComplete, containerType = 'current' }) {
   if (tasks.length === 0) {
     return <EmptyState message={emptyMessage} />;
   }
   
   return (
-    <div className="task-list">
+    <div className={`task-list ${containerType}-task-list`}>
       <h2>{title}</h2>
       {tasks.map(task => (
         <TaskCard 
           key={task.id} 
           task={task} 
           onComplete={onComplete}
+          containerType={containerType}
         />
       ))}
     </div>
   );
 }
+
+TaskList.propTypes = {
+  title: PropTypes.string.isRequired,
+  tasks: PropTypes.array.isRequired,
+  emptyMessage: PropTypes.string.isRequired,
+  onComplete: PropTypes.func.isRequired,
+  containerType: PropTypes.oneOf(['current', 'future', 'archive'])
+};
 
 // These components use the TaskList with specific data
 export function CurrentTaskList() {
@@ -63,7 +73,8 @@ export function CurrentTaskList() {
       title="Tasks To Complete" 
       tasks={combinedTasks}
       onComplete={completeTask}
-      emptyMessage="Nothing left to do! Well done!" 
+      emptyMessage="Nothing left to do! Well done!"
+      containerType="current"
     />
   );
 }
@@ -76,7 +87,8 @@ export function FutureTaskList() {
       title="Upcoming Tasks" 
       tasks={futureTasks}
       onComplete={completeTask}
-      emptyMessage="No upcoming tasks" 
+      emptyMessage="No upcoming tasks"
+      containerType="future"
     />
   );
 }

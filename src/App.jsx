@@ -5,20 +5,23 @@ import ArchiveTasksContainer from './components/layout/ArchiveTasksContainer';
 import TomorrowClasses from './components/subjects/TomorrowClasses';
 import { SubjectProvider } from './context/SubjectContext';
 import { TaskProvider } from './context/TaskContext';
+import { ThemeProvider } from './context/ThemeContext';
 import './styles.css';
 
 function App() {
   return (
-    <TaskProvider>
-      <SubjectProvider>
-        <div className="app">
-          <TomorrowClasses />
-          <ArchiveTasksContainer />
-          <CurrentTasksContainer />
-          <FutureTaskContainer />
-        </div>
-      </SubjectProvider>
-    </TaskProvider>
+    <ThemeProvider>
+      <TaskProvider>
+        <SubjectProvider>
+          <div className="app">
+            <TomorrowClasses />
+            <ArchiveTasksContainer />
+            <CurrentTasksContainer />
+            <FutureTaskContainer />
+          </div>
+        </SubjectProvider>
+      </TaskProvider>
+    </ThemeProvider>
   );
 }
 

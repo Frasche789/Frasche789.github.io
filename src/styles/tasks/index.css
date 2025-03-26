@@ -1,0 +1,7 @@
+/* 
+ * Tasks Styles Index
+ * Import all task-related styles here for easy inclusion in the main stylesheet
+ */
+
+@import './task-card.css';
+/* Add additional task-related stylesheets here */

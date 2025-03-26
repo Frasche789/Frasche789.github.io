@@ -3,10 +3,17 @@
  * Streamlined, well-structured stylesheet with dark blue theme
  */
 
+/* Import container styles */
+@import './styles/containers/index.css';
+/* Import semantic theme system */
+@import './styles/theme.css';
+/* Import task-specific styles */
+@import './styles/tasks/index.css';
+
 /***************************************
  * 1. CSS VARIABLES AND RESET
  ***************************************/
- :root {
+:root {
   /* Color system - dark blue theme */
   --bg-primary: #0d1b2a;
   --bg-secondary: #1b263b;
@@ -107,42 +114,6 @@ h2 { font-size: 1.5rem; }
 h3 { font-size: 1.25rem; }
 
 p { margin-bottom: var(--space-md); }
-
-/***************************************
- * 3. LAYOUT CONTAINERS
- ***************************************/
-.container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: var(--space-md);
-}
-
-/* Base card component */
-.card {
-  background-color: var(--bg-card);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow);
-  margin-bottom: var(--space-lg);
-  padding: var(--space-lg);
-  transition: transform var(--transition-speed) var(--transition-function),
-              box-shadow var(--transition-speed) var(--transition-function);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-lg);
-}
-
-/* Section headers */
-.section-title {
-  color: var(--accent-primary);
-  margin-bottom: var(--space-md);
-  font-size: 1.2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--bg-card-hover);
-  padding-bottom: var(--space-sm);
-}
 
 /***************************************
  * 4. HEADER & APP BAR

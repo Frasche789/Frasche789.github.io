@@ -1,0 +1,55 @@
+/* 
+ * Container Styles Index
+ * This file imports all container-specific styles and serves as a single import point
+ */
+
+@import './current-container.css';
+@import './future-container.css';
+@import './archive-container.css';
+
+/* 
+ * Common container properties
+ * These properties apply to all container types with varying degrees
+ * of emphasis based on their importance in the information hierarchy
+ */
+
+/* Base container class that all containers share */
+.task-container {
+  margin-top: var(--space-md);
+  border-radius: var(--border-radius);
+  background-color: var(--bg-secondary);
+  transition: all 0.3s ease;
+}
+
+/* Container headers with consistent styling */
+.container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.container-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+/* Base task list styling shared across containers */
+.task-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empty state styling for all containers */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  color: var(--text-muted);
+  text-align: center;
+  border: 1px dashed var(--text-muted);
+  border-radius: var(--border-radius);
+  margin: var(--space-md) 0;
+}
