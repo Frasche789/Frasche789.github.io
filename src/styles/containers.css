@@ -1,0 +1,190 @@
+/* 
+ * containers.css - Container Styles by Task Type
+ * Defines visual styling for specific task containers (Current, Future, Archive)
+ */
+
+:root {
+  /* Container styling variables by type */
+  
+  /* Current tasks container */
+  --container-current-opacity: 1;
+  --container-current-padding: var(--space-lg);
+  --container-current-margin: var(--space-lg) 0;
+  --container-current-border-width: 5px;
+  --container-current-border-color: var(--accent-primary);
+  --container-current-shadow: var(--shadow-lg);
+  --container-current-border-radius: var(--border-radius);
+  --container-current-background: var(--bg-secondary);
+  
+  /* Future tasks container */
+  --container-future-opacity: 0.9;
+  --container-future-padding: var(--space-md);
+  --container-future-margin: var(--space-md) 0;
+  --container-future-border-width: 4px;
+  --container-future-border-color: var(--accent-primary);
+  --container-future-shadow: var(--shadow);
+  --container-future-border-radius: var(--border-radius);
+  --container-future-background: var(--bg-secondary);
+  
+  /* Archive tasks container */
+  --container-archive-opacity: 0.7;
+  --container-archive-padding: var(--space-sm);
+  --container-archive-margin: var(--space-sm) 0;
+  --container-archive-border-width: 3px;
+  --container-archive-border-color: var(--text-muted);
+  --container-archive-shadow: var(--shadow-sm);
+  --container-archive-border-radius: var(--border-radius);
+  --container-archive-background: var(--bg-secondary);
+
+  /* Task card styling variables by container type */
+  --card-current-padding: var(--space-md);
+  --card-current-margin: var(--space-md) 0;
+  --card-current-shadow: var(--shadow);
+  
+  --card-future-padding: var(--space-md);
+  --card-future-margin: var(--space-sm) 0;
+  --card-future-shadow: var(--shadow-sm);
+  
+  --card-archive-padding: var(--space-sm);
+  --card-archive-margin: var(--space-sm) 0;
+  --card-archive-shadow: none;
+}
+
+/* Base container class that all containers share */
+.task-container {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Container type classes */
+.current-tasks-container {
+  opacity: var(--container-current-opacity);
+  padding: var(--container-current-padding);
+  margin: var(--container-current-margin);
+  border-left: var(--container-current-border-width) solid var(--container-current-border-color);
+  box-shadow: var(--container-current-shadow);
+  border-radius: var(--container-current-border-radius);
+  background-color: var(--container-current-background);
+}
+
+.future-tasks-container {
+  opacity: var(--container-future-opacity);
+  padding: var(--container-future-padding);
+  margin: var(--container-future-margin);
+  border-left: var(--container-future-border-width) solid var(--container-future-border-color);
+  box-shadow: var(--container-future-shadow);
+  border-radius: var(--container-future-border-radius);
+  background-color: var(--container-future-background);
+}
+
+.archive-tasks-container {
+  opacity: var(--container-archive-opacity);
+  padding: var(--container-archive-padding);
+  margin: var(--container-archive-margin);
+  border-left: var(--container-archive-border-width) solid var(--container-archive-border-color);
+  box-shadow: var(--container-archive-shadow);
+  border-radius: var(--container-archive-border-radius);
+  background-color: var(--container-archive-background);
+}
+
+/* Container header styles */
+.container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.current-tasks-container .container-header h2 {
+  color: var(--text-accent);
+  font-size: 1.25rem;
+}
+
+.future-tasks-container .container-header h2 {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.archive-tasks-container .container-header h2 {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* Task card styles based on container type */
+.current-tasks-container .task-card {
+  padding: var(--card-current-padding);
+  margin-bottom: var(--card-current-margin);
+  box-shadow: var(--card-current-shadow);
+}
+
+.future-tasks-container .task-card {
+  padding: var(--card-future-padding);
+  margin-bottom: var(--card-future-margin);
+  box-shadow: var(--card-future-shadow);
+}
+
+.archive-tasks-container .task-card {
+  padding: var(--card-archive-padding);
+  margin-bottom: var(--card-archive-margin);
+  box-shadow: var(--card-archive-shadow);
+  filter: grayscale(30%);
+}
+
+/* Empty state styling based on container type */
+.current-tasks-container .empty-state {
+  border: 1px dashed var(--text-secondary);
+}
+
+.future-tasks-container .empty-state {
+  border: 1px dashed var(--text-muted);
+}
+
+.archive-tasks-container .empty-state {
+  border: 1px dotted var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Media queries for responsiveness */
+@media (min-width: 600px) {
+  :root {
+    --container-current-padding: var(--space-xl);
+    --container-future-padding: var(--space-lg);
+    --container-archive-padding: var(--space-md);
+    
+    --card-current-padding: var(--space-lg);
+    --card-future-padding: var(--space-md) var(--space-lg);
+    --card-archive-padding: var(--space-md);
+  }
+}
+
+/* Backwards compatibility classes for transition */
+.container-emphasis-high {
+  opacity: var(--container-current-opacity);
+  padding: var(--container-current-padding);
+  margin: var(--container-current-margin);
+  border-left: var(--container-current-border-width) solid var(--container-current-border-color);
+  box-shadow: var(--container-current-shadow);
+  border-radius: var(--container-current-border-radius);
+  background-color: var(--container-current-background);
+}
+
+.container-emphasis-medium {
+  opacity: var(--container-future-opacity);
+  padding: var(--container-future-padding);
+  margin: var(--container-future-margin);
+  border-left: var(--container-future-border-width) solid var(--container-future-border-color);
+  box-shadow: var(--container-future-shadow);
+  border-radius: var(--container-future-border-radius);
+  background-color: var(--container-future-background);
+}
+
+.container-emphasis-low {
+  opacity: var(--container-archive-opacity);
+  padding: var(--container-archive-padding);
+  margin: var(--container-archive-margin);
+  border-left: var(--container-archive-border-width) solid var(--container-archive-border-color);
+  box-shadow: var(--container-archive-shadow);
+  border-radius: var(--container-archive-border-radius);
+  background-color: var(--container-archive-background);
+}

@@ -32,8 +32,6 @@ import React from 'react';
 import TaskList from '../tasks/TaskList';  
 import { useTimeBasedFiltering } from '../../hooks/useTimeBasedFiltering';
 import { useSubjects } from '../../hooks/useSubjects';
-import { useTheme } from '../../context/ThemeContext';
-import ContainerWrapper from '../common/ContainerWrapper';
 
 function CurrentTasksContainer() {
   // Get time-based filtered tasks and related data
@@ -58,10 +56,7 @@ function CurrentTasksContainer() {
   }
 
   return (
-    <ContainerWrapper 
-      containerType="current"
-      className={isBeforeNoon ? 'today-mode' : 'tomorrow-mode'}
-    >
+    <div className={`current-tasks-container task-container container-emphasis-high ${isBeforeNoon ? 'today-mode' : 'tomorrow-mode'}`}>
       <div className="time-indicator">
         {isBeforeNoon ? '🌞 Morning Check' : '⏳Prepping for Tomorrow'}
       </div>
@@ -73,7 +68,7 @@ function CurrentTasksContainer() {
         getSubjectColor={getSubjectColor}
         containerType="current"
       />
-    </ContainerWrapper>
+    </div>
   );
 }
 

@@ -33,17 +33,14 @@
 import React, { useState } from 'react';
 import TaskList from '../tasks/TaskList';
 import ContainerToggle from './ContainerToggle';
-import ContainerWrapper from '../common/ContainerWrapper';
 import { useTaskData } from '../../hooks/useTaskData';
 import { useSubjects } from '../../hooks/useSubjects';
-import { useTheme } from '../../context/ThemeContext';
 import '../../styles.css';
 
 function ArchiveTasksContainer() {
   const [isExpanded, setIsExpanded] = useState(false);
   const { completedTasks } = useTaskData();
   const { getSubjectColor } = useSubjects();
-  const { getContainerStyles } = useTheme();
 
   // Sort completed tasks by completedDate (newest first)
   const sortedCompletedTasks = [...completedTasks].sort((a, b) => {
@@ -64,7 +61,7 @@ function ArchiveTasksContainer() {
   };
 
   return (
-    <ContainerWrapper containerType="archive">
+    <div className="archive-tasks-container task-container container-emphasis-low">
       <ContainerToggle 
         onToggle={handleToggle}
         title="Completed Tasks"
@@ -84,7 +81,7 @@ function ArchiveTasksContainer() {
           />
         </div>
       )}
-    </ContainerWrapper>
+    </div>
   );
 }
 

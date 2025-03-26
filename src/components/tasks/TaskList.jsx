@@ -30,7 +30,6 @@
 
 // TaskList.jsx
 import React from 'react';
-import PropTypes from 'prop-types';
 import TaskCard from './TaskCard';
 import EmptyState from '../common/EmptyState';
 import { useTaskData } from '../../hooks/useTaskData';
@@ -41,7 +40,7 @@ function TaskList({ title, tasks, emptyMessage, onComplete, containerType = 'cur
   }
   
   return (
-    <div className={`task-list ${containerType}-task-list`}>
+    <div className="task-list">
       <h2>{title}</h2>
       {tasks.map(task => (
         <TaskCard 
@@ -54,14 +53,6 @@ function TaskList({ title, tasks, emptyMessage, onComplete, containerType = 'cur
     </div>
   );
 }
-
-TaskList.propTypes = {
-  title: PropTypes.string.isRequired,
-  tasks: PropTypes.array.isRequired,
-  emptyMessage: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
-  containerType: PropTypes.oneOf(['current', 'future', 'archive'])
-};
 
 // These components use the TaskList with specific data
 export function CurrentTaskList() {

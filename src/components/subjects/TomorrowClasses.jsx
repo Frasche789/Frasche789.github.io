@@ -20,8 +20,7 @@ function TomorrowClasses() {
           {tomorrowSubjects.map(subject => (
             <div 
               key={subject.id} 
-              className={`subject-pill subject-${subject.id}`}
-              style={{ backgroundColor: subject.color || '#6c757d' }}
+              className={`subject-pill subject-${subject.id.toLowerCase()}`}
             >
               {subject.name}
             </div>

@@ -155,19 +155,88 @@ export function getRelativeDateText(finDate, todayDate = getTodayFinDate()) {
 }
 
 /**
- * Check if a date is today
- * @param {string} finDate - Date in Finnish format
+ * Format a date as a relative timeframe directly from ISO format
+ * @param {string} isoDate - Date in ISO format (YYYY-MM-DD) or Date object
+ * @returns {string} Human-readable relative date
+ */
+export function getRelativeTextFromISODate(isoDate) {
+  // Handle missing dates
+  if (!isoDate) {
+    return 'No date';
+  }
+
+  // Parse the date - handle both string dates and Date objects
+  let dateObj;
+  try {
+    dateObj = isoDate instanceof Date ? isoDate : new Date(isoDate);
+    
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid date';
+    }
+  } catch (error) {
+    console.warn('Error parsing ISO date:', error);
+    return 'Invalid date';
+  }
+
+  // Get today's date for comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Set time to midnight for accurate day comparison
+  dateObj.setHours(0, 0, 0, 0);
+  
+  // Check if date is today
+  if (dateObj.getTime() === today.getTime()) {
+    return 'Today';
+  }
+  
+  // Calculate difference in days
+  const diffTime = dateObj.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays > 0) {
+    if (diffDays === 1) return 'Tomorrow';
+    return `In ${diffDays} days`;
+  } else {
+    if (diffDays === -1) return 'Yesterday';
+    return `${Math.abs(diffDays)} days ago`;
+  }
+}
+
+/**
+ * Check if a date is today - works with ISO format dates
+ * @param {string} dateString - Date in ISO format or Finnish format
  * @returns {boolean} True if the date is today
  */
-export function isToday(finDate) {
+export function isToday(dateString) {
   // Handle missing or invalid dates
-  if (!finDate || finDate === 'No Due Date') {
+  if (!dateString || dateString === 'No Due Date') {
     return false;
   }
   
-  const todayFormatted = getTodayFinDate();
-  const comparison = compareDates(finDate, todayFormatted);
-  return comparison === 0;
+  try {
+    // Try to parse as ISO date first
+    const dateObj = new Date(dateString);
+    
+    // If valid ISO date
+    if (!isNaN(dateObj.getTime())) {
+      const today = new Date();
+      return (
+        dateObj.getDate() === today.getDate() &&
+        dateObj.getMonth() === today.getMonth() &&
+        dateObj.getFullYear() === today.getFullYear()
+      );
+    }
+    
+    // Fall back to Finnish format check
+    const todayFormatted = getTodayFinDate();
+    const comparison = compareDates(dateString, todayFormatted);
+    return comparison === 0;
+  } catch (error) {
+    console.warn('Error checking if date is today:', error);
+    return false;
+  }
 }
 
 /**

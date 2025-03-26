@@ -38,15 +38,12 @@ import TaskList from '../tasks/TaskList';
 import { useTaskData } from '../../hooks/useTaskData';
 import { useTimeBasedFiltering } from '../../hooks/useTimeBasedFiltering';
 import { useSubjects } from '../../hooks/useSubjects';
-import ContainerWrapper from '../common/ContainerWrapper';
-import { useTheme } from '../../context/ThemeContext';
 
 function FutureTaskContainer() {
   // Get all task data and time-based filtered tasks
   const { futureTasks, completeTask, isLoading, error } = useTaskData();
   const { activeTasks, isBeforeNoon } = useTimeBasedFiltering(); 
   const { getSubjectColor } = useSubjects();
-  const { getContainerStyles } = useTheme();
   
   // Filter out tasks that are already displayed in the current container
   // to prevent duplication between containers
@@ -69,7 +66,7 @@ function FutureTaskContainer() {
   }
   
   return (
-    <ContainerWrapper containerType="future">
+    <div className="future-tasks-container task-container container-emphasis-medium">
       <div className="container-header">
         <h2>Upcoming Tasks</h2>
         <span className="task-count">{sortedFutureTasks.length} tasks</span>
@@ -83,7 +80,7 @@ function FutureTaskContainer() {
         getSubjectColor={getSubjectColor}
         containerType="future"
       />
-    </ContainerWrapper>
+    </div>
   );
 }
 
