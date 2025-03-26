@@ -1,23 +1,53 @@
-// Manages subject data and schedule information
-export const SubjectContext = React.createContext();
+import { createContext, useState, useEffect } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../services/firebase';
+
+export const SubjectContext = createContext();
 
 export function SubjectProvider({ children }) {
   const [subjects, setSubjects] = useState([]);
-  const [schedule, setSchedule] = useState({});
+  const [loading, setLoading] = useState(true);
   
-  // Load subjects and schedule data
+  // Fetch subjects from Firestore on component mount
   useEffect(() => {
-    // Fetch from Firebase
+    async function fetchSubjects() {
+      try {
+        const subjectsRef = collection(db, 'subjects');
+        const snapshot = await getDocs(subjectsRef);
+        
+        const fetchedSubjects = [];
+        snapshot.forEach(doc => {
+          fetchedSubjects.push({ id: doc.id, ...doc.data() });
+        });
+        
+        setSubjects(fetchedSubjects);
+      } catch (error) {
+        console.error("Error fetching subjects:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchSubjects();
   }, []);
   
-  const getTomorrowSubjects = () => {
-    // Return subjects for tomorrow based on schedule
-  };
+  // Function to get tomorrow's subjects based on day of week
+  function getTomorrowSubjects() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const tomorrowDay = dayNames[tomorrow.getDay()];
+    
+    return subjects.filter(subject => 
+      subject.schedule && subject.schedule[tomorrowDay]
+    );
+  }
   
   return (
     <SubjectContext.Provider value={{
       subjects,
-      schedule, 
+      loading,
       getTomorrowSubjects
     }}>
       {children}

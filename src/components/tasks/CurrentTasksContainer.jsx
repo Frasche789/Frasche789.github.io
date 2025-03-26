@@ -2,40 +2,33 @@ import React, { useState, useEffect } from 'react';
 import TaskList from './TaskList';  
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../services/firebase';
+import { useSubjects } from '../../hooks/useSubjects';
 
 function CurrentTasksContainer() {
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [tasksLoading, setTasksLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
+  const { tomorrowSubjects, allSubjects, isLoading: subjectsLoading, error: subjectsError, getSubjectColor } = useSubjects();
 
   useEffect(() => {
-    async function fetchData() {
+    // Skip execution if subjects are still loading
+    if (subjectsLoading) {
+      return;
+    }
+    
+    async function fetchTasks() {
       try {
-        setLoading(true);
+        setTasksLoading(true);
         
-        // 1. Determine tomorrow's day of week (0 = Sunday, 1 = Monday, ...)
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const dayOfWeek = tomorrow.getDay();
+        // If there are no subjects for tomorrow, we can set empty tasks and exit
+        if (!tomorrowSubjects || tomorrowSubjects.length === 0) {
+          setTasks([]);
+          setTasksLoading(false);
+          return;
+        }
         
-        // Convert to day name for Firestore query
-        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const tomorrowDay = dayNames[dayOfWeek];
-        
-        // 2. Fetch subjects scheduled for tomorrow
-        const subjectsRef = collection(db, 'subjects');
-        const subjectsSnapshot = await getDocs(subjectsRef);
-        
-        const filteredSubjects = [];
-        subjectsSnapshot.forEach(doc => {
-          const subject = { id: doc.id, ...doc.data() };
-          if (subject.schedule && subject.schedule[tomorrowDay]) {
-            filteredSubjects.push(subject);
-          }
-        });
-        
-        // 3. Fetch tasks that match tomorrow's subjects
+        // Fetch all tasks
         const tasksRef = collection(db, 'tasks');
         const tasksSnapshot = await getDocs(tasksRef);
         
@@ -44,24 +37,42 @@ function CurrentTasksContainer() {
           allTasks.push({ id: doc.id, ...doc.data() });
         });
         
-        // 4. Filter tasks by subject and completion status
-        const subjectIds = filteredSubjects.map(subject => subject.id);
-        const filteredTasks = allTasks.filter(task => 
-          !task.completed && 
-          subjectIds.includes(task.subject.toLowerCase())
-        );
+        // Get subject IDs for tomorrow's classes
+        const subjectIds = tomorrowSubjects.map(subject => subject.id);
+        const subjectNames = tomorrowSubjects.map(subject => 
+          subject.name?.toLowerCase()
+        ).filter(Boolean);
+        
+        // Filter tasks by subject and completion status
+        const filteredTasks = allTasks.filter(task => {
+          // Skip completed tasks
+          if (task.completed) return false;
+          
+          // If task has no subject, can't match
+          if (!task.subject) return false;
+          
+          // Normalize the subject field for comparison
+          const taskSubject = String(task.subject).toLowerCase();
+          
+          // Try multiple matching approaches
+          const matchesById = subjectIds.includes(task.subject);
+          const matchesByIdLowercase = subjectIds.includes(taskSubject);
+          const matchesByName = subjectNames.some(name => taskSubject.includes(name));
+          
+          return matchesById || matchesByIdLowercase || matchesByName;
+        });
         
         setTasks(filteredTasks);
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load tasks. Please try again later.");
+        console.error("Error fetching tasks:", err);
+        setError("Failed to load tasks: " + err.message);
       } finally {
-        setLoading(false);
+        setTasksLoading(false);
       }
     }
     
-    fetchData();
-  }, []);
+    fetchTasks();
+  }, [tomorrowSubjects, subjectsLoading]);
 
   // Handler for task completion
   const handleTaskComplete = async (taskId) => {
@@ -75,16 +86,24 @@ function CurrentTasksContainer() {
       );
     } catch (err) {
       console.error("Error completing task:", err);
-      setError("Failed to complete task. Please try again.");
+      setError("Failed to complete task: " + err.message);
     }
   };
 
-  if (loading) {
-    return <div className="loading">Loading tomorrow's tasks...</div>;
+  // Show loading if either subjects or tasks are still loading
+  const isLoading = subjectsLoading || tasksLoading;
+
+  // Display subject loading error if present
+  if (subjectsError) {
+    return <div className="error">Error loading subjects: {subjectsError}</div>;
   }
 
   if (error) {
     return <div className="error">{error}</div>;
+  }
+
+  if (isLoading) {
+    return <div className="loading">Loading tomorrow's tasks...</div>;
   }
 
   return (
@@ -94,6 +113,7 @@ function CurrentTasksContainer() {
         tasks={tasks}
         onComplete={handleTaskComplete}
         emptyMessage="No tasks due for tomorrow's classes"
+        getSubjectColor={getSubjectColor}
       />
     </div>
   );

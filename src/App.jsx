@@ -1,14 +1,17 @@
 import React from 'react';
 import CurrentTasksContainer from './components/tasks/CurrentTasksContainer';
 import TomorrowClasses from './components/subjects/TomorrowClasses';
-import './styles.css'; // If you have styles
+import { SubjectProvider } from './context/SubjectContext';
+import './styles.css';
 
 function App() {
   return (
-    <div className="app">
-      <TomorrowClasses />
-      <CurrentTasksContainer />
-    </div>
+    <SubjectProvider>
+      <div className="app">
+        <TomorrowClasses />
+        <CurrentTasksContainer />
+      </div>
+    </SubjectProvider>
   );
 }
 
