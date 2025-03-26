@@ -1,114 +1,107 @@
 // Hook to access and filter task data
-import { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { useState, useEffect, useContext, useMemo } from 'react';
+import { TaskContext } from '../context/TaskContext';
+import { useSubjects } from './useSubjects';
 
 export function useTaskData() {
-    const [tasks, setTasks] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // Get tasks and subjects data from context and hooks
+    const { tasks, loading: tasksLoading, error: tasksError, completeTask } = useContext(TaskContext);
+    const { tomorrowSubjects, allSubjects, isLoading: subjectsLoading, error: subjectsError } = useSubjects();
     
-    useEffect(() => {
-        async function fetchTasks() {
-            try {
-                setLoading(true);
-                const tasksRef = collection(db, 'tasks');
-                const tasksSnapshot = await getDocs(tasksRef);
-                
-                const fetchedTasks = [];
-                tasksSnapshot.forEach(doc => {
-                    fetchedTasks.push({ id: doc.id, ...doc.data() });
-                });
-                
-                setTasks(fetchedTasks);
-            } catch (error) {
-                console.error("Error fetching tasks:", error);
-            } finally {
-                setLoading(false);
-            }
+    // Derived loading and error states
+    const isLoading = tasksLoading || subjectsLoading;
+    const error = tasksError || subjectsError;
+    
+    // Memoize filtered tasks to prevent recalculations on re-renders
+    const filteredTasks = useMemo(() => {
+        // If still loading or error, return empty arrays
+        if (isLoading || error || !tasks.length) {
+            return {
+                todayTasks: [],
+                tomorrowTasks: [],
+                futureTasks: [],
+                completedTasks: []
+            };
         }
         
-        fetchTasks();
-    }, []);
-    
-    // Filter tasks by due date
-    const getTodayTasks = () => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        return tasks.filter(task => {
-            if (!task.dueDate || task.completed) return false;
-            
-            const dueDate = new Date(task.dueDate);
-            dueDate.setHours(0, 0, 0, 0);
-            
-            return dueDate.getTime() === today.getTime();
-        });
-    };
-    
-    const getTomorrowTasks = () => {
+        // Date calculations
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
         
-        return tasks.filter(task => {
-            if (!task.dueDate || task.completed) return false;
+        const dayAfterTomorrow = new Date(today);
+        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+        
+        // Filter completed tasks
+        const completedTasks = tasks.filter(task => task.completed);
+        
+        // Filter tasks for today
+        const todayTasks = tasks.filter(task => {
+            if (task.completed) return false;
             
-            const dueDate = new Date(task.dueDate);
+            if (!task.due_date) return false;
+            
+            const dueDate = new Date(task.due_date);
             dueDate.setHours(0, 0, 0, 0);
             
-            return dueDate.getTime() === tomorrow.getTime();
+            return dueDate.getTime() === today.getTime();
         });
-    };
-    
-    const getFutureTasks = () => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
         
-        const twoDaysFromNow = new Date(today);
-        twoDaysFromNow.setDate(twoDaysFromNow.getDate() + 2);
+        // Get subject IDs for tomorrow to filter tomorrow's tasks
+        const tomorrowSubjectIds = tomorrowSubjects.map(subject => subject.id);
+        const tomorrowSubjectNames = tomorrowSubjects
+            .map(subject => subject.name?.toLowerCase())
+            .filter(Boolean);
         
-        return tasks.filter(task => {
-            if (!task.dueDate || task.completed) return false;
+        // Filter tasks for tomorrow's subjects
+        const tomorrowTasks = tasks.filter(task => {
+            // Skip completed tasks
+            if (task.completed) return false;
             
-            const dueDate = new Date(task.dueDate);
-            dueDate.setHours(0, 0, 0, 0);
+            // If no subject field, can't match
+            if (!task.subject) return false;
             
-            return dueDate.getTime() >= twoDaysFromNow.getTime();
-        });
-    };
-    
-    const getArchiveTasks = () => {
-        return tasks.filter(task => task.completed);
-    };
-    
-    const completeTask = async (taskId) => {
-        try {
-            const taskRef = doc(db, 'tasks', taskId);
-            await updateDoc(taskRef, {
-                completed: true,
-                completedDate: new Date().toLocaleDateString('fi-FI').replace(/\//g, '.')
-            });
+            // Convert to lowercase string for comparison
+            const taskSubject = String(task.subject).toLowerCase();
             
-            // Update local state
-            setTasks(prevTasks => 
-                prevTasks.map(task => 
-                    task.id === taskId ? { ...task, completed: true } : task
-                )
+            // Check if matches by ID
+            const matchesById = tomorrowSubjectIds.includes(task.subject);
+            
+            // Check if matches by name
+            const matchesByName = tomorrowSubjectNames.some(name => 
+                taskSubject.includes(name) || name.includes(taskSubject)
             );
             
-        } catch (error) {
-            console.error("Error completing task:", error);
-        }
-    };
+            return matchesById || matchesByName;
+        });
+        
+        // Filter tasks for future days
+        const futureTasks = tasks.filter(task => {
+            if (task.completed) return false;
+            
+            if (!task.due_date) return false;
+            
+            const dueDate = new Date(task.due_date);
+            dueDate.setHours(0, 0, 0, 0);
+            
+            return dueDate.getTime() >= dayAfterTomorrow.getTime();
+        });
+        
+        return {
+            todayTasks,
+            tomorrowTasks,
+            futureTasks,
+            completedTasks
+        };
+    }, [tasks, tomorrowSubjects, isLoading, error]);
     
+    // Return the filtered tasks and loading states
     return {
-        todayTasks: getTodayTasks(),
-        tomorrowTasks: getTomorrowTasks(),
-        futureTasks: getFutureTasks(),
-        archiveTasks: getArchiveTasks(),
-        completeTask,
-        loading
+        ...filteredTasks,
+        isLoading,
+        error,
+        completeTask
     };
 }
