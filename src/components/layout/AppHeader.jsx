@@ -1,5 +1,5 @@
 import React from 'react';
-import { getDayName, formatFinDate, getTodayFinDate } from '../../utils/dateUtils';
+import { getDayName } from '../../utils/dateUtils';
 
 /**
  * AppHeader component - Displays the app title and current date
@@ -7,9 +7,9 @@ import { getDayName, formatFinDate, getTodayFinDate } from '../../utils/dateUtil
  */
 const AppHeader = () => {
   // Get current date information
-  const today = getTodayFinDate();
+  const today = new Date();
   const dayName = getDayName();
-  const formattedDate = formatFinDate(today);
+  const formattedDate = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
   const dateDisplay = `${dayName}, ${formattedDate}`;
 
   return (

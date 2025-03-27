@@ -57,6 +57,30 @@ export function useSubjects() {
     };
   }, []);
 
+  // Get subjects scheduled for today - memoized to prevent recalculations
+  const todaySubjects = useMemo(() => {
+    if (error || subjects.length === 0) return []; 
+    
+    const today = new Date();
+    
+    // Get day of week in lowercase (e.g., 'monday', 'tuesday', etc.)
+    const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const todayDay = daysOfWeek[today.getDay()];
+    
+    // Only log this once
+    console.log(`Today is ${todayDay}`);
+    
+    // Filter subjects scheduled for today
+    const result = subjects.filter(subject => 
+      subject.schedule && subject.schedule[todayDay] === true
+    );
+    
+    console.log(`Found ${result.length} subjects for today:`, 
+                result.map(s => s.name || s.id).join(', '));
+    
+    return result;
+  }, [subjects, error]);
+
   // Get subjects scheduled for tomorrow - memoized to prevent recalculations
   const tomorrowSubjects = useMemo(() => {
     if (error || subjects.length === 0) return []; 
@@ -98,6 +122,7 @@ export function useSubjects() {
   
   return {
     allSubjects: subjects,
+    todaySubjects,
     tomorrowSubjects,
     getSubjectColor,
     isLoading,

@@ -11,7 +11,7 @@ import { formatDate, getRelativeTextFromISODate, isToday } from '../../utils/dat
  * 
  * @param {Object} props - Component props
  * @param {Object} props.task - Task data object
- * @param {Function} props.onComplete - Callback function when task is marked complete
+ * @param {Function} props.onComplete - Callback function when task is marked complete/incomplete
  * @param {string} props.containerType - Type of container (current, future, archive)
  */
 function TaskCard({ task, onComplete, containerType = 'current' }) {
@@ -27,6 +27,7 @@ function TaskCard({ task, onComplete, containerType = 'current' }) {
 
   // State to track animation
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isUncompleting, setIsUncompleting] = useState(false);
   const cardRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -39,25 +40,41 @@ function TaskCard({ task, onComplete, containerType = 'current' }) {
     e.preventDefault();
     e.stopPropagation();
     
-    if (onComplete && !completed && !isCompleting) {
-      // Trigger animation first
-      setIsCompleting(true);
-      
-      // Add animation classes
-      if (buttonRef.current) {
-        buttonRef.current.classList.add('task-completing');
+    if (onComplete) {
+      if (!completed && !isCompleting) {
+        // Completing a task
+        // Trigger animation first
+        setIsCompleting(true);
+        
+        // Add animation classes
+        if (buttonRef.current) {
+          buttonRef.current.classList.add('task-completing');
+        }
+        
+        if (cardRef.current) {
+          cardRef.current.classList.add('task-completing');
+        }
+        
+        // Delay the actual completion to allow animation to run
+        // Use 1800ms to match the crumple animation duration (1.8s)
+        setTimeout(() => {
+          onComplete(id);
+          // Animation will be removed when component re-renders with completed=true
+        }, 1800); // Match this with the animation duration in task-card.css
+      } else if (completed && !isUncompleting && containerType === 'archive') {
+        // Uncompleting a task (in archive)
+        setIsUncompleting(true);
+        
+        // Simple fade animation for uncompleting
+        if (cardRef.current) {
+          cardRef.current.classList.add('task-uncompleting');
+        }
+        
+        // Shorter delay for uncompleting animation
+        setTimeout(() => {
+          onComplete(id);
+        }, 600);
       }
-      
-      if (cardRef.current) {
-        cardRef.current.classList.add('task-completing');
-      }
-      
-      // Delay the actual completion to allow animation to run
-      // Use 1800ms to match the crumple animation duration (1.8s)
-      setTimeout(() => {
-        onComplete(id);
-        // Animation will be removed when component re-renders with completed=true
-      }, 1800); // Match this with the animation duration in task-card.css
     }
   };
 
@@ -70,7 +87,11 @@ function TaskCard({ task, onComplete, containerType = 'current' }) {
     if (!isCompleting && cardRef.current) {
       cardRef.current.classList.remove('task-completing');
     }
-  }, [isCompleting]);
+    
+    if (!isUncompleting && cardRef.current) {
+      cardRef.current.classList.remove('task-uncompleting');
+    }
+  }, [isCompleting, isUncompleting]);
 
   // Determine CSS classes based on task properties and container type
   const cardClasses = [
@@ -90,8 +111,7 @@ function TaskCard({ task, onComplete, containerType = 'current' }) {
         <button 
           className="complete-btn" 
           onClick={handleCompleteClick}
-          disabled={completed}
-          aria-label={completed ? "Task completed" : "Mark as complete"}
+          aria-label={completed ? "Mark as incomplete" : "Mark as complete"}
           ref={buttonRef}
         >
           <span>{completed ? '✓' : ''}</span>

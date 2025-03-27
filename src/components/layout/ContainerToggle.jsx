@@ -9,11 +9,11 @@
  */
 function ContainerToggle({ onToggle, title, description, isExpanded }) {
   return (
-    <div className="container-toggle">
-      <button onClick={onToggle}>
-        {title}
-        <span className="toggle-icon">{isExpanded ? 'Hide' : 'Show'}</span>
-      </button>
+    <div className="container-toggle" onClick={onToggle}>
+      <div className="toggle-content">
+        <span className="toggle-title">{title}</span>
+        <span className="toggle-icon">{isExpanded ? '▼' : '▲'}</span>
+      </div>
       <p>{description}</p>
     </div>
   );

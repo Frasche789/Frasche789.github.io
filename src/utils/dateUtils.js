@@ -330,3 +330,81 @@ export function isDateOlderThan(dateString, days = 14) {
   
   return diffDays > days;
 }
+
+/**
+ * Find the next occurrence of a subject's class from a given date
+ * @param {string} subject - The subject name (e.g., 'Math', 'History')
+ * @param {Date|string} fromDate - Starting date (Date object or ISO string)
+ * @param {Object} [weeklySchedule] - Optional weekly schedule override
+ * @returns {Date} Date object representing the next class occurrence
+ */
+export function findNextClassOccurrence(subject, fromDate = new Date(), weeklySchedule = null) {
+  // Convert fromDate to Date object if it's a string
+  const startDate = fromDate instanceof Date ? new Date(fromDate) : new Date(fromDate);
+  
+  // Reset hours to ensure consistent date comparison
+  startDate.setHours(0, 0, 0, 0);
+  
+  // Default weekly schedule - subjects and their weekdays (0 = Sunday, 1 = Monday, etc.)
+  // This can be overridden by passing a different schedule
+  const schedule = weeklySchedule || {
+    'Math': [1, 3, 5],       // Monday, Wednesday, Friday
+    'Finnish': [1, 2, 4],    // Monday, Tuesday, Thursday
+    'English': [2, 4],       // Tuesday, Thursday
+    'History': [3, 5],       // Wednesday, Friday
+    'Civics': [2, 4],        // Tuesday, Thursday
+    'Ethics': [3],           // Wednesday
+    'Eco': [1, 5]            // Monday, Friday
+  };
+  
+  // Get the subject's schedule (case insensitive match)
+  const subjectLower = subject.toLowerCase();
+  const subjectWeekdays = Object.keys(schedule).find(
+    key => key.toLowerCase() === subjectLower
+  ) ? schedule[Object.keys(schedule).find(
+    key => key.toLowerCase() === subjectLower
+  )] : [];
+  
+  // If subject not found in schedule, return the next day as fallback
+  if (!subjectWeekdays || subjectWeekdays.length === 0) {
+    const nextDay = new Date(startDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    return nextDay;
+  }
+  
+  // Find the next occurrence
+  let nextDate = new Date(startDate);
+  let daysChecked = 0;
+  const MAX_DAYS = 14; // Safety limit to prevent infinite loops
+  
+  while (daysChecked < MAX_DAYS) {
+    // Move to the next day
+    nextDate.setDate(nextDate.getDate() + 1);
+    
+    // Check if this day matches one of the subject's weekdays
+    const weekday = nextDate.getDay(); // 0-6
+    if (subjectWeekdays.includes(weekday)) {
+      return nextDate; // Found the next occurrence
+    }
+    
+    daysChecked++;
+  }
+  
+  // Fallback: if no match found within reasonable time, return next day
+  const fallbackDate = new Date(startDate);
+  fallbackDate.setDate(fallbackDate.getDate() + 1);
+  return fallbackDate;
+}
+
+// Convert ISO date to Date object
+function isoToDate(isoDate) {
+  if (!isoDate) return new Date();
+  try {
+    return new Date(isoDate);
+  } catch (e) {
+    console.warn('Invalid ISO date:', isoDate);
+    return new Date();
+  }
+}
+
+export { isoToDate };

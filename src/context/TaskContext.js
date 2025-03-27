@@ -78,12 +78,39 @@ export function TaskProvider({ children }) {
     }
   }
   
+  // Handle task un-completion (toggle back to incomplete)
+  async function uncompleteTask(taskId) {
+    try {
+      // Update in Firestore
+      const taskRef = doc(db, 'tasks', taskId);
+      await updateDoc(taskRef, {
+        completed: false,
+        completedDate: null
+      });
+      
+      // Update local state
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId ? { ...task, completed: false, completedDate: null } : task
+        )
+      );
+      
+      console.log(`Task ${taskId} marked as incomplete`);
+      return true;
+    } catch (err) {
+      console.error("Error uncompleting task:", err);
+      setError("Failed to uncomplete task: " + err.message);
+      return false;
+    }
+  }
+  
   return (
     <TaskContext.Provider value={{
       tasks,
       loading,
       error,
-      completeTask
+      completeTask,
+      uncompleteTask
     }}>
       {children}
     </TaskContext.Provider>

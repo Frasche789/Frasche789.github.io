@@ -121,7 +121,71 @@ p { margin-bottom: var(--space-md); }
 }
 
 /***************************************
- * 5. ARCHIVE TOGGLE & CONTAINER
+ * 5. TIME-AWARE SUBJECTS & CLASS PILLS
+ ***************************************/
+.time-aware-subjects {
+  text-align: center;
+  padding: var(--space-md) var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.time-aware-subjects .section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-accent);
+  margin-bottom: var(--space-md);
+  text-align: center;
+}
+
+.time-aware-subjects .subject-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.time-aware-subjects .subject-pill {
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+  min-height: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.time-aware-subjects .subject-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+/* Morning mode styles */
+.time-aware-subjects.today-mode .section-title {
+  color: #ffcc66; /* Warm golden color for morning */
+}
+
+/* Evening mode styles */
+.time-aware-subjects.tomorrow-mode .section-title {
+  color: #8ebbff; /* Cool blue color for evening */
+}
+
+/* Empty state message */
+.time-aware-subjects p {
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/***************************************
+ * 6. ARCHIVE TOGGLE & CONTAINER
  ***************************************/
 .archive-toggle {
   display: flex;
@@ -228,7 +292,7 @@ p { margin-bottom: var(--space-md); }
 
 
 /***************************************
- * 6. TASK CARDS & LISTS
+ * 7. TASK CARDS & LISTS
  ***************************************/
 /* Task list container */
 .task-list {
@@ -371,7 +435,7 @@ p { margin-bottom: var(--space-md); }
 }
 
 /***************************************
- * 7. SUBJECT-SPECIFIC STYLING
+ * 8. SUBJECT-SPECIFIC STYLING
  ***************************************/
 /* Subject pills for tomorrow's classes */
 .subject-list {
@@ -394,7 +458,7 @@ p { margin-bottom: var(--space-md); }
 }
 
 /***************************************
- * 8. TASK CONTAINER STYLING 
+ * 9. TASK CONTAINER STYLING 
  ***************************************/
 /* Tasks section */
 .tasks-section {
@@ -474,7 +538,7 @@ p { margin-bottom: var(--space-md); }
 }
 
 /***************************************
- * 9. ANIMATIONS
+ * 10. ANIMATIONS
  ***************************************/
 /* Pulse animation for exam badges */
 @keyframes pulse {
@@ -548,7 +612,7 @@ p { margin-bottom: var(--space-md); }
 }
 
 /***************************************
- * 10. UTILITY CLASSES
+ * 11. UTILITY CLASSES
  ***************************************/
 /* Visibility utilities */
 .hidden {
@@ -602,7 +666,7 @@ p { margin-bottom: var(--space-md); }
 }
 
 /***************************************
- * 11. MEDIA QUERIES
+ * 12. MEDIA QUERIES
  ***************************************/
 @media (min-width: 600px) {
   h1 {
@@ -633,7 +697,7 @@ p { margin-bottom: var(--space-md); }
 }
 
 /***************************************
- * 12. TIME-BASED TASK CONTAINER STYLING
+ * 13. TIME-BASED TASK CONTAINER STYLING
  ***************************************/
 .current-tasks-container {
   margin-top: 1.5rem;
@@ -695,7 +759,7 @@ p { margin-bottom: var(--space-md); }
 }
 
 /***************************************
- * 13. FUTURE TASKS CONTAINER STYLING
+ * 14. FUTURE TASKS CONTAINER STYLING
  ***************************************/
 .future-tasks-container {
   margin-top: 1.5rem;

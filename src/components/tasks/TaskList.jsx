@@ -34,7 +34,8 @@ import TaskCard from './TaskCard';
 import EmptyState from '../common/EmptyState';
 import { useTaskData } from '../../hooks/useTaskData';
 
-function TaskList({ title, tasks, emptyMessage, onComplete, containerType = 'current' }) {
+// Export the primary TaskList component directly (no default export)
+export function TaskList({ title, tasks, emptyMessage, onComplete, containerType = 'current' }) {
   if (tasks.length === 0) {
     return <EmptyState message={emptyMessage} />;
   }
@@ -84,4 +85,5 @@ export function FutureTaskList() {
   );
 }
 
+// Also export as default for backward compatibility
 export default TaskList;

@@ -18,7 +18,7 @@ import { useTaskData } from './useTaskData';
 
 export function useTimeBasedFiltering() {
   // Get task data from the task hook
-  const { todayTasks, tomorrowTasks, completeTask, isLoading, error } = useTaskData();
+  const { todayTasks, todayClassTasks, tomorrowTasks, completeTask, isLoading, error } = useTaskData();
   
   // State to store current time
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -27,15 +27,24 @@ export function useTimeBasedFiltering() {
   const isBeforeNoon = currentTime.getHours() < 12;
   
   // Set appropriate tasks, title and empty message based on time
-  const activeTasks = isBeforeNoon ? todayTasks : tomorrowTasks;
+  // In the morning: Show today's class tasks AND any tasks due today
+  // In the evening: Show tomorrow's tasks
+  const activeTasks = isBeforeNoon 
+    ? (Array.isArray(todayClassTasks) ? todayClassTasks : []).concat(
+        Array.isArray(todayTasks) ? todayTasks : []
+      ).filter((task, index, self) => 
+        // Remove duplicates by checking for first occurrence of task.id
+        index === self.findIndex(t => t.id === task.id)
+      )
+    : (Array.isArray(tomorrowTasks) ? tomorrowTasks : []);
   
   const title = isBeforeNoon 
     ? "Today's Tasks" 
     : "Tasks for Tomorrow's Classes";
     
   const emptyMessage = isBeforeNoon
-    ? "No tasks due today. Well done!"
-    : "No tasks due for tomorrow's classes";
+    ? "All tasks for today's classes done!"
+    : "All tasks for tomorrow's classes done!";
   
   // Update time every 10 minutes to refresh content automatically
   useEffect(() => {
@@ -45,6 +54,12 @@ export function useTimeBasedFiltering() {
     
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
+  
+  // Debug log to help diagnose time-based issues
+  useEffect(() => {
+    console.log(`TimeBasedFiltering: ${isBeforeNoon ? 'Before noon' : 'After noon'}`);
+    console.log(`Today tasks: ${todayTasks?.length || 0}, Today class tasks: ${todayClassTasks?.length || 0}, Tomorrow tasks: ${tomorrowTasks?.length || 0}`);
+  }, [isBeforeNoon, todayTasks, todayClassTasks, tomorrowTasks]);
   
   return {
     activeTasks,

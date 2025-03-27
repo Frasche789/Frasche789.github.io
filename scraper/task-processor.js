@@ -1,5 +1,8 @@
 // task-processor.js - Module for processing and normalizing task data
 
+// Import from local dateUtils.js (not from src/utils)
+const { findNextClassOccurrence, getTodayIsoDate } = require('./dateUtils');
+
 // Subject name translation mapping
 const subjectTranslations = {
   // Direct matches (case insensitive)
@@ -101,12 +104,6 @@ function normalizeDate(dateString) {
   }
 }
 
-// New helper function to get today's date in ISO format
-function getTodayIsoDate() {
-  const date = new Date();
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-}
-
 // Generate a unique ID for a task
 function generateUniqueId(subject, date, type) {
   // Clean up the inputs to make them suitable for ID generation
@@ -133,6 +130,48 @@ function generateUniqueId(subject, date, type) {
   return `${baseId}-${timestamp}-${randomPart}`;
 }
 
+/**
+ * Calculate due date for a homework task based on:
+ * - Date added
+ * - Subject (to find next class occurrence)
+ * @param {string} subject - The subject of the homework
+ * @param {string} dateAdded - ISO format date when homework was added
+ * @returns {string} ISO format due date
+ */
+function calculateHomeworkDueDate(subject, dateAdded) {
+  if (!dateAdded) {
+    // If no date_added, use today
+    dateAdded = getTodayIsoDate();
+  }
+  
+  try {
+    // Translate subject name for correct mapping
+    const normalizedSubject = translateSubjectName(subject);
+    
+    // Find the next class occurrence for this subject
+    const nextClassDate = findNextClassOccurrence(normalizedSubject, dateAdded);
+    
+    // Convert to ISO string format (YYYY-MM-DD)
+    return `${nextClassDate.getFullYear()}-${(nextClassDate.getMonth() + 1).toString().padStart(2, '0')}-${nextClassDate.getDate().toString().padStart(2, '0')}`;
+  } catch (error) {
+    console.error('Error calculating homework due date:', error);
+    
+    // Fallback: return date that's 3 days after the date_added
+    try {
+      const addedDate = new Date(dateAdded);
+      const dueDate = new Date(addedDate);
+      dueDate.setDate(dueDate.getDate() + 3);
+      return `${dueDate.getFullYear()}-${(dueDate.getMonth() + 1).toString().padStart(2, '0')}-${dueDate.getDate().toString().padStart(2, '0')}`;
+    } catch {
+      // If all else fails, fallback to a week from today
+      const today = new Date();
+      const dueDate = new Date(today);
+      dueDate.setDate(dueDate.getDate() + 7);
+      return `${dueDate.getFullYear()}-${(dueDate.getMonth() + 1).toString().padStart(2, '0')}-${dueDate.getDate().toString().padStart(2, '0')}`;
+    }
+  }
+}
+
 // Process raw extracted data
 function processExtractedData(subjectsData) {
   const processedTasks = [];
@@ -156,10 +195,14 @@ function processExtractedData(subjectsData) {
         continue; // Skip entries with empty descriptions
       }
       
-      // Create a task object - now using ISO dates
+      // Calculate due date for homework based on subject and date added
+      const dueDate = calculateHomeworkDueDate(subject, dateAdded);
+      
+      // Create a task object - now using ISO dates and including calculated due_date
       processedTasks.push({
         id: generateUniqueId(subject, dateAdded, 'homework'),
         date_added: dateAdded, // Date the homework was posted (in ISO format)
+        due_date: dueDate,     // Calculated due date for the homework
         subject: subject,
         description: cleanDescription,
         topic: homework.topic,
@@ -197,12 +240,12 @@ function processExtractedData(subjectsData) {
   
   return processedTasks;
 }
-        
 
 // Export the module functions
 module.exports = {
   processExtractedData,
   translateSubjectName,
   normalizeDate,
-  generateUniqueId
+  generateUniqueId,
+  calculateHomeworkDueDate
 };

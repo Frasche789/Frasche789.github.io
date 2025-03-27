@@ -1,8 +1,6 @@
 import React from 'react';
-import CurrentTasksContainer from './components/layout/CurrentTasksContainer';
-import FutureTaskContainer from './components/layout/FutureTaskContainer';
-import ArchiveTasksContainer from './components/layout/ArchiveTasksContainer';
-import TomorrowClasses from './components/subjects/TomorrowClasses';
+import TaskContainer from './components/tasks/TaskContainer';
+import TimeAwareSubjects from './components/subjects/TimeAwareSubjects';
 import AppHeader from './components/layout/AppHeader';
 import { SubjectProvider } from './context/SubjectContext';
 import { TaskProvider } from './context/TaskContext';
@@ -15,10 +13,10 @@ function App() {
       <SubjectProvider>
         <div className="app">
           <AppHeader />
-          <TomorrowClasses />
-          <ArchiveTasksContainer />
-          <CurrentTasksContainer />
-          <FutureTaskContainer />
+          <TimeAwareSubjects />
+          <TaskContainer containerType="archive" />
+          <TaskContainer containerType="current" />
+          <TaskContainer containerType="future" />
         </div>
       </SubjectProvider>
     </TaskProvider>
