@@ -1,6 +1,7 @@
 // src/components/tasks/TaskCard.jsx - Individual task display component
 import React, { useState, useRef, useEffect } from 'react';
 import { formatDate, getRelativeTextFromISODate, isToday } from '../../utils/dateUtils';
+import { CONTAINER_TYPE } from '../../hooks/useContainerTasks';
 
 /**
  * Component for displaying an individual task card with standardized information hierarchy:
@@ -12,9 +13,9 @@ import { formatDate, getRelativeTextFromISODate, isToday } from '../../utils/dat
  * @param {Object} props - Component props
  * @param {Object} props.task - Task data object
  * @param {Function} props.onComplete - Callback function when task is marked complete/incomplete
- * @param {string} props.containerType - Type of container (current, future, archive)
+ * @param {string} props.containerType - Type of container from CONTAINER_TYPE
  */
-function TaskCard({ task, onComplete, containerType = 'current' }) {
+function TaskCard({ task, onComplete, containerType = CONTAINER_TYPE.CURRENT }) {
   const {
     id,
     subject,
@@ -61,7 +62,7 @@ function TaskCard({ task, onComplete, containerType = 'current' }) {
           onComplete(id);
           // Animation will be removed when component re-renders with completed=true
         }, 1800); // Match this with the animation duration in task-card.css
-      } else if (completed && !isUncompleting && containerType === 'archive') {
+      } else if (completed && !isUncompleting && containerType === CONTAINER_TYPE.ARCHIVE) {
         // Uncompleting a task (in archive)
         setIsUncompleting(true);
         
@@ -101,7 +102,7 @@ function TaskCard({ task, onComplete, containerType = 'current' }) {
     isDueToday && type === 'exam' ? 'exam-due-today' : '',
     isDueTomorrow && type === 'exam' ? 'exam-due-tomorrow' : '',
     completed ? 'completed-task' : '',
-    `container-emphasis-${containerType === 'current' ? 'high' : containerType === 'future' ? 'medium' : 'low'}`
+    `container-emphasis-${containerType === CONTAINER_TYPE.CURRENT ? 'high' : containerType === CONTAINER_TYPE.FUTURE ? 'medium' : 'low'}`
   ].filter(Boolean).join(' ');
 
   return (

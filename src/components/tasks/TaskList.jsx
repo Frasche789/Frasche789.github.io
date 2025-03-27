@@ -16,27 +16,29 @@
  * - Position hierarchy follows strict chronological ordering
  * - Shape language: pill-shaped subject badges, consistent rounding
  * 
- * Expected props:
- * - tasks: Array - filtered tasks to display
- * - containerType: String - "archive"|"current"|"future" for styling
- * - onComplete: Function - handler for task completion
- * - emptyMessage: String - contextual message when no tasks exist
- * 
- * Implementation considerations:
- * - Pure rendering component that maintains styling consistency
- * - Applies information density appropriate to container type
- * - Preserves subject color continuity across all containers
+ * @param {string} title - The heading text for the task list
+ * @param {Array} tasks - The array of task objects to display
+ * @param {string} emptyMessage - Message to show when tasks array is empty
+ * @param {Function} onComplete - Handler for task completion events
+ * @param {string} containerType - Container type for styling ("current", "future", "archive", "exam")
+ * @param {Function} getSubjectColor - Function to get color code for a subject
  */
 
 // TaskList.jsx
 import React from 'react';
 import TaskCard from './TaskCard';
 import EmptyState from '../common/EmptyState';
-import { useTaskData } from '../../hooks/useTaskData';
+import { CONTAINER_TYPE } from '../../hooks/useContainerTasks';
 
-// Export the primary TaskList component directly (no default export)
-export function TaskList({ title, tasks, emptyMessage, onComplete, containerType = 'current' }) {
-  if (tasks.length === 0) {
+export function TaskList({ 
+  title, 
+  tasks, 
+  emptyMessage, 
+  onComplete, 
+  containerType = CONTAINER_TYPE.CURRENT,
+  getSubjectColor
+}) {
+  if (!tasks || tasks.length === 0) {
     return <EmptyState message={emptyMessage} />;
   }
   
@@ -49,41 +51,11 @@ export function TaskList({ title, tasks, emptyMessage, onComplete, containerType
           task={task} 
           onComplete={onComplete}
           containerType={containerType}
+          getSubjectColor={getSubjectColor}
         />
       ))}
     </div>
   );
 }
 
-// These components use the TaskList with specific data
-export function CurrentTaskList() {
-  const { todayTasks, tomorrowTasks, completeTask } = useTaskData();
-  const combinedTasks = [...todayTasks, ...tomorrowTasks];
-  
-  return (
-    <TaskList
-      title="Tasks To Complete" 
-      tasks={combinedTasks}
-      onComplete={completeTask}
-      emptyMessage="Nothing left to do! Well done!"
-      containerType="current"
-    />
-  );
-}
-
-export function FutureTaskList() {
-  const { futureTasks, completeTask } = useTaskData();
-  
-  return (
-    <TaskList 
-      title="Upcoming Tasks" 
-      tasks={futureTasks}
-      onComplete={completeTask}
-      emptyMessage="No upcoming tasks"
-      containerType="future"
-    />
-  );
-}
-
-// Also export as default for backward compatibility
 export default TaskList;

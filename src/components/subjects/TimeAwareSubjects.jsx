@@ -13,16 +13,21 @@
 
 import React from 'react';
 import { useSubjects } from '../../hooks/useSubjects';
-import { useTimeBasedFiltering } from '../../hooks/useTimeBasedFiltering';
+import { useRuleContext } from '../../hooks/useRuleContext';
 
 function TimeAwareSubjects() {
-  const { todaySubjects, tomorrowSubjects, isLoading, error } = useSubjects();
-  const { isBeforeNoon } = useTimeBasedFiltering();
+  const { todaySubjects, tomorrowSubjects, isLoading: subjectsLoading, error: subjectsError } = useSubjects();
+  const { timeOfDay, isLoading: contextLoading, error: contextError } = useRuleContext();
+  
+  // Combined loading and error states
+  const isLoading = subjectsLoading || contextLoading;
+  const error = subjectsError || contextError;
   
   // Select subjects based on time of day
-  const relevantSubjects = isBeforeNoon ? todaySubjects : tomorrowSubjects;
-  const headingText = isBeforeNoon ? "TODAY'S CLASSES" : "TOMORROW'S CLASSES";
-  const emptyMessage = isBeforeNoon 
+  const isMorning = timeOfDay === 'morning';
+  const relevantSubjects = isMorning ? todaySubjects : tomorrowSubjects;
+  const headingText = isMorning ? "TODAY'S CLASSES" : "TOMORROW'S CLASSES";
+  const emptyMessage = isMorning 
     ? "No classes scheduled for today" 
     : "No classes scheduled for tomorrow";
 
@@ -35,7 +40,7 @@ function TimeAwareSubjects() {
   }
 
   return (
-    <div className={`time-aware-subjects ${isBeforeNoon ? 'today-mode' : 'tomorrow-mode'}`}>
+    <div className={`time-aware-subjects ${isMorning ? 'today-mode' : 'tomorrow-mode'}`}>
       <h2 className="section-title">{headingText}</h2>
       {relevantSubjects.length > 0 ? (
         <div className="subject-list">
