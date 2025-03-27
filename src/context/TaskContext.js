@@ -1,10 +1,28 @@
-// src/context/TaskContext.js
+/**
+ * TaskContext.js
+ * 
+ * Provides task data management for the Quest Board application.
+ * This context is responsible for:
+ * - Fetching task data from Firebase
+ * - Maintaining task state
+ * - Providing operations to modify tasks (complete/uncomplete)
+ * - Exposing loading and error states
+ * 
+ * This context has been refactored to focus ONLY on data management,
+ * with all filtering logic moved to specialized hooks and rules.
+ */
 import React, { createContext, useState, useEffect } from 'react';
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 
 export const TaskContext = createContext();
 
+/**
+ * Task Provider component that manages task data
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components
+ * @returns {React.ReactElement} TaskContext Provider
+ */
 export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +70,11 @@ export function TaskProvider({ children }) {
     };
   }, []);
   
-  // Handle task completion
+  /**
+   * Mark a task as completed
+   * @param {string} taskId - ID of the task to complete
+   * @returns {Promise<boolean>} Success indicator
+   */
   async function completeTask(taskId) {
     try {
       // Update in Firestore
@@ -78,7 +100,11 @@ export function TaskProvider({ children }) {
     }
   }
   
-  // Handle task un-completion (toggle back to incomplete)
+  /**
+   * Mark a task as not completed
+   * @param {string} taskId - ID of the task to uncomplete
+   * @returns {Promise<boolean>} Success indicator
+   */
   async function uncompleteTask(taskId) {
     try {
       // Update in Firestore

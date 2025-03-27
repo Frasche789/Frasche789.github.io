@@ -1,21 +1,71 @@
-// Hook to access and filter task data
+/**
+ * useTaskData.js
+ * 
+ * ⚠️ DEPRECATED: This hook is maintained for backward compatibility only.
+ * New components should use useContainerTasks instead.
+ * 
+ * Migration timeline: This hook will be maintained until October 2025.
+ * After that date, it will be removed and all components must use useContainerTasks.
+ * 
+ * Migration path:
+ * 1. Import useContainerTasks and CONTAINER_TYPE from './useContainerTasks'
+ * 2. Replace useTaskData() with useContainerTasks(CONTAINER_TYPE.CURRENT)
+ * 3. Access container-specific tasks via the tasks property
+ * 
+ * Example:
+ * Before: const { todayTasks, tomorrowTasks } = useTaskData();
+ * After: const { tasks } = useContainerTasks(CONTAINER_TYPE.CURRENT);
+ */
 import { useContext, useMemo } from 'react';
 import { TaskContext } from '../context/TaskContext';
-import { useSubjects } from './useSubjects';
+import { useContainerTasks, CONTAINER_TYPE } from './useContainerTasks';
+import { useRuleContext } from './useRuleContext';
+import * as P from '../rules/predicates';
+import * as ContainerRules from '../rules/containerRules';
 
 export function useTaskData() {
-    // Get tasks and subjects data from context and hooks
-    const { tasks, loading: tasksLoading, error: tasksError, completeTask, uncompleteTask } = useContext(TaskContext);
-    const { tomorrowSubjects, todaySubjects, allSubjects, isLoading: subjectsLoading, error: subjectsError } = useSubjects();
+    // Display deprecation warning in development environment
+    if (process.env.NODE_ENV === 'development') {
+        console.warn(
+            '⚠️ DEPRECATED: useTaskData is deprecated and will be removed in October 2025. ' +
+            'Use useContainerTasks instead. See useTaskData.js for migration instructions.'
+        );
+    }
     
-    // Derived loading and error states
-    const isLoading = tasksLoading || subjectsLoading;
-    const error = tasksError || subjectsError;
+    // Get tasks and task operations from TaskContext
+    const { tasks, loading: tasksLoading, error: tasksError, completeTask, uncompleteTask } = useContext(TaskContext);
+    
+    // Get rule context data for filtering
+    const { 
+        todaySubjects, 
+        tomorrowSubjects, 
+        isLoading: contextLoading, 
+        error: contextError 
+    } = useRuleContext();
+    
+    // Use the new container hooks - we'll use their filtered results to build our legacy return object
+    const currentContainer = useContainerTasks(CONTAINER_TYPE.CURRENT);
+    const futureContainer = useContainerTasks(CONTAINER_TYPE.FUTURE);
+    const archiveContainer = useContainerTasks(CONTAINER_TYPE.ARCHIVE);
+    const examContainer = useContainerTasks(CONTAINER_TYPE.EXAM);
+    
+    // Combined loading and error states
+    const isLoading = tasksLoading || contextLoading || 
+                     currentContainer.isLoading || 
+                     futureContainer.isLoading || 
+                     archiveContainer.isLoading;
+    
+    const error = tasksError || contextError || 
+                 currentContainer.error || 
+                 futureContainer.error || 
+                 archiveContainer.error;
     
     // Memoize filtered tasks to prevent recalculations on re-renders
+    // This now primarily uses results from the container hooks, but applies
+    // additional filtering for the legacy task categories
     const filteredTasks = useMemo(() => {
         // If still loading or error, return empty arrays
-        if (isLoading || error || !tasks.length) {
+        if (isLoading || error || !tasks || !Array.isArray(tasks) || tasks.length === 0) {
             return {
                 todayTasks: [],
                 todayClassTasks: [],
@@ -26,205 +76,64 @@ export function useTaskData() {
             };
         }
         
-        // Date calculations
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Get today's tasks specifically (due today, not completed)
+        const todayRule = P.matchesAll([P.isDueToday, P.isNotCompleted]);
+        const todayTasks = ContainerRules.applyRule(tasks, todayRule);
         
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        // Get today's class tasks (for today's classes, not completed, not an exam)
+        const todayClassRule = P.matchesAll([
+            P.forTodaysClasses(todaySubjects),
+            P.isNotCompleted,
+            P.not(P.isOverdue),
+            P.isNotExam
+        ]);
+        const todayClassTasks = ContainerRules.applyRule(tasks, todayClassRule);
         
-        const dayAfterTomorrow = new Date(today);
-        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+        // Get tomorrow's tasks (due tomorrow or for tomorrow's classes, not completed)
+        const tomorrowRule = P.matchesAny([
+            P.matchesAll([P.isDueTomorrow, P.isNotCompleted]),
+            P.matchesAll([
+                P.forTomorrowsClasses(tomorrowSubjects),
+                P.isNotCompleted,
+                P.not(P.isOverdue),
+                P.isNotExam
+            ])
+        ]);
+        const tomorrowTasks = ContainerRules.applyRule(tasks, tomorrowRule);
         
-        // Filter completed tasks and sort by date_added or due_date
-        const completedTasks = tasks
-            .filter(task => task.completed)
-            .sort((a, b) => {
+        // Use the container results for other task types
+        const futureTasks = futureContainer.tasks;
+        const completedTasks = ContainerRules.applyRule(tasks, P.isCompleted);
+        const archiveTasks = archiveContainer.tasks;
+        
+        // Sort tasks consistently - fixing potential bug in date comparison
+        const sortByDate = (tasks) => {
+            return [...tasks].sort((a, b) => {
                 const aDate = a.date_added ? new Date(a.date_added) : (a.due_date ? new Date(a.due_date) : new Date(0));
                 const bDate = b.date_added ? new Date(b.date_added) : (b.due_date ? new Date(b.due_date) : new Date(0));
                 return aDate - bDate; // Oldest first
             });
-        
-        // Filter tasks with past due dates for archive
-        const archiveTasks = tasks.filter(task => {
-            if (task.completed) return false;
-            
-            if (!task.due_date) return false;
-            
-            const dueDate = new Date(task.due_date);
-            dueDate.setHours(0, 0, 0, 0);
-            
-            return dueDate.getTime() < today.getTime();
-        }).sort((a, b) => {
-            const aDate = a.date_added ? new Date(a.date_added) : (a.due_date ? new Date(a.due_date) : new Date(0));
-            const bDate = b.date_added ? new Date(b.date_added) : (b.due_date ? new Date(b.due_date) : new Date(0));
-            return aDate - bDate; // Oldest first
-        });
-        
-        // Helper function to check if a task is an exam
-        const isExam = (task) => {
-            // Check if task type is exam or if task title/description contains exam-related keywords
-            return task.type === 'exam' || 
-                  (task.title && task.title.toLowerCase().includes('exam')) 
         };
-        
-        // Filter tasks for today (including exams due today)
-        const todayTasks = tasks.filter(task => {
-            if (task.completed) return false;
-            
-            if (!task.due_date) return false;
-            
-            const dueDate = new Date(task.due_date);
-            dueDate.setHours(0, 0, 0, 0);
-            
-            return dueDate.getTime() === today.getTime();
-        }).sort((a, b) => {
-            const aDate = a.date_added ? new Date(a.date_added) : (a.due_date ? new Date(a.due_date) : new Date(0));
-            const bDate = b.date_added ? new Date(b.date_added) : (b.due_date ? new Date(b.due_date) : new Date(0));
-            return aDate - bDate; // Oldest first
-        });
-
-        // Get subject IDs for today to filter today's class tasks
-        const todaySubjectIds = todaySubjects.map(subject => subject.id);
-        const todaySubjectNames = todaySubjects
-            .map(subject => subject.name?.toLowerCase())
-            .filter(Boolean);
-            
-        // Filter tasks for today's classes (non-exam homework for classes today)
-        const todayClassTasks = tasks.filter(task => {
-            // Skip completed tasks
-            if (task.completed) return false;
-            
-            // Skip exams (they're handled separately)
-            const taskIsExam = isExam(task);
-            if (taskIsExam) return false;
-            
-            // Skip tasks with past due dates
-            if (task.due_date) {
-                const dueDate = new Date(task.due_date);
-                dueDate.setHours(0, 0, 0, 0);
-                if (dueDate.getTime() < today.getTime()) return false;
-            }
-            
-            // If no subject field, can't match
-            if (!task.subject) return false;
-            
-            // Convert to lowercase string for comparison
-            const taskSubject = String(task.subject).toLowerCase();
-            
-            // Check if matches by ID
-            const matchesById = todaySubjectIds.includes(task.subject);
-            
-            // Check if matches by name
-            const matchesByName = todaySubjectNames.some(name => 
-                taskSubject.includes(name) || name.includes(taskSubject)
-            );
-            
-            return matchesById || matchesByName;
-        }).sort((a, b) => {
-            const aDate = a.date_added ? new Date(a.date_added) : (a.due_date ? new Date(a.due_date) : new Date(0));
-            const bDate = b.date_added ? new Date(b.date_added) : (b.due_date ? new Date(b.due_date) : new Date(0));
-            return aDate - bDate; // Oldest first
-        });
-        
-        // Get subject IDs for tomorrow to filter tomorrow's tasks
-        const tomorrowSubjectIds = tomorrowSubjects.map(subject => subject.id);
-        const tomorrowSubjectNames = tomorrowSubjects
-            .map(subject => subject.name?.toLowerCase())
-            .filter(Boolean);
-        
-        // Filter tasks for tomorrow - separate handling for exams and regular tasks
-        const tomorrowTasks = tasks.filter(task => {
-            // Skip completed tasks
-            if (task.completed) return false;
-            
-            // Check if it's an exam
-            const taskIsExam = isExam(task);
-            
-            // FIRST CHECK: Is this task specifically due tomorrow? If yes, include it regardless of subject
-            if (task.due_date) {
-                const dueDate = new Date(task.due_date);
-                dueDate.setHours(0, 0, 0, 0);
-                
-                if (dueDate.getTime() === tomorrow.getTime()) {
-                    return true; // Include ALL tasks due tomorrow (regardless of type or subject)
-                }
-                
-                // Skip tasks with past due dates (they go to archive)
-                if (dueDate.getTime() < today.getTime()) return false;
-            }
-            
-            // For exams that aren't due tomorrow, skip them (they're handled elsewhere)
-            if (taskIsExam) return false;
-            
-            // SECOND CHECK: For non-exam tasks, also include if they're for tomorrow's classes
-            
-            // If no subject field, can't match
-            if (!task.subject) return false;
-            
-            // Convert to lowercase string for comparison
-            const taskSubject = String(task.subject).toLowerCase();
-            
-            // Check if matches by ID
-            const matchesById = tomorrowSubjectIds.includes(task.subject);
-            
-            // Check if matches by name
-            const matchesByName = tomorrowSubjectNames.some(name => 
-                taskSubject.includes(name) || name.includes(taskSubject)
-            );
-            
-            return matchesById || matchesByName;
-        }).sort((a, b) => {
-            const aDate = a.date_added ? new Date(a.date_added) : (a.due_date ? new Date(a.due_date) : new Date(0));
-            const bDate = b.date_added ? new Date(b.date_added) : (b.due_date ? new Date(b.due_date) : new Date(0));
-            return aDate - bDate; // Oldest first
-        });
-        
-        // Filter tasks for future days
-        const futureTasks = tasks.filter(task => {
-            if (task.completed) return false;
-            
-            // Calculate a task's ID to check against today and tomorrow tasks
-            const taskId = task.id;
-            const isInTodayTasks = todayTasks.some(t => t.id === taskId);
-            const isInTomorrowTasks = tomorrowTasks.some(t => t.id === taskId);
-            
-            // Skip if this task is already in today or tomorrow tasks
-            if (isInTodayTasks || isInTomorrowTasks) return false;
-            
-            // For tasks without due dates, include them in "upcoming" if they don't qualify for today/tomorrow
-            if (!task.due_date) {
-                // Only include non-exam tasks without due dates
-                return !isExam(task); 
-            }
-            
-            const dueDate = new Date(task.due_date);
-            dueDate.setHours(0, 0, 0, 0);
-            
-            // For exams, check if due date is after tomorrow
-            if (isExam(task)) {
-                return dueDate.getTime() > tomorrow.getTime();
-            }
-            
-            // For non-exam tasks, check if due date is day after tomorrow or later
-            return dueDate.getTime() >= dayAfterTomorrow.getTime();
-        }).sort((a, b) => {
-            const aDate = a.date_added ? new Date(a.date_added) : (a.due_date ? new Date(a.due_date) : new Date(0));
-            const bDate = b.date_added ? new Date(b.date_added) : (b.due_date ? new Date(b.due_date) : new Date(0));
-            return aDate - bDate; // Oldest first
-        });
         
         return {
-            todayTasks,
-            todayClassTasks,
-            tomorrowTasks,
-            futureTasks,
-            completedTasks,
-            archiveTasks
+            todayTasks: sortByDate(todayTasks),
+            todayClassTasks: sortByDate(todayClassTasks),
+            tomorrowTasks: sortByDate(tomorrowTasks),
+            futureTasks: sortByDate(futureTasks),
+            completedTasks: sortByDate(completedTasks),
+            archiveTasks: sortByDate(archiveTasks)
         };
-    }, [tasks, todaySubjects, tomorrowSubjects, isLoading, error]);
+    }, [
+        tasks, 
+        isLoading, 
+        error, 
+        todaySubjects, 
+        tomorrowSubjects, 
+        futureContainer.tasks, 
+        archiveContainer.tasks
+    ]);
     
-    // Return the filtered tasks and loading states
+    // Return the filtered tasks and loading states - maintaining the same interface
     return {
         ...filteredTasks,
         isLoading,
@@ -233,3 +142,5 @@ export function useTaskData() {
         uncompleteTask
     };
 }
+
+export default useTaskData;

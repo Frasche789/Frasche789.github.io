@@ -9,7 +9,7 @@
  * Core responsibilities:
  * - Provides a consistent container structure for task display
  * - Adapts behavior and appearance based on containerType
- * - Handles container-specific filtering logic
+ * - Handles container-specific styling and presentation
  * - Supports toggle functionality for expandable containers
  * 
  * @param {string} containerType - "current", "future", or "archive"
@@ -18,13 +18,12 @@
 import React, { useState, useMemo } from 'react';
 import { TaskList } from './TaskList';
 import ContainerToggle from '../layout/ContainerToggle';
-import { useTimeBasedFiltering } from '../../hooks/useTimeBasedFiltering';
-import { useTaskData } from '../../hooks/useTaskData';
 import { useSubjects } from '../../hooks/useSubjects';
+import { useContainerTasks, CONTAINER_TYPE } from '../../hooks/useContainerTasks';
 
 // Container configuration by type
 const CONTAINER_CONFIG = {
-  current: {
+  [CONTAINER_TYPE.CURRENT]: {
     className: "current-tasks-container task-container container-emphasis-high",
     defaultTitle: "Current Tasks",
     defaultEmptyMessage: "No current tasks",
@@ -32,7 +31,7 @@ const CONTAINER_CONFIG = {
     defaultExpanded: true,
     emphasisLevel: "high",
   },
-  future: {
+  [CONTAINER_TYPE.FUTURE]: {
     className: "future-tasks-container task-container container-emphasis-medium",
     defaultTitle: "Upcoming Tasks",
     defaultEmptyMessage: "No upcoming tasks. You're all caught up!",
@@ -40,124 +39,100 @@ const CONTAINER_CONFIG = {
     defaultExpanded: true,
     emphasisLevel: "medium",
   },
-  archive: {
+  [CONTAINER_TYPE.ARCHIVE]: {
     className: "archive-tasks-container task-container container-emphasis-low",
     defaultTitle: "Completed Tasks",
     defaultEmptyMessage: "No completed tasks yet. Complete a task to see it here!",
     isExpandable: true,
     defaultExpanded: false,
     emphasisLevel: "low",
+  },
+  [CONTAINER_TYPE.EXAM]: {
+    className: "exam-tasks-container task-container container-emphasis-high",
+    defaultTitle: "Upcoming Exams",
+    defaultEmptyMessage: "No upcoming exams. You're all set!",
+    isExpandable: false,
+    defaultExpanded: true,
+    emphasisLevel: "high",
   }
 };
 
-function TaskContainer({ containerType }) {
-  // IMPORTANT: Call ALL hooks at the top level unconditionally
+// Valid container types list
+const VALID_CONTAINER_TYPES = Object.values(CONTAINER_TYPE);
+
+function TaskContainer({ containerType = CONTAINER_TYPE.CURRENT }) {
+  // Validate containerType prop
+  const validatedContainerType = VALID_CONTAINER_TYPES.includes(containerType) 
+    ? containerType 
+    : CONTAINER_TYPE.CURRENT;
   
-  // Get configuration for this container type - use a default if invalid
-  const config = CONTAINER_CONFIG[containerType] || CONTAINER_CONFIG.current;
+  // Get configuration for this container type
+  const config = CONTAINER_CONFIG[validatedContainerType];
   
   // State for expandable containers
   const [isExpanded, setIsExpanded] = useState(config.defaultExpanded);
   
-  // Get common data and task handlers
+  // Get subject color data
   const { getSubjectColor } = useSubjects();
   
+  // Get container-specific tasks and data using the new hook
   const { 
-    todayTasks, 
-    tomorrowTasks, 
-    futureTasks, 
-    completedTasks, 
+    tasks, 
+    isLoading, 
+    error, 
     completeTask, 
     uncompleteTask,
-    isLoading, 
-    error 
-  } = useTaskData();
+    title: containerTitle,
+    emptyMessage: containerEmptyMessage
+  } = useContainerTasks(validatedContainerType);
   
-  // Get time-based filtering data for current tasks
-  const timeBasedData = useTimeBasedFiltering();
-  
-  // Process container-specific logic using useMemo to avoid recalculations
+  // Process container-specific data using useMemo to avoid recalculations
   const containerData = useMemo(() => {
-    // Validation check
-    const isValidType = ["current", "future", "archive"].includes(containerType);
-    if (!isValidType) {
-      return {
-        isValid: false,
-        errorMessage: `Invalid container type: ${containerType}`
-      };
-    }
-    
-    let tasks = [];
-    let title = config.defaultTitle;
-    let emptyMessage = config.defaultEmptyMessage;
+    let displayTitle = containerTitle || config.defaultTitle;
+    let displayEmptyMessage = containerEmptyMessage || config.defaultEmptyMessage;
     let containerClassName = config.className;
-    let headerContent = null;
     let taskCompletionHandler = completeTask;
     
     // Container-specific logic
-    if (containerType === "current") {
-      // Current tasks container (time-based)
-      tasks = timeBasedData.activeTasks;
-      // Integrate emoji directly into the title
-      title = timeBasedData.isBeforeNoon 
-        ? `🌞 Morning Check - ${timeBasedData.title}` 
-        : `⏳ Prepping for Tomorrow - ${timeBasedData.title}`;
-      emptyMessage = timeBasedData.emptyMessage;
-      containerClassName = `${containerClassName} ${timeBasedData.isBeforeNoon ? 'today-mode' : 'tomorrow-mode'}`;
+    if (validatedContainerType === CONTAINER_TYPE.CURRENT) {
+      // Enhance title with emoji based on time of day (morning vs afternoon)
+      const timeBasedTitle = displayTitle;
+      const isMorningMode = timeBasedTitle.includes("Today");
       
-      // No custom header - integrating into title instead
+      displayTitle = isMorningMode 
+        ? `🌞 Morning Check - ${timeBasedTitle}` 
+        : `⏳ Prepping for Tomorrow - ${timeBasedTitle}`;
+      
+      containerClassName = `${containerClassName} ${isMorningMode ? 'today-mode' : 'tomorrow-mode'}`;
     } 
-    else if (containerType === "future") {
-      // Future tasks container
-      // Filter out tasks that are already displayed in the current container
-      const currentTaskIds = timeBasedData.activeTasks.map(task => task.id);
-      const filteredFutureTasks = futureTasks.filter(task => !currentTaskIds.includes(task.id));
-      
-      // Sort tasks chronologically by due date
-      tasks = [...filteredFutureTasks].sort((a, b) => {
-        const dateA = a.due_date ? new Date(a.due_date) : new Date(3000, 0, 1); // Fallback for tasks without due date
-        const dateB = b.due_date ? new Date(b.due_date) : new Date(3000, 0, 1);
-        return dateA - dateB; // Ascending (closest due dates first)
-      });
-    } 
-    else if (containerType === "archive") {
-      // Archive tasks container
-      // Sort completed tasks by completedDate (newest first)
-      tasks = [...completedTasks].sort((a, b) => {
-        const dateA = a.completedDate ? new Date(a.completedDate) : new Date(0);
-        const dateB = b.completedDate ? new Date(b.completedDate) : new Date(0);
-        return dateB - dateA; // Newest first
-      });
-      
-      // Use the uncompleteTask function to toggle tasks back to incomplete
+    else if (validatedContainerType === CONTAINER_TYPE.ARCHIVE) {
+      // Use the uncompleteTask function to toggle tasks back to incomplete for archive container
       taskCompletionHandler = uncompleteTask;
     }
     
     return {
-      isValid: true,
       tasks,
-      title,
-      emptyMessage,
+      title: displayTitle,
+      emptyMessage: displayEmptyMessage,
       containerClassName,
-      headerContent,
       taskCompletionHandler
     };
-  }, [containerType, timeBasedData, futureTasks, completedTasks, completeTask, uncompleteTask, config]);
+  }, [
+    validatedContainerType, 
+    tasks, 
+    containerTitle, 
+    containerEmptyMessage, 
+    config, 
+    completeTask, 
+    uncompleteTask
+  ]);
   
   // Toggle handler for expandable containers
   const handleToggle = () => {
     setIsExpanded(!isExpanded);
   };
   
-  // Handle all conditional returns AFTER all hooks have been called
-  
-  // First handle validation errors
-  if (!containerData.isValid) {
-    console.error(containerData.errorMessage);
-    return <div className="error">{containerData.errorMessage}</div>;
-  }
-  
-  // Then handle loading and error states
+  // Handle error and loading states
   if (error) {
     return <div className="error">{error}</div>;
   }
@@ -168,11 +143,9 @@ function TaskContainer({ containerType }) {
   
   // Extract values from the memoized container data
   const {
-    tasks,
     title,
     emptyMessage,
     containerClassName,
-    headerContent,
     taskCompletionHandler
   } = containerData;
   
@@ -197,13 +170,13 @@ function TaskContainer({ containerType }) {
                 onComplete={taskCompletionHandler}
                 emptyMessage={emptyMessage}
                 getSubjectColor={getSubjectColor}
-                containerType={containerType}
+                containerType={validatedContainerType}
               />
             </div>
           )}
         </>
       ) : (
-        // Standard container (Current & Future)
+        // Standard container (Current, Future, Exam)
         <>
           <TaskList
             title={title}
@@ -211,7 +184,7 @@ function TaskContainer({ containerType }) {
             onComplete={taskCompletionHandler}
             emptyMessage={emptyMessage}
             getSubjectColor={getSubjectColor}
-            containerType={containerType}
+            containerType={validatedContainerType}
           />
         </>
       )}

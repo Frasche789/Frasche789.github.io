@@ -2,38 +2,6 @@
 
 An ADHD/autism-friendly task management system designed specifically for neurodivergent children to visualize and complete their tasks more effectively.
 
-## Component Structure
-
-src/
-├── components/           # UI components
-│   ├── layout/           # Structural components
-│   │   ├── AppHeader.jsx
-│   │   └── Container.jsx
-│   ├── tasks/            # Task-related components
-│   │   ├── TaskCard.jsx  # Individual task display
-│   │   ├── TaskList.jsx  # Group of tasks
-│   │   ├── TaskModal.jsx # Add/edit task dialog
-│   │   └── TaskFilters.jsx
-│   ├── subjects/         # Subject-related components
-│   │   ├── SubjectPill.jsx
-│   │   └── TomorrowClasses.jsx
-│   └── common/           # Shared UI elements
-│       ├── EmptyState.jsx
-│       └── CompletionButton.jsx
-├── hooks/                # Custom React hooks
-│   ├── useTaskData.js    # Data fetching and management
-│   ├── useCategories.js  # Task categorization logic
-│   └── useSubjects.js    # Subject-related operations
-├── services/             # External service integration
-│   └── firebase.js       # Firebase setup and API
-├── utils/                # Pure utility functions
-│   ├── dateUtils.js      # Date parsing/formatting
-│   └── taskUtils.js      # Task manipulation/filtering
-├── context/              # React context providers
-│   ├── TaskContext.js    # Central task data management
-│   └── ThemeContext.js   # (Optional) UI theming
-└── App.jsx               # Application root
-
 ## Features
 
 - 📱 **Mobile-first design**: Optimized for phones with touch targets ≥48px

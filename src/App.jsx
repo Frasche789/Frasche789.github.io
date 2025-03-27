@@ -4,6 +4,7 @@ import TimeAwareSubjects from './components/subjects/TimeAwareSubjects';
 import AppHeader from './components/layout/AppHeader';
 import { SubjectProvider } from './context/SubjectContext';
 import { TaskProvider } from './context/TaskContext';
+import { CONTAINER_TYPE } from './hooks/useContainerTasks';
 import './styles.css';
 
 
@@ -14,9 +15,9 @@ function App() {
         <div className="app">
           <AppHeader />
           <TimeAwareSubjects />
-          <TaskContainer containerType="archive" />
-          <TaskContainer containerType="current" />
-          <TaskContainer containerType="future" />
+          <TaskContainer containerType={CONTAINER_TYPE.ARCHIVE} />
+          <TaskContainer containerType={CONTAINER_TYPE.CURRENT} />
+          <TaskContainer containerType={CONTAINER_TYPE.FUTURE} />
         </div>
       </SubjectProvider>
     </TaskProvider>
