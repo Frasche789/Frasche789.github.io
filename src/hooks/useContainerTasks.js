@@ -148,11 +148,26 @@ function sortTasksByContainer(tasks, containerType) {
         return bDate - aDate; // Newest first
       });
       
-    case CONTAINER_TYPE.CURRENT:
     case CONTAINER_TYPE.FUTURE:
+      // Future tasks: sort by due date (soonest first)
+      return sortedTasks.sort((a, b) => {
+        // For tasks without due dates, set to far future date
+        const aDate = a.due_date ? new Date(a.due_date) : new Date(3000, 0, 1);
+        const bDate = b.due_date ? new Date(b.due_date) : new Date(3000, 0, 1);
+        return aDate - bDate; // Soonest first
+      });
+      
     case CONTAINER_TYPE.EXAM:
+      // Exam tasks: sort by due date (closest first)
+      return sortedTasks.sort((a, b) => {
+        const aDate = a.due_date ? new Date(a.due_date) : new Date(3000, 0, 1);
+        const bDate = b.due_date ? new Date(b.due_date) : new Date(3000, 0, 1);
+        return aDate - bDate; // Closest due date first
+      });
+      
+    case CONTAINER_TYPE.CURRENT:
     default:
-      // Default sorting: by added/due date (oldest first)
+      // Current container: prioritize today's tasks first, then sort by creation date
       return sortedTasks.sort((a, b) => {
         const aDate = a.date_added ? new Date(a.date_added) : 
                      (a.due_date ? new Date(a.due_date) : new Date(0));

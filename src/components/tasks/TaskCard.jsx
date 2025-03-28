@@ -1,6 +1,6 @@
 // src/components/tasks/TaskCard.jsx - Individual task display component
 import React, { useState, useRef, useEffect } from 'react';
-import { formatDate, getRelativeTextFromISODate, isToday } from '../../utils/dateUtils';
+import { getRelativeTextFromISODate, isToday } from '../../utils/dateUtils';
 import { CONTAINER_TYPE } from '../../hooks/useContainerTasks';
 
 /**

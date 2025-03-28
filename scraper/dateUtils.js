@@ -104,18 +104,13 @@ function findNextClassOccurrence(subject, fromDate = new Date(), weeklySchedule 
   // Default weekly schedule - subjects and their weekdays (0 = Sunday, 1 = Monday, etc.)
   // This can be overridden by passing a different schedule
   const schedule = weeklySchedule || {
-    'Math': [1, 2, 3, 4],       // Monday, Tuesday, Wednesday, Thursday
-    'Finnish': [2, 3, 4, 5],    // Tuesday, Wednesday, Thursday, Friday
-    'English': [3, 4],          // Wednesday, Thursday
-    'History': [2],             // Tuesday
-    'Civics': [5],              // Friday
-    'Ethics': [3],              // Wednesday
-    'Eco': [1, 4],              // Monday, Thursday
-    'Art': [5],                 // Friday
-    'Crafts': [1],              // Monday
-    'Music': [2],               // Tuesday
-    'PE': [1, 2],               // Monday, Tuesday
-    'Digi': [5]                 // Friday
+    'Math': [1, 3, 5],       // Monday, Wednesday, Friday
+    'Finnish': [1, 2, 4],    // Monday, Tuesday, Thursday
+    'English': [2, 4],       // Tuesday, Thursday
+    'History': [3, 5],       // Wednesday, Friday
+    'Civics': [2, 4],        // Tuesday, Thursday
+    'Ethics': [3],           // Wednesday
+    'Eco': [1, 5]            // Monday, Friday
   };
   
   // Get the subject's schedule (case insensitive match)
