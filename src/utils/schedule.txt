@@ -1,0 +1,5 @@
+Monday: Math, Eco, Crafts, PE  
+Tuesday: Math, Finnish, History, Music, PE  
+Wednesday: Finnish, Math, English, Ethics
+Thursday: English, Math, Eco, Finnish  
+Friday: Art, Civics, Finnish, Digi 

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Board</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  
+  <!-- External stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <style>
+    /* Additional critical styles */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+      color: var(--text-muted);
+    }
+    
+    .error {
+      background-color: rgba(242, 95, 92, 0.1);
+      border: 1px solid var(--accent-danger);
+      color: var(--accent-danger);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="card">
+      <h1>Task Board</h1>
+      <p>ADHD-Optimized Task Tracking</p>
+    </header>
+
+    <div class="container">
+      <div id="loading" class="loading">Loading tasks...</div>
+      <div id="error" class="error" style="display: none;"></div>
+      
+      <!-- Today tasks section -->
+      <div id="today-tasks" class="task-list-container" style="display: none;">
+        <h2 class="section-title">What's up today</h2>
+        <div id="today-tasks-list" class="task-list"></div>
+      </div>
+      
+      <!-- Upcoming tasks section -->
+      <div id="upcoming-tasks" class="task-list-container" style="display: none;">
+        <h2 class="section-title">Coming up</h2>
+        <div id="upcoming-tasks-list" class="task-list"></div>
+      </div>
+      
+      <!-- Completed tasks section -->
+      <div id="completed-tasks" class="task-list-container" style="display: none;">
+        <h2 class="section-title">Completed</h2>
+        <div id="completed-tasks-list" class="task-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
+      authDomain: "questboard-17337.firebaseapp.com",
+      projectId: "questboard-17337",
+      storageBucket: "questboard-17337.appspot.com",
+      messagingSenderId: "427884628874",
+      appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // DOM Elements
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const todayTasksEl = document.getElementById('today-tasks');
+    const todayTasksListEl = document.getElementById('today-tasks-list');
+    const upcomingTasksEl = document.getElementById('upcoming-tasks');
+    const upcomingTasksListEl = document.getElementById('upcoming-tasks-list');
+    const completedTasksEl = document.getElementById('completed-tasks');
+    const completedTasksListEl = document.getElementById('completed-tasks-list');
+    
+    // Format date for comparison - converts to DD.MM.YYYY
+    function formatDate(date) {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}.${month}.${year}`;
+    }
+    
+    // Today's date in Finnish format
+    const today = formatDate(new Date());
+    
+    // Create a task card element
+    function createTaskCard(task) {
+      const cardEl = document.createElement('div');
+      
+      // Determine classes based on task properties
+      const subject = (task.subject || 'other').toLowerCase();
+      const type = task.type || 'task';
+      const completed = task.status === 'completed' || false;
+      
+      const classes = [
+        'task-card',
+        `subject-${subject}`,
+        completed ? 'completed-task' : '',
+        type === 'exam' ? 'exam-task' : ''
+      ].filter(Boolean).join(' ');
+      
+      cardEl.className = classes;
+      
+      cardEl.innerHTML = `
+        <div class="task-card-inner">
+          <button 
+            class="complete-btn" 
+            ${completed ? 'disabled' : ''}
+            aria-label="${completed ? "Task completed" : "Mark as complete"}"
+          >
+            ${completed ? '✓' : ''}
+          </button>
+          
+          <div class="task-card-content">
+            <div class="task-card-header">
+              <span class="task-subject subject-badge ${subject}">
+                ${task.subject || 'Unknown'}
+              </span>
+              
+              <span class="task-type ${type === 'exam' ? 'exam-badge' : 'task-badge'}">
+                ${type}
+              </span>
+            </div>
+            
+            <div class="task-description">
+              ${task.description || 'No description'}
+            </div>
+            
+            <div class="task-meta">
+              <span>Due: ${task.due_date || 'No due date'}</span>
+            </div>
+            
+            ${completed ? '<div class="completed-stamp">Completed</div>' : ''}
+          </div>
+        </div>
+      `;
+      
+      // Add completion button handler
+      if (!completed) {
+        const completeBtn = cardEl.querySelector('.complete-btn');
+        completeBtn.addEventListener('click', async () => {
+          try {
+            // Update in Firestore
+            await db.collection('tasks').doc(task.id).update({
+              status: 'completed'
+            });
+            
+            // Update UI - remove from current list and add to completed
+            cardEl.remove();
+            
+            // Create a completed version of the card
+            task.status = 'completed';
+            const completedCardEl = createTaskCard(task);
+            
+            // Add to completed list
+            completedTasksListEl.prepend(completedCardEl);
+            
+            // Show completed section if it was empty
+            completedTasksEl.style.display = 'block';
+            
+            // Check if section is now empty
+            if (task.due_date === today) {
+              if (todayTasksListEl.children.length === 0) {
+                todayTasksListEl.innerHTML = '<div class="empty-state"><p>No tasks for today - enjoy your free time!</p></div>';
+              }
+            } else {
+              if (upcomingTasksListEl.children.length === 0) {
+                upcomingTasksListEl.innerHTML = '<div class="empty-state"><p>No upcoming tasks</p></div>';
+              }
+            }
+          } catch (err) {
+            console.error('Error completing task:', err);
+            showError('Failed to update task status');
+          }
+        });
+      }
+      
+      return cardEl;
+    }
+    
+    // Show error message
+    function showError(message) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      loadingEl.style.display = 'none';
+    }
+    
+    // Load tasks from Firestore
+    async function loadTasks() {
+      try {
+        // Fetch tasks from Firestore
+        const querySnapshot = await db.collection('tasks').get();
+        
+        if (querySnapshot.empty) {
+          loadingEl.style.display = 'none';
+          todayTasksEl.style.display = 'block';
+          upcomingTasksEl.style.display = 'block';
+          
+          todayTasksListEl.innerHTML = '<div class="empty-state"><p>No tasks found in database</p></div>';
+          upcomingTasksListEl.innerHTML = '<div class="empty-state"><p>No upcoming tasks</p></div>';
+          return;
+        }
+        
+        // Group tasks by category
+        const todayTasks = [];
+        const upcomingTasks = [];
+        const completedTasks = [];
+        
+        querySnapshot.forEach(doc => {
+          const task = {
+            id: doc.id,
+            ...doc.data()
+          };
+          
+          // Check if task is completed
+          if (task.status === 'completed') {
+            completedTasks.push(task);
+          } else if (task.due_date === today) {
+            todayTasks.push(task);
+          } else {
+            upcomingTasks.push(task);
+          }
+        });
+        
+        // Sort tasks by due date
+        const sortByDueDate = (a, b) => {
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+          return a.due_date.localeCompare(b.due_date);
+        };
+        
+        todayTasks.sort(sortByDueDate);
+        upcomingTasks.sort(sortByDueDate);
+        completedTasks.sort((a, b) => sortByDueDate(b, a)); // Newest completed first
+        
+        // Render today's tasks
+        if (todayTasks.length > 0) {
+          todayTasksListEl.innerHTML = '';
+          todayTasks.forEach(task => {
+            todayTasksListEl.appendChild(createTaskCard(task));
+          });
+          todayTasksEl.style.display = 'block';
+        } else {
+          todayTasksListEl.innerHTML = '<div class="empty-state"><p>No tasks for today - enjoy your free time!</p></div>';
+          todayTasksEl.style.display = 'block';
+        }
+        
+        // Render upcoming tasks
+        if (upcomingTasks.length > 0) {
+          upcomingTasksListEl.innerHTML = '';
+          upcomingTasks.forEach(task => {
+            upcomingTasksListEl.appendChild(createTaskCard(task));
+          });
+          upcomingTasksEl.style.display = 'block';
+        } else {
+          upcomingTasksListEl.innerHTML = '<div class="empty-state"><p>No upcoming tasks</p></div>';
+          upcomingTasksEl.style.display = 'block';
+        }
+        
+        // Render completed tasks
+        if (completedTasks.length > 0) {
+          completedTasksListEl.innerHTML = '';
+          completedTasks.forEach(task => {
+            completedTasksListEl.appendChild(createTaskCard(task));
+          });
+          completedTasksEl.style.display = 'block';
+        } else {
+          completedTasksListEl.innerHTML = '<div class="empty-state"><p>Nothing completed yet</p></div>';
+          completedTasksEl.style.display = 'block';
+        }
+        
+        // Hide loading indicator
+        loadingEl.style.display = 'none';
+        
+      } catch (err) {
+        console.error('Error loading tasks:', err);
+        showError('Failed to load tasks: ' + err.message);
+      }
+    }
+    
+    // Initialize application
+    loadTasks();
+  </script>
+</body>
+</html>

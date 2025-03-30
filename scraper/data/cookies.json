@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Wilma2SID",
+    "value": "bbaa51e5fbcf5f2647e5d81d1b1a528b",
+    "domain": "opetustampere.inschool.fi",
+    "path": "/",
+    "expires": -1,
+    "size": 41,
+    "httpOnly": true,
+    "secure": true,
+    "session": true,
+    "sameSite": "Lax",
+    "priority": "Medium",
+    "sameParty": false,
+    "sourceScheme": "Secure"
+  }
+]

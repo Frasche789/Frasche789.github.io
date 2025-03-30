@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Test</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #0d1b2a;
+      color: #e0e1dd;
+    }
+    .task-card {
+      background: #243b55;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .task-subject {
+      font-weight: bold;
+      color: #4CC9F0;
+      margin-bottom: 5px;
+    }
+    .task-description {
+      margin-bottom: 10px;
+    }
+    .loading {
+      font-size: 18px;
+      text-align: center;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Firebase Connection Test</h1>
+  <div id="status">Checking connection...</div>
+  <div id="tasks"></div>
+
+  <script>
+    // Direct Firebase initialization and test
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
+      authDomain: "questboard-17337.firebaseapp.com",
+      projectId: "questboard-17337",
+      storageBucket: "questboard-17337.appspot.com",
+      messagingSenderId: "427884628874",
+      appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    const statusEl = document.getElementById('status');
+    const tasksEl = document.getElementById('tasks');
+
+    async function testConnection() {
+      try {
+        statusEl.textContent = 'Connecting to Firestore...';
+        
+        // Try to fetch tasks
+        const tasksSnapshot = await db.collection('tasks').get();
+        
+        if (tasksSnapshot.empty) {
+          statusEl.textContent = 'Connected to Firestore, but no tasks found.';
+          return;
+        }
+        
+        statusEl.textContent = `Connected successfully! Found ${tasksSnapshot.size} tasks:`;
+        
+        // Display tasks
+        tasksSnapshot.forEach(doc => {
+          const data = doc.data();
+          const taskEl = document.createElement('div');
+          taskEl.className = 'task-card';
+          
+          taskEl.innerHTML = `
+            <div class="task-subject">${data.subject || 'Unknown subject'}</div>
+            <div class="task-description">${data.description || 'No description'}</div>
+            <div>Type: ${data.type || 'task'}</div>
+            <div>Due: ${data.due_date || 'No due date'}</div>
+            <div>Status: ${data.status || 'unknown'}</div>
+          `;
+          
+          tasksEl.appendChild(taskEl);
+        });
+        
+      } catch (error) {
+        statusEl.textContent = 'Connection failed: ' + error.message;
+        console.error('Error:', error);
+      }
+    }
+
+    // Run the test
+    testConnection();
+  </script>
+</body>
+</html>

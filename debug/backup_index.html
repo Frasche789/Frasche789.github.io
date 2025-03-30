@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Task Board app optimized for neurospicy users">
+  <title>Task Board</title>
+  <link rel="icon" href="/favicon.ico" />
+  <!-- Directly add Firebase SDK to ensure it's available -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  
+  <script>
+    // Initialization fallback script
+    document.addEventListener('DOMContentLoaded', function() {
+      // Firebase config (same as in src/firebase.js)
+      const firebaseConfig = {
+        apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
+        authDomain: "questboard-17337.firebaseapp.com",
+        projectId: "questboard-17337",
+        storageBucket: "questboard-17337.appspot.com",
+        messagingSenderId: "427884628874",
+        appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
+      };
+
+      // Try to initialize Firebase if not already initialized
+      try {
+        if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+          firebase.initializeApp(firebaseConfig);
+          console.log("Firebase initialized via fallback script");
+        }
+      } catch (err) {
+        console.error("Firebase initialization error:", err);
+      }
+    });
+  </script>
+</head>
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+  <!-- Scripts are automatically injected by the build process -->
+</body>
+</html>

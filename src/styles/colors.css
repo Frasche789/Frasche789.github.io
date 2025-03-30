@@ -1,0 +1,259 @@
+/* 
+ * ADHD-Optimized Subject Color System
+ * 
+ * This file centralizes all color definitions for the Quest Board application,
+ * with special emphasis on creating consistent subject color associations
+ * that help ADHD users quickly identify related information across
+ * different containers and components.
+ */
+
+:root {
+  /* 
+   * BASE COLORS
+   * Core color palette for the application
+   */
+  
+  /* Background colors - dark blue theme */
+  --bg-primary: #0d1b2a;
+  --bg-secondary: #1b263b;
+  --bg-card: #243b55;
+  --bg-card-hover: #2c4c6b;
+  
+  /* Text colors */
+  --text-primary: #e0e1dd;
+  --text-secondary: #c7c8c9;
+  --text-muted: #9ca0a3;
+  --text-accent: #ffffff;
+  
+  /* Accent colors */
+  --accent-primary: #4CC9F0;
+  --accent-secondary: #F72585;
+  --accent-success: #4BC99C;
+  --accent-danger: #F25F5C;
+  --accent-warning: #FFD166;
+  
+  /* Task indicators */
+  --exam-color: #F25F5C;
+  --exam-today-color: #FF5A5F;
+  --exam-tomorrow-color: #FF9E00;
+  --task-color: #118AB2;
+  
+  /* 
+   * SUBJECT BASE COLORS 
+   * Vibrant, distinctive colors with good contrast against dark backgrounds
+   * These are the "pure" color values at 100% opacity
+   */
+  --subject-math-base: #4CC9F0;      /* Bright blue */
+  --subject-finnish-base: #90E0EF;   /* Light blue */
+  --subject-english-base: #F72585;   /* Magenta */
+  --subject-history-base: #B5179E;   /* Purple */
+  --subject-civics-base: #7209B7;    /* Deep purple */
+  --subject-ethics-base: #6A00F4;    /* Violet */
+  --subject-pe-base: #480CA8;        /* Indigo */
+  --subject-music-base: #D100D1;     /* Hot pink */
+  --subject-art-base: #F15BB5;       /* Pink */
+  --subject-crafts-base: #FEE440;    /* Yellow */
+  --subject-eco-base: #06D6A0;       /* Teal */
+  --subject-digi-base: #118AB2;      /* Cyan */
+  --subject-other-base: #9ca0a3;     /* Gray (matches text-muted) */
+}
+
+/* 
+ * CONTAINER-SPECIFIC SUBJECT COLORS
+ * These variables adjust subject colors for specific container contexts
+ * while maintaining color recognition.
+ */
+
+/* For high-emphasis containers (Current Tasks) */
+:root {
+  --subject-math-high: var(--subject-math-base);
+  --subject-finnish-high: var(--subject-finnish-base);
+  --subject-english-high: var(--subject-english-base);
+  --subject-history-high: var(--subject-history-base);
+  --subject-civics-high: var(--subject-civics-base);
+  --subject-ethics-high: var(--subject-ethics-base);
+  --subject-pe-high: var(--subject-pe-base);
+  --subject-music-high: var(--subject-music-base);
+  --subject-art-high: var(--subject-art-base);
+  --subject-crafts-high: var(--subject-crafts-base);
+  --subject-eco-high: var(--subject-eco-base);
+  --subject-digi-high: var(--subject-digi-base);
+  --subject-other-high: var(--subject-other-base);
+}
+
+/* For medium-emphasis containers (Future Tasks) */
+:root {
+  --subject-math-medium: var(--subject-math-base);
+  --subject-finnish-medium: var(--subject-finnish-base);
+  --subject-english-medium: var(--subject-english-base);
+  --subject-history-medium: var(--subject-history-base);
+  --subject-civics-medium: var(--subject-civics-base);
+  --subject-ethics-medium: var(--subject-ethics-base);
+  --subject-pe-medium: var(--subject-pe-base);
+  --subject-music-medium: var(--subject-music-base);
+  --subject-art-medium: var(--subject-art-base);
+  --subject-crafts-medium: var(--subject-crafts-base);
+  --subject-eco-medium: var(--subject-eco-base);
+  --subject-digi-medium: var(--subject-digi-base);
+  --subject-other-medium: var(--subject-other-base);
+}
+
+/* For low-emphasis containers (Archive Tasks) - slightly muted while maintaining recognition */
+:root {
+  --subject-math-low: rgba(76, 201, 240, 0.85);      /* Muted blue */
+  --subject-finnish-low: rgba(144, 224, 239, 0.85);  /* Muted light blue */
+  --subject-english-low: rgba(247, 37, 133, 0.85);   /* Muted magenta */
+  --subject-history-low: rgba(181, 23, 158, 0.85);   /* Muted purple */
+  --subject-civics-low: rgba(114, 9, 183, 0.85);     /* Muted deep purple */
+  --subject-ethics-low: rgba(106, 0, 244, 0.85);     /* Muted violet */
+  --subject-pe-low: rgba(72, 12, 168, 0.85);         /* Muted indigo */
+  --subject-music-low: rgba(209, 0, 209, 0.85);      /* Muted hot pink */
+  --subject-art-low: rgba(241, 91, 181, 0.85);       /* Muted pink */
+  --subject-crafts-low: rgba(254, 228, 64, 0.85);    /* Muted yellow */
+  --subject-eco-low: rgba(6, 214, 160, 0.85);        /* Muted teal */
+  --subject-digi-low: rgba(17, 138, 178, 0.85);      /* Muted cyan */
+  --subject-other-low: rgba(156, 160, 163, 0.85);    /* Muted gray */
+}
+
+/* 
+ * LEGACY COMPATIBILITY VARIABLES
+ * These maintain backwards compatibility with existing code
+ * while we transition to the new system
+ */
+:root {
+  --subject-math: var(--subject-math-base);
+  --subject-finnish: var(--subject-finnish-base);
+  --subject-english: var(--subject-english-base);
+  --subject-history: var(--subject-history-base);
+  --subject-civics: var(--subject-civics-base);
+  --subject-ethics: var(--subject-ethics-base);
+  --subject-pe: var(--subject-pe-base);
+  --subject-music: var(--subject-music-base);
+  --subject-art: var(--subject-art-base);
+  --subject-crafts: var(--subject-crafts-base);
+  --subject-eco: var(--subject-eco-base);
+  --subject-digi: var(--subject-digi-base);
+}
+
+/* 
+ * SUBJECT COLOR APPLICATION UTILITIES
+ * Classes that apply subject colors consistently across components
+ */
+
+/* 
+ * Subject badges - Maintains consistent colors across containers
+ * while respecting container emphasis levels
+ */
+
+/* High emphasis container badges */
+.container-emphasis-high .subject-badge.math { background-color: var(--subject-math-high); }
+.container-emphasis-high .subject-badge.finnish { background-color: var(--subject-finnish-high); }
+.container-emphasis-high .subject-badge.english { background-color: var(--subject-english-high); }
+.container-emphasis-high .subject-badge.history { background-color: var(--subject-history-high); }
+.container-emphasis-high .subject-badge.civics { background-color: var(--subject-civics-high); }
+.container-emphasis-high .subject-badge.ethics { background-color: var(--subject-ethics-high); }
+.container-emphasis-high .subject-badge.pe { background-color: var(--subject-pe-high); }
+.container-emphasis-high .subject-badge.music { background-color: var(--subject-music-high); }
+.container-emphasis-high .subject-badge.art { background-color: var(--subject-art-high); }
+.container-emphasis-high .subject-badge.crafts { background-color: var(--subject-crafts-high); }
+.container-emphasis-high .subject-badge.eco { background-color: var(--subject-eco-high); }
+.container-emphasis-high .subject-badge.digi { background-color: var(--subject-digi-high); }
+.container-emphasis-high .subject-badge.other { background-color: var(--subject-other-high); }
+
+/* Medium emphasis container badges */
+.container-emphasis-medium .subject-badge.math { background-color: var(--subject-math-medium); }
+.container-emphasis-medium .subject-badge.finnish { background-color: var(--subject-finnish-medium); }
+.container-emphasis-medium .subject-badge.english { background-color: var(--subject-english-medium); }
+.container-emphasis-medium .subject-badge.history { background-color: var(--subject-history-medium); }
+.container-emphasis-medium .subject-badge.civics { background-color: var(--subject-civics-medium); }
+.container-emphasis-medium .subject-badge.ethics { background-color: var(--subject-ethics-medium); }
+.container-emphasis-medium .subject-badge.pe { background-color: var(--subject-pe-medium); }
+.container-emphasis-medium .subject-badge.music { background-color: var(--subject-music-medium); }
+.container-emphasis-medium .subject-badge.art { background-color: var(--subject-art-medium); }
+.container-emphasis-medium .subject-badge.crafts { background-color: var(--subject-crafts-medium); }
+.container-emphasis-medium .subject-badge.eco { background-color: var(--subject-eco-medium); }
+.container-emphasis-medium .subject-badge.digi { background-color: var(--subject-digi-medium); }
+.container-emphasis-medium .subject-badge.other { background-color: var(--subject-other-medium); }
+
+/* Low emphasis container badges */
+.container-emphasis-low .subject-badge.math { background-color: var(--subject-math-low); }
+.container-emphasis-low .subject-badge.finnish { background-color: var(--subject-finnish-low); }
+.container-emphasis-low .subject-badge.english { background-color: var(--subject-english-low); }
+.container-emphasis-low .subject-badge.history { background-color: var(--subject-history-low); }
+.container-emphasis-low .subject-badge.civics { background-color: var(--subject-civics-low); }
+.container-emphasis-low .subject-badge.ethics { background-color: var(--subject-ethics-low); }
+.container-emphasis-low .subject-badge.pe { background-color: var(--subject-pe-low); }
+.container-emphasis-low .subject-badge.music { background-color: var(--subject-music-low); }
+.container-emphasis-low .subject-badge.art { background-color: var(--subject-art-low); }
+.container-emphasis-low .subject-badge.crafts { background-color: var(--subject-crafts-low); }
+.container-emphasis-low .subject-badge.eco { background-color: var(--subject-eco-low); }
+.container-emphasis-low .subject-badge.digi { background-color: var(--subject-digi-low); }
+.container-emphasis-low .subject-badge.other { background-color: var(--subject-other-low); }
+
+/* 
+ * Task card left borders - Ensures visual connection with badges
+ * while respecting container emphasis levels
+ */
+
+/* High emphasis container borders */
+.container-emphasis-high .task-card.subject-math { border-left-color: var(--subject-math-high); }
+.container-emphasis-high .task-card.subject-finnish { border-left-color: var(--subject-finnish-high); }
+.container-emphasis-high .task-card.subject-english { border-left-color: var(--subject-english-high); }
+.container-emphasis-high .task-card.subject-history { border-left-color: var(--subject-history-high); }
+.container-emphasis-high .task-card.subject-civics { border-left-color: var(--subject-civics-high); }
+.container-emphasis-high .task-card.subject-ethics { border-left-color: var(--subject-ethics-high); }
+.container-emphasis-high .task-card.subject-pe { border-left-color: var(--subject-pe-high); }
+.container-emphasis-high .task-card.subject-music { border-left-color: var(--subject-music-high); }
+.container-emphasis-high .task-card.subject-art { border-left-color: var(--subject-art-high); }
+.container-emphasis-high .task-card.subject-crafts { border-left-color: var(--subject-crafts-high); }
+.container-emphasis-high .task-card.subject-eco { border-left-color: var(--subject-eco-high); }
+.container-emphasis-high .task-card.subject-digi { border-left-color: var(--subject-digi-high); }
+.container-emphasis-high .task-card.subject-other { border-left-color: var(--subject-other-high); }
+
+/* Medium emphasis container borders */
+.container-emphasis-medium .task-card.subject-math { border-left-color: var(--subject-math-medium); }
+.container-emphasis-medium .task-card.subject-finnish { border-left-color: var(--subject-finnish-medium); }
+.container-emphasis-medium .task-card.subject-english { border-left-color: var(--subject-english-medium); }
+.container-emphasis-medium .task-card.subject-history { border-left-color: var(--subject-history-medium); }
+.container-emphasis-medium .task-card.subject-civics { border-left-color: var(--subject-civics-medium); }
+.container-emphasis-medium .task-card.subject-ethics { border-left-color: var(--subject-ethics-medium); }
+.container-emphasis-medium .task-card.subject-pe { border-left-color: var(--subject-pe-medium); }
+.container-emphasis-medium .task-card.subject-music { border-left-color: var(--subject-music-medium); }
+.container-emphasis-medium .task-card.subject-art { border-left-color: var(--subject-art-medium); }
+.container-emphasis-medium .task-card.subject-crafts { border-left-color: var(--subject-crafts-medium); }
+.container-emphasis-medium .task-card.subject-eco { border-left-color: var(--subject-eco-medium); }
+.container-emphasis-medium .task-card.subject-digi { border-left-color: var(--subject-digi-medium); }
+.container-emphasis-medium .task-card.subject-other { border-left-color: var(--subject-other-medium); }
+
+/* Low emphasis container borders */
+.container-emphasis-low .task-card.subject-math { border-left-color: var(--subject-math-low); }
+.container-emphasis-low .task-card.subject-finnish { border-left-color: var(--subject-finnish-low); }
+.container-emphasis-low .task-card.subject-english { border-left-color: var(--subject-english-low); }
+.container-emphasis-low .task-card.subject-history { border-left-color: var(--subject-history-low); }
+.container-emphasis-low .task-card.subject-civics { border-left-color: var(--subject-civics-low); }
+.container-emphasis-low .task-card.subject-ethics { border-left-color: var(--subject-ethics-low); }
+.container-emphasis-low .task-card.subject-pe { border-left-color: var(--subject-pe-low); }
+.container-emphasis-low .task-card.subject-music { border-left-color: var(--subject-music-low); }
+.container-emphasis-low .task-card.subject-art { border-left-color: var(--subject-art-low); }
+.container-emphasis-low .task-card.subject-crafts { border-left-color: var(--subject-crafts-low); }
+.container-emphasis-low .task-card.subject-eco { border-left-color: var(--subject-eco-low); }
+.container-emphasis-low .task-card.subject-digi { border-left-color: var(--subject-digi-low); }
+.container-emphasis-low .task-card.subject-other { border-left-color: var(--subject-other-low); }
+
+/* 
+ * Subject pills for TomorrowClasses component 
+ * Uses the same color system for consistency
+ */
+.subject-pill.math, .subject-pill.subject-math { background-color: var(--subject-math-high); }
+.subject-pill.finnish, .subject-pill.subject-finnish { background-color: var(--subject-finnish-high); }
+.subject-pill.english, .subject-pill.subject-english { background-color: var(--subject-english-high); }
+.subject-pill.history, .subject-pill.subject-history { background-color: var(--subject-history-high); }
+.subject-pill.civics, .subject-pill.subject-civics { background-color: var(--subject-civics-high); }
+.subject-pill.ethics, .subject-pill.subject-ethics { background-color: var(--subject-ethics-high); }
+.subject-pill.pe, .subject-pill.subject-pe { background-color: var(--subject-pe-high); }
+.subject-pill.music, .subject-pill.subject-music { background-color: var(--subject-music-high); }
+.subject-pill.art, .subject-pill.subject-art { background-color: var(--subject-art-high); }
+.subject-pill.crafts, .subject-pill.subject-crafts { background-color: var(--subject-crafts-high); }
+.subject-pill.eco, .subject-pill.subject-eco { background-color: var(--subject-eco-high); }
+.subject-pill.digi, .subject-pill.subject-digi { background-color: var(--subject-digi-high); }
+.subject-pill.other, .subject-pill.subject-other { background-color: var(--subject-other-high); }
