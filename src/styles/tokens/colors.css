@@ -1,0 +1,246 @@
+/* 
+ * Color System for TaskBoard
+ * 
+ * A comprehensive, semantic color system for the ADHD-optimized TaskBoard application.
+ * Organized in layers from primitive color values to contextual applications.
+ */
+
+ :root {
+  /* ==========================================================================
+     1. COLOR PRIMITIVES
+     Base color values without semantic meaning - never use directly in components
+     ========================================================================== */
+  
+  /* Core blue theme palette */
+  --blue-50: #f0f9ff;
+  --blue-100: #e0f2fe;
+  --blue-200: #bae6fd;
+  --blue-300: #7dd3fc;
+  --blue-400: #38bdf8;
+  --blue-500: #0ea5e9;
+  --blue-600: #0284c7;
+  --blue-700: #0369a1;
+  --blue-800: #075985;
+  --blue-900: #0c4a6e;
+  --blue-950: #082f49;
+  
+  /* Neutral gray palette */
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  --gray-950: #010724;
+  
+  /* Subject colors - vibrant, distinctive hues optimized for dark theme */
+  --hue-math: #4cc9f0;      /* Bright blue */
+  --hue-finnish: #90e0ef;   /* Light blue */
+  --hue-english: #f72585;   /* Magenta */
+  --hue-history: #b5179e;   /* Purple */
+  --hue-civics: #7209b7;    /* Deep purple */
+  --hue-ethics: #6a00f4;    /* Violet */
+  --hue-pe: #480ca8;        /* Indigo */
+  --hue-music: #d100d1;     /* Hot pink */
+  --hue-art: #f15bb5;       /* Pink */
+  --hue-crafts: #fee440;    /* Yellow */
+  --hue-eco: #06d6a0;       /* Teal */
+  --hue-digi: #118ab2;      /* Cyan */
+  --hue-other: #9ca0a3;     /* Gray (matches text-muted) */
+
+  /* ==========================================================================
+     2. SEMANTIC COLOR ASSIGNMENTS
+     Semantic meaning applied to color values - use these in components
+     ========================================================================== */
+  
+  /* Background colors */
+  --color-bg-primary: #080E21;          /* Main background */
+  --color-bg-secondary: #111936;        /* Card backgrounds, raised elements */
+  --color-bg-tertiary: #1E2A4A;         /* Container backgrounds */
+  --color-bg-elevated: #2A3A64;         /* Hoverable elements */
+  
+  /* Text colors */
+  --color-text-primary: #E6EDF8;        /* Main text */
+  --color-text-secondary: #B0C5E5;      /* Secondary text */
+  --color-text-muted: #6D82A8;          /* Muted text */
+  --color-text-inverse: #FFFFFF;        /* Text on accent backgrounds */
+  
+  /* Border colors */
+  --color-border-light: #2A3A64;        /* Subtle borders */
+  --color-border-medium: #1E2A4A;       /* Standard borders */
+  --color-border-strong: #080E21;       /* Emphasized borders */
+  
+  /* Action colors */
+  --color-action-primary: #25f7e6;      /* Primary buttons, links */
+  --color-action-secondary: #47D6FF;    /* Secondary actions */
+  --color-action-success: #56F287;      /* Success states */
+  --color-action-danger: #FF5D5D;       /* Error states, destructive actions */
+  --color-action-warning: #FFD343;    /* Warning indicators */
+
+  /* ==========================================================================
+     3. COMPONENT-SPECIFIC COLORS
+     Specific applications of color for particular components and states
+     ========================================================================== */
+  
+  /* Task type indicators */
+  --color-task-homework: var(--color-action-primary);
+  --color-task-exam: var(--color-action-danger);
+  --color-task-exam-today: #ff5a5f;
+  --color-task-exam-tomorrow: #ff9e00;
+  
+  /* Background gradient stops for container styling */
+  --color-gradient-top: rgba(2, 6, 23, 0.99);      /* Top of container gradient */
+  --color-gradient-bottom: rgba(30, 41, 59, 0.92); /* Bottom of container gradient */
+}
+
+/* ==========================================================================
+   4. EMPHASIS LEVEL VARIATIONS
+   Color variations for different emphasis levels
+   ========================================================================== */
+
+/* High emphasis colors (Today's tasks) */
+:root {
+  /* Subject colors at high emphasis */
+  --color-subject-math-high: var(--hue-math);
+  --color-subject-finnish-high: var(--hue-finnish);
+  --color-subject-english-high: var(--hue-english);
+  --color-subject-history-high: var(--hue-history);
+  --color-subject-civics-high: var(--hue-civics);
+  --color-subject-ethics-high: var(--hue-ethics);
+  --color-subject-pe-high: var(--hue-pe);
+  --color-subject-music-high: var(--hue-music);
+  --color-subject-art-high: var(--hue-art);
+  --color-subject-crafts-high: var(--hue-crafts);
+  --color-subject-eco-high: var(--hue-eco);
+  --color-subject-digi-high: var(--hue-digi);
+  --color-subject-other-high: var(--hue-other);
+  
+  /* Text colors at high emphasis */
+  --color-text-primary-high: var(--color-text-primary);
+  --color-text-secondary-high: var(--color-text-secondary);
+  
+  /* Container colors at high emphasis */
+  --color-container-border-high: var(--color-action-primary);
+  --color-container-bg-high: linear-gradient(180deg, 
+    rgba(2, 6, 23, 0.99) 0%,
+    rgba(30, 41, 59, 0.95) 100%);
+}
+
+/* Medium emphasis colors (Tomorrow/Future tasks) */
+:root {
+  /* Subject colors at medium emphasis */
+  --color-subject-math-medium: var(--hue-math);
+  --color-subject-finnish-medium: var(--hue-finnish);
+  --color-subject-english-medium: var(--hue-english);
+  --color-subject-history-medium: var(--hue-history);
+  --color-subject-civics-medium: var(--hue-civics);
+  --color-subject-ethics-medium: var(--hue-ethics);
+  --color-subject-pe-medium: var(--hue-pe);
+  --color-subject-music-medium: var(--hue-music);
+  --color-subject-art-medium: var(--hue-art);
+  --color-subject-crafts-medium: var(--hue-crafts);
+  --color-subject-eco-medium: var(--hue-eco);
+  --color-subject-digi-medium: var(--hue-digi);
+  --color-subject-other-medium: var(--hue-other);
+  
+  /* Container colors at medium emphasis */
+  --color-container-border-medium: var(--color-action-secondary);
+  --color-container-bg-medium: linear-gradient(180deg, 
+    rgba(2, 6, 23, 0.97) 0%,
+    rgba(30, 41, 59, 0.9) 100%);
+}
+
+/* Low emphasis colors (Archive tasks) */
+:root {
+  /* Subject colors at low emphasis - muted with transparency */
+  --color-subject-math-low: rgba(76, 201, 240, 0.8);
+  --color-subject-finnish-low: rgba(144, 224, 239, 0.8);
+  --color-subject-english-low: rgba(247, 37, 133, 0.8);
+  --color-subject-history-low: rgba(181, 23, 158, 0.8);
+  --color-subject-civics-low: rgba(114, 9, 183, 0.8);
+  --color-subject-ethics-low: rgba(106, 0, 244, 0.8);
+  --color-subject-pe-low: rgba(72, 12, 168, 0.8);
+  --color-subject-music-low: rgba(209, 0, 209, 0.8);
+  --color-subject-art-low: rgba(241, 91, 181, 0.8);
+  --color-subject-crafts-low: rgba(254, 228, 64, 0.8);
+  --color-subject-eco-low: rgba(6, 214, 160, 0.8);
+  --color-subject-digi-low: rgba(17, 138, 178, 0.8);
+  --color-subject-other-low: rgba(156, 160, 163, 0.8);
+  
+  /* Container colors at low emphasis */
+  --color-container-border-low: var(--color-border-light);
+  --color-container-bg-low: linear-gradient(180deg, 
+    rgba(2, 6, 23, 0.9) 0%,
+    rgba(30, 41, 59, 0.8) 100%);
+}
+
+/* ==========================================================================
+   5. LEGACY COMPATIBILITY VARIABLES
+   Support for components not yet updated to the new system
+   ========================================================================== */
+
+:root {
+  /* Background colors - dark blue theme */
+  --bg-primary: var(--color-bg-primary);
+  --bg-secondary: var(--color-bg-secondary);
+  --bg-card: var(--color-bg-tertiary);
+  --bg-card-hover: var(--color-bg-elevated);
+  
+  /* Text colors */
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+  --text-accent: var(--color-text-primary);
+  
+  /* Accent colors */
+  --accent-primary: var(--color-action-primary);
+  --accent-secondary: var(--color-action-secondary);
+  --accent-success: var(--color-action-success);
+  --accent-danger: var(--color-action-danger);
+  --accent-warning: var(--color-action-warning);
+  
+  /* Subject colors */
+  --subject-math: var(--color-subject-math-high);
+  --subject-finnish: var(--color-subject-finnish-high);
+  --subject-english: var(--color-subject-english-high);
+  --subject-history: var(--color-subject-history-high);
+  --subject-civics: var(--color-subject-civics-high);
+  --subject-ethics: var(--color-subject-ethics-high);
+  --subject-pe: var(--color-subject-pe-high);
+  --subject-music: var(--color-subject-music-high);
+  --subject-art: var(--color-subject-art-high);
+  --subject-crafts: var(--color-subject-crafts-high);
+  --subject-eco: var(--color-subject-eco-high);
+  --subject-digi: var(--color-subject-digi-high);
+  --subject-other: var(--color-subject-other-high);
+}
+
+/* ==========================================================================
+   6. HIGH CONTRAST MODE OVERRIDES
+   Higher contrast alternatives for accessibility
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+  :root {
+    /* Increase contrast for text */
+    --color-text-primary: white;
+    --color-text-secondary: #e0e0e0;
+    --color-text-muted: #bfbfbf;
+    
+    /* Increase contrast for borders */
+    --color-border-light: #666666;
+    --color-border-medium: #999999;
+    --color-border-strong: white;
+    
+    /* Make action colors more distinct */
+    --color-action-primary: #0080ff;
+    --color-action-secondary: #ff0080;
+    --color-action-success: #00cc00;
+    --color-action-danger: #ff0000;
+    --color-action-warning: #ffcc00;
+  }
+}

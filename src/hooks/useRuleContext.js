@@ -13,9 +13,33 @@
  * @returns {Object} Context data for rule evaluation
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSubjects } from './useSubjects';
 import { TIME_OF_DAY } from '../rules/containerRules';
+
+// Create a performance monitoring utility for hook calls
+const createPerformanceMonitor = (namespace) => {
+  const callCounts = new Map();
+  const logThreshold = 5; // Only log issues after this many calls
+  
+  return {
+    trackCall: (name) => {
+      if (process.env.NODE_ENV !== 'development') return;
+      
+      const count = (callCounts.get(name) || 0) + 1;
+      callCounts.set(name, count);
+      
+      if (count === logThreshold) {
+        console.warn(`[${namespace}] Performance warning: ${name} called ${count} times`);
+      }
+    },
+    reset: () => {
+      callCounts.clear();
+    }
+  };
+};
+
+const rulePerformance = createPerformanceMonitor('RuleContext');
 
 /**
  * Hook that provides contextual data for rule evaluation
@@ -28,6 +52,12 @@ import { TIME_OF_DAY } from '../rules/containerRules';
  * @property {string|null} error - Error message if any
  */
 export function useRuleContext() {
+  // For debugging - track how often this hook is called
+  rulePerformance.trackCall('useRuleContext');
+  
+  // Track time transitions to minimize unnecessary updates
+  const lastTimeOfDay = useRef(null);
+  
   // Get subject data from useSubjects hook
   const { 
     todaySubjects, 
@@ -37,32 +67,59 @@ export function useRuleContext() {
   } = useSubjects();
   
   // State to store and update current time
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(() => new Date());
   
   // Determine time of day (morning or afternoon) based on current hour
   const timeOfDay = useMemo(() => {
     const hour = currentTime.getHours();
-    return hour < 12 ? TIME_OF_DAY.MORNING : TIME_OF_DAY.AFTERNOON;
+    const newTimeOfDay = hour < 12 ? TIME_OF_DAY.MORNING : TIME_OF_DAY.AFTERNOON;
+    
+    // Log time transitions but only when they actually happen
+    if (lastTimeOfDay.current !== null && lastTimeOfDay.current !== newTimeOfDay) {
+      console.log(`Time transition: Switching from ${lastTimeOfDay.current} to ${newTimeOfDay} mode`);
+    }
+    
+    // Update ref to track last time of day
+    lastTimeOfDay.current = newTimeOfDay;
+    
+    return newTimeOfDay;
   }, [currentTime]);
   
-  // Update time every 10 minutes to ensure accurate time-of-day tracking
+  // Update time every hour to ensure accurate time-of-day tracking
+  // Changed from 10 minutes to 1 hour to reduce unnecessary updates
   useEffect(() => {
-    // Update immediately to ensure correct initial state
-    setCurrentTime(new Date());
+    // Skip immediate update if we already have a valid time
+    const now = new Date();
+    if (Math.abs(now - currentTime) < 1000) {
+      // Current time is recent enough, no need to update
+    } else {
+      setCurrentTime(now);
+    }
     
-    // Set up interval for updates
+    // Set up interval for updates - hourly instead of every 10 minutes
     const intervalId = setInterval(() => {
       const newTime = new Date();
-      setCurrentTime(newTime);
       
-      // Log time transitions for debugging
+      // Check if this update would change the time of day
+      const currentHour = currentTime.getHours();
       const newHour = newTime.getHours();
-      if (newHour === 12 && newTime.getMinutes() < 10) {
-        console.log('Time transition: Switching from morning to afternoon mode');
+      const wouldChangeTimeOfDay = (currentHour < 12 && newHour >= 12) || 
+                                  (currentHour >= 12 && newHour < 12);
+      
+      // Only update state if needed to avoid unnecessary renders
+      if (wouldChangeTimeOfDay) {
+        setCurrentTime(newTime);
+        console.log('Time update triggered time-of-day change');
       }
-    }, 10 * 60 * 1000); // 10 minutes
+    }, 60 * 60 * 1000); // 60 minutes
     
     return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [currentTime]);
+  
+  // Reset performance tracking on mount
+  useEffect(() => {
+    rulePerformance.reset();
+    return () => {};
   }, []);
   
   // Memoize the full context object to prevent unnecessary re-renders

@@ -1,89 +1,23 @@
-/**
- * TaskContainer
- * 
- * A unified, configurable container for task display that replaces:
- * - CurrentTasksContainer (today/tomorrow tasks)
- * - FutureTaskContainer (upcoming tasks)
- * - ArchiveTasksContainer (completed tasks)
- * 
- * Core responsibilities:
- * - Provides a consistent container structure for task display
- * - Adapts behavior and appearance based on containerType
- * - Handles container-specific styling and presentation
- * - Supports toggle functionality for expandable containers
- * 
- * @param {string} containerType - "current", "tomorrow", "future", or "archive"
- */
-
-import React, { useState, useMemo } from 'react';
-import { TaskList } from './TaskList';
-import ContainerToggle from '../layout/ContainerToggle';
-import { useSubjects } from '../../hooks/useSubjects';
+import React, { useState } from 'react';
+import TaskCard from './TaskCard';
 import { useContainerTasks, CONTAINER_TYPE } from '../../hooks/useContainerTasks';
 
-// Container configuration by type
-const CONTAINER_CONFIG = {
-  [CONTAINER_TYPE.CURRENT]: {
-    className: "current-tasks-container task-container container-emphasis-high",
-    defaultTitle: "Today's Tasks",
-    defaultEmptyMessage: "No tasks due today",
-    isExpandable: false,
-    defaultExpanded: true,
-    emphasisLevel: "high",
-  },
-  [CONTAINER_TYPE.TOMORROW]: {
-    className: "tomorrow-tasks-container task-container container-emphasis-medium-high",
-    defaultTitle: "Tomorrow's Tasks",
-    defaultEmptyMessage: "No tasks due tomorrow",
-    isExpandable: false,
-    defaultExpanded: true,
-    emphasisLevel: "medium-high",
-  },
-  [CONTAINER_TYPE.FUTURE]: {
-    className: "future-tasks-container task-container container-emphasis-medium",
-    defaultTitle: "Upcoming Tasks",
-    defaultEmptyMessage: "No upcoming tasks. You're all caught up!",
-    isExpandable: false,
-    defaultExpanded: true,
-    emphasisLevel: "medium",
-  },
-  [CONTAINER_TYPE.ARCHIVE]: {
-    className: "archive-tasks-container task-container container-emphasis-low",
-    defaultTitle: "Completed Tasks",
-    defaultEmptyMessage: "No completed tasks yet. Complete a task to see it here!",
-    isExpandable: true,
-    defaultExpanded: false,
-    emphasisLevel: "low",
-  },
-  [CONTAINER_TYPE.EXAM]: {
-    className: "exam-tasks-container task-container container-emphasis-high",
-    defaultTitle: "Upcoming Exams",
-    defaultEmptyMessage: "No upcoming exams. You're all set!",
-    isExpandable: false,
-    defaultExpanded: true,
-    emphasisLevel: "high",
-  }
-};
 
-// Valid container types list
-const VALID_CONTAINER_TYPES = Object.values(CONTAINER_TYPE);
-
-function TaskContainer({ containerType = CONTAINER_TYPE.CURRENT }) {
-  // Validate containerType prop
-  const validatedContainerType = VALID_CONTAINER_TYPES.includes(containerType) 
-    ? containerType 
-    : CONTAINER_TYPE.CURRENT;
-  
-  // Get configuration for this container type
-  const config = CONTAINER_CONFIG[validatedContainerType];
-  
-  // State for expandable containers
-  const [isExpanded, setIsExpanded] = useState(config.defaultExpanded);
-  
-  // Get subject color data
-  const { getSubjectColor } = useSubjects();
-  
-  // Get container-specific tasks and data using the new hook
+/**
+ * TaskContainer - A unified container component for task display that adapts 
+ * based on container type and emphasis level.
+ * 
+ * @param {Object} props - Component props
+ * @param {string} props.containerType - Container type from CONTAINER_TYPE enum
+ * @param {boolean} props.showTitle - Whether to show the container title
+ * @param {React.ReactNode} props.children - Optional children components to render in the container
+ */
+function TaskContainer({ 
+  containerType = CONTAINER_TYPE.CURRENT,
+  showTitle = true,
+  children
+}) {
+  // Get container-specific tasks and data using the container hooks
   const { 
     tasks, 
     isLoading, 
@@ -92,110 +26,163 @@ function TaskContainer({ containerType = CONTAINER_TYPE.CURRENT }) {
     uncompleteTask,
     title: containerTitle,
     emptyMessage: containerEmptyMessage
-  } = useContainerTasks(validatedContainerType);
+  } = useContainerTasks(containerType);
   
-  // Process container-specific data using useMemo to avoid recalculations
-  const containerData = useMemo(() => {
-    let displayTitle = containerTitle || config.defaultTitle;
-    let displayEmptyMessage = containerEmptyMessage || config.defaultEmptyMessage;
-    let containerClassName = config.className;
-    let taskCompletionHandler = completeTask;
+  // For archive container, track expanded state
+  const [isExpanded, setIsExpanded] = useState(containerType !== CONTAINER_TYPE.ARCHIVE);
+  
+  // Get the appropriate CSS classes based on container type
+  const getContainerClasses = () => {
+    const baseClasses = ['task-container'];
     
-    // Container-specific logic
-    if (validatedContainerType === CONTAINER_TYPE.CURRENT) {
-      // Enhance title with emoji based on time of day (morning vs afternoon)
-      const timeBasedTitle = displayTitle;
-      const isMorningMode = timeBasedTitle.includes("Today");
-      
-      displayTitle = isMorningMode 
-        ? `🌞 Morning Check - ${timeBasedTitle}` 
-        : `⏳ Prepping for Tomorrow - ${timeBasedTitle}`;
-      
-      containerClassName = `${containerClassName} ${isMorningMode ? 'today-mode' : 'tomorrow-mode'}`;
-    } 
-    else if (validatedContainerType === CONTAINER_TYPE.ARCHIVE) {
-      // Use the uncompleteTask function to toggle tasks back to incomplete for archive container
-      taskCompletionHandler = uncompleteTask;
+    // Add emphasis level class
+    switch(containerType) {
+      case CONTAINER_TYPE.CURRENT:
+        baseClasses.push('container-emphasis-high');
+        break;
+      case CONTAINER_TYPE.TOMORROW:
+        baseClasses.push('container-emphasis-medium-high');
+        break;
+      case CONTAINER_TYPE.FUTURE:
+        baseClasses.push('container-emphasis-medium');
+        break;
+      case CONTAINER_TYPE.ARCHIVE:
+      case CONTAINER_TYPE.EXAM:
+      default:
+        baseClasses.push('container-emphasis-low');
     }
     
-    return {
-      tasks,
-      title: displayTitle,
-      emptyMessage: displayEmptyMessage,
-      containerClassName,
-      taskCompletionHandler
-    };
-  }, [
-    validatedContainerType, 
-    tasks, 
-    containerTitle, 
-    containerEmptyMessage, 
-    config, 
-    completeTask, 
-    uncompleteTask
-  ]);
+    // Add container type specific class
+    baseClasses.push(`${containerType}-tasks-container`);
+    
+    // Add loading/error states if needed
+    if (isLoading) baseClasses.push('is-loading');
+    if (error) baseClasses.push('has-error');
+    
+    return baseClasses.join(' ');
+  };
   
-  // Toggle handler for expandable containers
+  // Handle toggle for expandable containers (Archive)
   const handleToggle = () => {
     setIsExpanded(!isExpanded);
   };
   
-  // Handle error and loading states
-  if (error) {
-    return <div className="error">{error}</div>;
-  }
+  // Task completion handler - use the appropriate function based on container type
+  const handleTaskComplete = (taskId) => {
+    if (containerType === CONTAINER_TYPE.ARCHIVE) {
+      // For archive container, uncomplete tasks to move them back
+      uncompleteTask(taskId);
+    } else {
+      // For all other containers, mark tasks as complete
+      completeTask(taskId);
+    }
+  };
   
+  // Show loading state
   if (isLoading) {
-    return <div className="loading">Loading tasks...</div>;
+    return (
+      <div className={getContainerClasses()}>
+        <div className="task-container__content">
+          <div className="loading-text">
+            <div className="loading-indicator"></div>
+            <p>Loading tasks...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
   
-  // Extract values from the memoized container data
-  const {
-    title,
-    emptyMessage,
-    containerClassName,
-    taskCompletionHandler
-  } = containerData;
+  // Show error state
+  if (error) {
+    return (
+      <div className={getContainerClasses()}>
+        <div className="task-container__error">{error}</div>
+      </div>
+    );
+  }
   
-  // Render the appropriate container structure
-  return (
-    <div className={containerClassName}>
-      {config.isExpandable ? (
-        // Expandable container (Archive)
-        <>
-          <ContainerToggle 
-            onToggle={handleToggle}
-            title={title}
-            description={`${tasks.length} tasks completed`}
-            isExpanded={isExpanded}
-          />
-          
-          {isExpanded && (
-            <div className="archive-content">
-              <TaskList
-                title="Your Accomplishments"
-                tasks={tasks}
-                onComplete={taskCompletionHandler}
-                emptyMessage={emptyMessage}
-                getSubjectColor={getSubjectColor}
-                containerType={validatedContainerType}
-              />
+  // For archive container, render with toggle
+  if (containerType === CONTAINER_TYPE.ARCHIVE) {
+    return (
+      <div className={getContainerClasses()}>
+        <button 
+          className="container-toggle" 
+          onClick={handleToggle}
+          aria-expanded={isExpanded}
+          aria-controls="archive-content"
+        >
+          <div className={`toggle-content ${isExpanded ? 'expanded' : ''}`}>
+            <span className="toggle-title">{containerTitle || "Completed Tasks"}</span>
+            <span className="toggle-icon">{isExpanded ? '▼' : '▲'}</span>
+          </div>
+          <p>{tasks.length} tasks completed</p>
+        </button>
+        
+        <div id="archive-content" className={`archive-content ${isExpanded ? 'visible' : ''}`}>
+          {tasks.length > 0 ? (
+            <div className="task-list">
+              {tasks.map(task => (
+                <TaskCard 
+                  key={task.id} 
+                  task={task} 
+                  onComplete={handleTaskComplete}
+                  containerType={containerType}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="task-container__empty">
+              <span className="task-container__empty-icon">✓</span>
+              <p className="task-container__empty-text">
+                {containerEmptyMessage || "No completed tasks yet"}
+              </p>
             </div>
           )}
-        </>
-      ) : (
-        // Standard container (Current, Future, Exam)
-        <>
-          <TaskList
-            title={title}
-            tasks={tasks}
-            onComplete={taskCompletionHandler}
-            emptyMessage={emptyMessage}
-            getSubjectColor={getSubjectColor}
-            containerType={validatedContainerType}
-          />
-        </>
+        </div>
+      </div>
+    );
+  }
+  
+  // For all other containers, render standard view
+  return (
+    <div className={getContainerClasses()}>
+      {showTitle && (
+        <div className="task-container__header">
+          <h2 className="task-container__title">{containerTitle}</h2>
+          {tasks.length > 0 && (
+            <span className="task-container__count">{tasks.length}</span>
+          )}
+        </div>
       )}
+      
+      {/* Render children components (e.g., TodaySubjects or TomorrowSubjects) if provided */}
+      {children && (
+        <div className="task-container__subjects">
+          {children}
+        </div>
+      )}
+      
+      <div className="task-container__content">
+        {tasks.length > 0 ? (
+          <div className="task-list">
+            {tasks.map(task => (
+              <TaskCard 
+                key={task.id} 
+                task={task} 
+                onComplete={handleTaskComplete}
+                containerType={containerType}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="task-container__empty">
+            <span className="task-container__empty-icon">✓</span>
+            <p className="task-container__empty-text">
+              {containerEmptyMessage || "No tasks to display"}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

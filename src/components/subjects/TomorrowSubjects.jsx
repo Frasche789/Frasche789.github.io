@@ -1,9 +1,19 @@
+/**
+ * TomorrowSubjects
+ * 
+ * A component that displays tomorrow's classes.
+ * To be used in the tomorrow container.
+ * 
+ * This optimizes information presentation for ADHD/autism users by showing
+ * contextually relevant information.
+ */
+
 import React from 'react';
 import { useSubjects } from '../../hooks/useSubjects';
 
-function TomorrowClasses() {
+function TomorrowSubjects() {
   const { tomorrowSubjects, isLoading, error } = useSubjects();
-
+  
   if (isLoading) {
     return <div className="loading">Loading tomorrow's classes...</div>;
   }
@@ -13,8 +23,7 @@ function TomorrowClasses() {
   }
 
   return (
-    <div className="tomorrow-classes">
-      <h2 className="section-title">TOMORROW'S CLASSES</h2>
+    <div className="tomorrow-subjects">
       {tomorrowSubjects.length > 0 ? (
         <div className="subject-list">
           {tomorrowSubjects.map(subject => (
@@ -27,10 +36,10 @@ function TomorrowClasses() {
           ))}
         </div>
       ) : (
-        <p>No classes scheduled for tomorrow</p>
+        <p>No school tomorrow</p>
       )}
     </div>
   );
 }
 
-export default TomorrowClasses;
+export default TomorrowSubjects;

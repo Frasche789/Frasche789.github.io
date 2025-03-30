@@ -1,0 +1,257 @@
+/* 
+ * Emphasis Utilities
+ * 
+ * Utility classes for controlling visual emphasis
+ * and information hierarchy across components.
+ */
+
+/* ==========================================================================
+   1. Text Emphasis Utilities
+   Control the visual weight of text
+   ========================================================================== */
+/* Font weight */
+.text-normal { font-weight: var(--weight-normal); }
+.text-medium { font-weight: var(--weight-medium); }
+.text-semibold { font-weight: var(--weight-semibold); }
+.text-bold { font-weight: var(--weight-bold); }
+.text-extrabold { font-weight: var(--weight-extrabold); }
+
+/* Font size */
+.text-xs { font-size: var(--text-xs); }
+.text-sm { font-size: var(--text-sm); }
+.text-base { font-size: var(--text-base); }
+.text-md { font-size: var(--text-md); }
+.text-lg { font-size: var(--text-lg); }
+.text-xl { font-size: var(--text-xl); }
+.text-2xl { font-size: var(--text-2xl); }
+.text-3xl { font-size: var(--text-3xl); }
+
+/* Text color */
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-muted { color: var(--color-text-muted); }
+.text-inverse { color: var(--color-text-inverse); }
+
+/* Text decoration */
+.text-underline { text-decoration: underline; }
+.text-strike { text-decoration: line-through; }
+.text-no-underline { text-decoration: none; }
+
+/* Text transform */
+.text-uppercase { text-transform: uppercase; }
+.text-lowercase { text-transform: lowercase; }
+.text-capitalize { text-transform: capitalize; }
+
+/* Line height */
+.leading-none { line-height: var(--leading-none); }
+.leading-tight { line-height: var(--leading-tight); }
+.leading-snug { line-height: var(--leading-snug); }
+.leading-normal { line-height: var(--leading-normal); }
+.leading-relaxed { line-height: var(--leading-relaxed); }
+.leading-loose { line-height: var(--leading-loose); }
+
+/* Letter spacing */
+.tracking-tighter { letter-spacing: var(--tracking-tighter); }
+.tracking-tight { letter-spacing: var(--tracking-tight); }
+.tracking-normal { letter-spacing: var(--tracking-normal); }
+.tracking-wide { letter-spacing: var(--tracking-wide); }
+.tracking-wider { letter-spacing: var(--tracking-wider); }
+.tracking-widest { letter-spacing: var(--tracking-widest); }
+
+/* ==========================================================================
+   2. Visual Emphasis Modifiers
+   Utilities for emphasizing or de-emphasizing content
+   ========================================================================== */
+/* Opacity variations */
+.opacity-100 { opacity: 1; }
+.opacity-90 { opacity: 0.9; }
+.opacity-80 { opacity: 0.8; }
+.opacity-70 { opacity: 0.7; }
+.opacity-60 { opacity: 0.6; }
+.opacity-50 { opacity: 0.5; }
+.opacity-40 { opacity: 0.4; }
+.opacity-30 { opacity: 0.3; }
+.opacity-20 { opacity: 0.2; }
+.opacity-10 { opacity: 0.1; }
+.opacity-0 { opacity: 0; }
+
+/* Blur effects */
+.blur-sm { filter: blur(2px); }
+.blur { filter: blur(4px); }
+.blur-lg { filter: blur(8px); }
+.blur-xl { filter: blur(16px); }
+.blur-none { filter: blur(0); }
+
+/* Contrast adjustments */
+.contrast-more { filter: contrast(1.1); }
+.contrast-less { filter: contrast(0.9); }
+
+/* Focus/Highlight styles */
+.focus-ring {
+  outline: 2px solid var(--color-action-primary);
+  outline-offset: 2px;
+}
+
+.highlight {
+  background-color: rgba(76, 201, 240, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.2em;
+}
+
+.highlight-warning {
+  background-color: rgba(255, 209, 102, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.2em;
+}
+
+.highlight-danger {
+  background-color: rgba(242, 95, 92, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.2em;
+}
+
+/* ==========================================================================
+   3. Emphasis Level Classes
+   Standardized emphasis level classes for consistency
+   ========================================================================== */
+/* Can be applied to any component to ensure consistent emphasis */
+.emphasis-high {
+  opacity: 1;
+  z-index: 3;
+}
+
+.emphasis-medium-high {
+  opacity: 0.95;
+  z-index: 2;
+}
+
+.emphasis-medium {
+  opacity: 0.9;
+  z-index: 1;
+}
+
+.emphasis-low {
+  opacity: 0.8;
+  z-index: 0;
+}
+
+/* ==========================================================================
+   4. Status-Based Emphasis
+   Classes for highlighting based on task states
+   ========================================================================== */
+/* Due status emphasis */
+.emphasis-due-today {
+  position: relative;
+}
+
+.emphasis-due-today::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-action-danger);
+  animation: pulse 2s infinite;
+}
+
+.emphasis-due-tomorrow {
+  position: relative;
+}
+
+.emphasis-due-tomorrow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-action-warning);
+}
+
+/* Completion state emphasis */
+.emphasis-completed {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+/* ==========================================================================
+   5. Interaction Emphasis
+   Hover and focus states for interactive elements
+   ========================================================================== */
+.hover-elevate {
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.hover-elevate:hover,
+.hover-elevate:focus {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.hover-highlight {
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.hover-highlight:hover,
+.hover-highlight:focus {
+  background-color: var(--color-bg-elevated);
+}
+
+/* ==========================================================================
+   6. Animation Emphasis
+   Classes for animated attention
+   ========================================================================== */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s var(--ease-out) forwards;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.5s var(--ease-out) forwards;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-5%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Disable animations for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .animate-bounce,
+  .animate-fade-in,
+  .animate-slide-in {
+    animation: none !important;
+  }
+  
+  .hover-elevate:hover,
+  .hover-elevate:focus {
+    transform: none;
+  }
+}

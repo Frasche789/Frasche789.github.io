@@ -35,7 +35,9 @@ export function getTimeOfDay(date = new Date()) {
 /**
  * Rule for the current container tasks
  * 
- * Shows tasks due today AND tasks for today's classes, regardless of time of day
+ * Shows tasks due today AND tasks for today's classes, AND tasks due tomorrow
+ * This is optimized for ADHD/autism users by providing advance visibility to reduce anxiety
+ * and improve planning.
  * 
  * @param {Object} context - Context for rule evaluation
  * @param {string} context.timeOfDay - Current time of day (not used in updated implementation)
@@ -43,10 +45,13 @@ export function getTimeOfDay(date = new Date()) {
  * @returns {function} A predicate function to filter tasks for the current container
  */
 export function currentContainerRule({ todaySubjects = [] }) {
-  // Current container always shows today's tasks regardless of time of day
+  // Current container shows today's tasks and tasks due tomorrow for better planning
   return P.matchesAny([
     // Tasks due today (non-completed)
     P.matchesAll([P.isDueToday, P.isNotCompleted]),
+    
+    // NEW: Tasks due tomorrow (non-completed)
+    P.matchesAll([P.isDueTomorrow, P.isNotCompleted]),
     
     // Tasks for today's classes (not completed, not overdue, not an exam)
     P.matchesAll([
@@ -100,10 +105,10 @@ export function futureContainerRule() {
     P.not(P.isDueToday),
     P.not(P.isDueTomorrow),
     
-    // Due in the future OR has no due date (but not an exam)
+    // Either due in the future or has no due date
     P.matchesAny([
       P.isDueFuture,
-      P.matchesAll([P.hasNoDueDate, P.isNotExam])
+      P.hasNoDueDate
     ])
   ]);
 }

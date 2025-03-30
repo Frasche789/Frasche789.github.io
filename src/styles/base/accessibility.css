@@ -1,0 +1,181 @@
+/* 
+ * Accessibility Styles for TaskBoard
+ * 
+ * Enhanced accessibility features beyond the basic reset.
+ * Focused on supporting different user needs.
+ */
+
+/* ==========================================================================
+   Focus styles
+   Clear focus indicators for keyboard navigation
+   ========================================================================== */
+   :focus {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  /* Style focus-visible only when keyboard focused (modern browsers) */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+  
+  :focus-visible {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  /* ==========================================================================
+     Skip links
+     Allow keyboard users to skip to main content
+     ========================================================================== */
+  .skip-to-content {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    z-index: 9999;
+    padding: var(--space-md);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    text-decoration: none;
+  }
+  
+  .skip-to-content:focus {
+    top: 0;
+    left: 0;
+  }
+  
+  /* ==========================================================================
+     Reduced motion preferences
+     ========================================================================== */
+  @media (prefers-reduced-motion: reduce) {
+    *, 
+    *::before, 
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* ==========================================================================
+     Touch targets
+     Ensure all interactive elements are large enough for touch
+     ========================================================================== */
+  button,
+  .button,
+  a[role="button"],
+  input,
+  select,
+  [role="checkbox"],
+  [role="radio"] {
+    min-height: var(--touch-target-size);
+    min-width: var(--touch-target-size);
+  }
+  
+  /* Make sure inline links are still easy to tap */
+  a:not([role="button"]) {
+    display: inline-block;
+    padding: var(--space-xxs);
+    margin: calc(-1 * var(--space-xxs));
+  }
+  
+  /* ==========================================================================
+     Color contrast helpers
+     ========================================================================== */
+  .high-contrast-text {
+    color: white !important;
+    text-shadow: 0 0 1px rgba(0, 0, 0, 0.6);
+  }
+  
+  .light-text-on-dark {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+  }
+  
+  .dark-text-on-light {
+    color: var(--color-bg-primary);
+    background-color: var(--color-text-primary);
+  }
+  
+  /* ==========================================================================
+     High contrast mode adaptations
+     ========================================================================== */
+  @media (prefers-contrast: more) {
+    /* Increase contrast for text */
+    body {
+      color: white;
+      background-color: black;
+    }
+    
+    /* Enhance all borders */
+    *:focus {
+      outline: 3px solid white !important;
+    }
+    
+    /* Enhance all borders */
+    .task-card {
+      border: 2px solid white;
+    }
+    
+    /* Make text more legible */
+    .task-card__description {
+      color: white !important;
+    }
+    
+    /* Ensure buttons are clearly visible */
+    button, 
+    .button {
+      border: 2px solid white;
+    }
+    
+    /* Enhance visibility of status indicators */
+    .task-completed-stamp {
+      background-color: black;
+      border: 2px solid white;
+      color: white;
+    }
+  }
+  
+  /* ==========================================================================
+     Screen reader only content
+     Visually hide content but keep it accessible to screen readers
+     ========================================================================== */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  /* ==========================================================================
+     Screen size adaptations for readability
+     ========================================================================== */
+  @media screen and (max-width: 480px) {
+    html {
+      /* Slightly increased font size on very small screens */
+      font-size: 110%;
+    }
+  }
+  
+  /* ==========================================================================
+     Prefers reduced data
+     Simplify UI for users with data-saving preferences
+     ========================================================================== */
+  @media (prefers-reduced-data: reduce) {
+    /* Disable any background images or large data elements */
+    body {
+      background-image: none !important;
+    }
+    
+    /* Disable animations that might consume unnecessary resources */
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }

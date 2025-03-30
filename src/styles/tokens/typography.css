@@ -1,0 +1,220 @@
+/* 
+ * Typography System for TaskBoard
+ * 
+ * A comprehensive typography system optimized for the TaskBoard application.
+ * Organized in layers from base typographic tokens to component-specific implementations.
+ * Optimized for ADHD users with clear hierarchical structure and readability.
+ */
+
+ :root {
+    /* ==========================================================================
+       1. FONT FAMILIES
+       Base font definitions
+       ========================================================================== */
+    
+    /* Primary font stack - Nunito for readability and friendly appearance */
+    --font-primary: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+                   Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    
+    /* Monospace font stack for code or structured data */
+    --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, 
+                 Consolas, 'Liberation Mono', 'Courier New', monospace;
+    
+    /* ==========================================================================
+       2. FONT SIZES
+       Scale of font sizes from smallest to largest
+       ========================================================================== */
+    
+    /* Type scale with 1.25 (major third) ratio */
+    --text-xs: 0.75rem;      /* 12px */
+    --text-sm: 0.875rem;     /* 14px */
+    --text-base: 1rem;       /* 16px */
+    --text-md: 1.125rem;     /* 18px */
+    --text-lg: 1.25rem;      /* 20px */
+    --text-xl: 1.5rem;       /* 24px */
+    --text-2xl: 1.75rem;     /* 28px */
+    --text-3xl: 2rem;        /* 32px */
+    --text-4xl: 2.5rem;      /* 40px */
+    
+    /* Specialized microtext for badges and indicators */
+    --text-micro: 0.6875rem; /* 11px */
+    
+    /* ==========================================================================
+       3. FONT WEIGHTS
+       Standard font weights used throughout the interface
+       ========================================================================== */
+    
+    --weight-normal: 400;   /* Regular text */
+    --weight-medium: 500;   /* Slightly emphasized text */
+    --weight-semibold: 600; /* Sub-headings, important content */
+    --weight-bold: 700;     /* Headings, emphasis */
+    --weight-extrabold: 800; /* Extra emphasis, used sparingly */
+    
+    /* ==========================================================================
+       4. LINE HEIGHTS
+       Line height definitions for different text contexts
+       ========================================================================== */
+    
+    --leading-none: 1;      /* For headings, badges */
+    --leading-tight: 1.25;  /* For compact UI elements */
+    --leading-snug: 1.375;  /* Slightly compact */
+    --leading-normal: 1.5;  /* Default body text */
+    --leading-relaxed: 1.625; /* Slightly loose */
+    --leading-loose: 2;     /* Very loose spacing */
+    
+    /* ==========================================================================
+       5. TEXT DECORATIONS
+       Standardized text decorations
+       ========================================================================== */
+    
+    --tracking-tighter: -0.05em;  /* Tighter letter spacing */
+    --tracking-tight: -0.025em;   /* Slightly tighter letter spacing */
+    --tracking-normal: 0;         /* Normal letter spacing */
+    --tracking-wide: 0.025em;     /* Slightly wider letter spacing */
+    --tracking-wider: 0.05em;     /* Wider letter spacing */
+    --tracking-widest: 0.1em;     /* Widest letter spacing, for small caps */
+    
+    /* ==========================================================================
+       6. COMPONENT TYPOGRAPHY
+       Component-specific typography values
+       ========================================================================== */
+    
+    /* App Header Typography */
+    --app-title-size: var(--text-2xl);
+    --app-title-weight: var(--weight-bold);
+    --app-title-leading: var(--leading-tight);
+    --app-subtitle-size: var(--text-base);
+    --app-subtitle-weight: var(--weight-medium);
+    --app-subtitle-color: var(--color-text-secondary);
+    
+    /* Container Header Typography */
+    --container-title-size: var(--text-xl);
+    --container-title-weight: var(--weight-semibold);
+    --container-title-color: var(--color-text-primary);
+    --container-title-leading: var(--leading-tight);
+    --container-title-tracking: var(--tracking-normal);
+    
+    /* Task Card Typography */
+    --task-description-size: var(--text-base);
+    --task-description-weight: var(--weight-medium);
+    --task-description-leading: var(--leading-snug);
+    --task-description-color: var(--color-text-primary);
+    
+    /* Metadata Typography */
+    --metadata-size: var(--text-xs);
+    --metadata-weight: var(--weight-normal);
+    --metadata-color: var(--color-text-muted);
+    --metadata-leading: var(--leading-normal);
+    
+    /* Badge/Pill Typography */
+    --badge-size: var(--text-xs);
+    --badge-weight: var(--weight-bold);
+    --badge-leading: var(--leading-none);
+    --badge-tracking: var(--tracking-wide);
+    --badge-transform: uppercase;
+    
+    /* Button Typography */
+    --button-size: var(--text-sm);
+    --button-weight: var(--weight-semibold);
+    --button-leading: var(--leading-none);
+    
+    /* Empty State Typography */
+    --empty-title-size: var(--text-lg);
+    --empty-title-weight: var(--weight-semibold);
+    --empty-text-size: var(--text-base);
+    --empty-text-weight: var(--weight-normal);
+    --empty-text-color: var(--color-text-muted);
+    
+    /* ==========================================================================
+       7. EMPHASIS LEVEL TYPOGRAPHY VARIATIONS
+       Typography variations based on emphasis level
+       ========================================================================== */
+    
+    /* High emphasis typography (Today's tasks) */
+    --container-title-size-high: var(--text-2xl);
+    --container-title-weight-high: var(--weight-bold);
+    --task-description-size-high: var(--text-md);
+    --task-description-weight-high: var(--weight-semibold);
+    
+    /* Medium emphasis typography (Tomorrow/Future tasks) */
+    --container-title-size-medium: var(--text-xl);
+    --container-title-weight-medium: var(--weight-semibold);
+    --task-description-size-medium: var(--text-base);
+    --task-description-weight-medium: var(--weight-medium);
+    
+    /* Low emphasis typography (Archive tasks) */
+    --container-title-size-low: var(--text-lg);
+    --container-title-weight-low: var(--weight-medium);
+    --task-description-size-low: var(--text-sm);
+    --task-description-weight-low: var(--weight-normal);
+    
+    /* ==========================================================================
+       8. LEGACY COMPATIBILITY VARIABLES
+       Support for components not yet updated to the new system
+       ========================================================================== */
+  
+    /* Legacy font-size variables */
+    --container-title-font-size: var(--container-title-size);
+    --task-description-font-size: var(--task-description-size);
+    
+    /* Legacy emphasis-specific font sizes */
+    --task-description-high-font-size: var(--task-description-size-high);
+    --task-description-medium-font-size: var(--task-description-size-medium);
+    --task-description-low-font-size: var(--task-description-size-low);
+  }
+  
+  /* ==========================================================================
+     9. RESPONSIVE TYPOGRAPHY ADJUSTMENTS
+     Adjust typography for different screen sizes
+     ========================================================================== */
+  
+  /* Medium screens (tablets) */
+  @media (min-width: 768px) {
+    :root {
+      /* Slightly increase important text sizes on tablet */
+      --app-title-size: var(--text-3xl);
+      --container-title-size-high: calc(var(--text-2xl) + 0.125rem);
+      --task-description-size-high: calc(var(--text-md) + 0.125rem);
+    }
+  }
+  
+  /* Large screens (desktops) */
+  @media (min-width: 1024px) {
+    :root {
+      /* Further adjustments for desktop viewing */
+      --app-title-size: var(--text-4xl);
+      --container-title-size-high: var(--text-3xl);
+      --task-description-size-high: var(--text-lg);
+      
+      /* Increase base text size for better readability on larger screens */
+      --text-base: 1.0625rem;  /* 17px */
+    }
+  }
+  
+  /* ==========================================================================
+     10. ACCESSIBILITY ADJUSTMENTS
+     Typography adjustments for accessibility
+     ========================================================================== */
+  
+  /* Prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+  
+  /* Prefers increased contrast */
+  @media (prefers-contrast: more) {
+    :root {
+      /* Increase font weight slightly for better readability */
+      --weight-normal: 500;
+      --weight-medium: 600;
+      --weight-semibold: 700;
+      --weight-bold: 800;
+      
+      /* Ensure text colors have sufficient contrast */
+      --task-description-color: white;
+      --metadata-color: #dddddd;
+    }
+  }

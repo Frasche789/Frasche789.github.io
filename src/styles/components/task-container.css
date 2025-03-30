@@ -1,0 +1,443 @@
+/* 
+ * Task Container Component Styles
+ * 
+ * Styles for task containers with emphasis-based variations
+ * following the container-rule system architecture.
+ */
+
+/* ==========================================================================
+   1. BASE CONTAINER STYLES
+   Core styling shared by all container types
+   ========================================================================== */
+
+   .task-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--container-border-radius);
+    transition: var(--transition-standard);
+    position: relative;
+  }
+  
+  .task-container__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+  }
+  
+  .task-container__title {
+    font-size: var(--container-title-size);
+    font-weight: var(--container-title-weight);
+    color: var(--container-title-color);
+    margin: 0;
+    line-height: var(--container-title-leading);
+  }
+  
+  .task-container__count {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    background-color: var(--color-bg-secondary);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-pill);
+  }
+  
+  .task-container__content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  
+  /* Empty state styling */
+  .task-container__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    color: var(--color-text-muted);
+    text-align: center;
+    min-height: 120px;
+  }
+  
+  .task-container__empty-icon {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-md);
+    opacity: 0.5;
+  }
+  
+  .task-container__empty-text {
+    font-size: var(--text-md);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+  
+  /* Container toggle styling for expandable containers */
+  .container-toggle {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-md);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    text-align: left;
+    color: var(--color-text-primary);
+  }
+  
+  .toggle-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .toggle-title {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+  }
+  
+  .toggle-icon {
+    font-size: var(--text-md);
+    transition: transform var(--duration-fast) var(--ease-in-out);
+  }
+  
+  .toggle-content.expanded .toggle-icon {
+    transform: rotate(180deg);
+  }
+  
+  /* ==========================================================================
+     2. EMPHASIS LEVEL CONTAINER STYLES
+     Container styling based on emphasis level
+     ========================================================================== */
+  
+  /* High Emphasis Container (Today's Tasks) */
+  .container-emphasis-high {
+    padding: var(--container-padding-high);
+    margin: var(--container-margin-high);
+    border-left: var(--container-border-width-high) solid var(--color-container-border-high);
+    background: var(--color-container-bg-high);
+    box-shadow: var(--shadow-lg);
+    z-index: 3; /* Higher z-index for stacking context */
+  }
+  
+  .container-emphasis-high .task-container__title {
+    font-size: var(--container-title-size-high);
+    font-weight: var(--container-title-weight-high);
+    color: var(--accent-primary);
+  }
+  
+  .container-emphasis-high::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(76, 201, 240, 0.1), transparent);
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  /* Medium-High Emphasis Container (Tomorrow's Tasks) */
+  .container-emphasis-medium-high {
+    padding: var(--container-padding-medium);
+    margin: var(--container-margin-medium);
+    border-left: calc(var(--container-border-width-medium) + 1px) solid var(--color-container-border-medium);
+    background: var(--color-container-bg-medium);
+    box-shadow: var(--shadow-md);
+    z-index: 2;
+  }
+  
+  .container-emphasis-medium-high .task-container__title {
+    font-size: calc(var(--container-title-size-high) - 0.125rem);
+    font-weight: var(--container-title-weight-high);
+    color: var(--accent-secondary);
+  }
+  
+  .container-emphasis-medium-high::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(247, 37, 133, 0.08), transparent);
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  /* Medium Emphasis Container (Future Tasks) */
+  .container-emphasis-medium {
+    padding: var(--container-padding-medium);
+    margin: var(--container-margin-medium);
+    border-left: var(--container-border-width-medium) solid var(--color-container-border-high);
+    background: var(--color-container-bg-medium);
+    box-shadow: var(--shadow-md);
+    z-index: 1;
+  }
+  
+  .container-emphasis-medium .task-container__title {
+    font-size: var(--container-title-size-medium);
+    font-weight: var(--container-title-weight-medium);
+    color: var(--color-text-primary);
+  }
+  
+  /* Low Emphasis Container (Archive Tasks) */
+  .container-emphasis-low {
+    padding: var(--container-padding-low);
+    margin: var(--container-margin-low);
+    border-left: var(--container-border-width-low) solid var(--color-container-border-low);
+    background: var(--color-container-bg-low);
+    box-shadow: var(--shadow-sm);
+    z-index: 0;
+    opacity: 0.9;
+  }
+  
+  .container-emphasis-low .task-container__title {
+    font-size: var(--container-title-size-low);
+    font-weight: var(--container-title-weight-low);
+    color: var(--color-text-secondary);
+  }
+  
+  /* Make archive container look different */
+  .container-emphasis-low .task-container__content {
+    opacity: 0.8;
+  }
+  
+  .container-emphasis-low .container-toggle {
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  
+  /* ==========================================================================
+     3. CONTAINER TYPE VARIATIONS
+     Specific styling for different container types
+     ========================================================================== */
+  
+  /* Current tasks container */
+  .current-tasks-container {
+    background: linear-gradient(180deg, 
+      rgba(13, 27, 42, 0.99) 0%,
+      rgba(27, 38, 59, 0.95) 100%);
+    border-top: 2px solid var(--color-action-primary);
+  }
+  
+  /* Tomorrow tasks container */
+  .tomorrow-tasks-container {
+    background: linear-gradient(180deg, 
+      rgba(13, 27, 42, 0.97) 0%,
+      rgba(27, 38, 59, 0.9) 100%);
+    border-top: 2px solid var(--color-action-secondary);
+  }
+  
+  /* Future tasks container */
+  .future-tasks-container {
+    background: linear-gradient(180deg, 
+      rgba(13, 27, 42, 0.95) 0%,
+      rgba(27, 38, 59, 0.85) 100%);
+    border-top: 1px solid var(--color-action-primary);
+  }
+  
+  /* Archive tasks container */
+  .archive-tasks-container {
+    background: linear-gradient(180deg, 
+      rgba(13, 27, 42, 0.9) 0%,
+      rgba(27, 38, 59, 0.8) 100%);
+    border-top: 1px solid var(--color-text-muted);
+  }
+  
+  /* Archive container is expandable */
+  .archive-content {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height var(--duration-slow) var(--ease-out),
+                opacity var(--duration-normal) var(--ease-in-out);
+  }
+  
+  .archive-content.visible {
+    max-height: 2000px; /* Large enough to contain content */
+    opacity: 1;
+  }
+  
+  /* ==========================================================================
+     4. TASK LIST WITHIN CONTAINERS
+     Task list styling contextual to containers
+     ========================================================================== */
+  
+  .task-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* Task list spacing adjustments based on container emphasis */
+  .container-emphasis-high .task-list {
+    gap: var(--space-md);
+  }
+  
+  .container-emphasis-medium-high .task-list,
+  .container-emphasis-medium .task-list {
+    gap: var(--space-sm);
+  }
+  
+  .container-emphasis-low .task-list {
+    gap: var(--space-xs);
+  }
+  
+  /* ==========================================================================
+     5. RESPONSIVE ADAPTATIONS
+     Screen size specific adjustments
+     ========================================================================== */
+  
+  /* Medium screens (tablets) */
+  @media (min-width: 768px) {
+    .container-emphasis-high {
+      padding: var(--space-xl);
+    }
+    
+    .container-emphasis-medium-high,
+    .container-emphasis-medium {
+      padding: var(--space-lg);
+    }
+    
+    .container-emphasis-low {
+      padding: var(--space-md);
+    }
+    
+    .task-container__title {
+      font-size: calc(var(--container-title-size) + 0.125rem);
+    }
+    
+    .container-emphasis-high .task-container__title {
+      font-size: calc(var(--container-title-size-high) + 0.125rem);
+    }
+  }
+  
+  /* Large screens (desktops) */
+  @media (min-width: 1024px) {
+    .task-container {
+      border-radius: var(--radius-lg);
+    }
+    
+    .container-emphasis-high {
+      padding: var(--space-xl) var(--space-xxl);
+    }
+    
+    .container-emphasis-high .task-list {
+      gap: var(--space-lg);
+    }
+  }
+  
+  /* ==========================================================================
+     6. ANIMATION EXTENSIONS
+     Additional animation styles for containers
+     ========================================================================== */
+  
+  /* Container fade-in animations */
+  .task-container.fade-in {
+    animation: container-fade-in var(--duration-normal) var(--ease-out) forwards;
+  }
+  
+  @keyframes container-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Stagger children animations */
+  .task-container.stagger-children .task-card {
+    opacity: 0;
+    animation: stagger-item var(--duration-normal) var(--ease-out) forwards;
+  }
+  
+  .task-container.stagger-children .task-card:nth-child(1) { animation-delay: 50ms; }
+  .task-container.stagger-children .task-card:nth-child(2) { animation-delay: 100ms; }
+  .task-container.stagger-children .task-card:nth-child(3) { animation-delay: 150ms; }
+  .task-container.stagger-children .task-card:nth-child(4) { animation-delay: 200ms; }
+  .task-container.stagger-children .task-card:nth-child(5) { animation-delay: 250ms; }
+  .task-container.stagger-children .task-card:nth-child(n+6) { animation-delay: 300ms; }
+  
+  @keyframes stagger-item {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  /* ==========================================================================
+     7. STATE VARIATIONS
+     Container state variations (loading, error, etc.)
+     ========================================================================== */
+  
+  /* Loading state */
+  .task-container.is-loading .task-container__content {
+    min-height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .loading-indicator {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-border-light);
+    border-radius: 50%;
+    border-top-color: var(--color-action-primary);
+    animation: rotating 1s linear infinite;
+  }
+  
+  /* Error state */
+  .task-container.has-error {
+    border-left-color: var(--color-action-danger);
+  }
+  
+  .task-container__error {
+    background-color: rgba(242, 95, 92, 0.1);
+    border: 1px solid var(--color-action-danger);
+    color: var(--color-action-danger);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    margin: var(--space-md) 0;
+  }
+  
+  /* ==========================================================================
+     8. ACCESSIBILITY ENHANCEMENTS
+     Accessibility improvements for containers
+     ========================================================================== */
+  
+  /* Focus styles for keyboard navigation */
+  .task-container:focus-within {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  .container-toggle:focus {
+    outline: 2px dashed var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  /* Reduce motion adaptations */
+  @media (prefers-reduced-motion: reduce) {
+    .task-container {
+      transition: none !important;
+    }
+    
+    .archive-content {
+      transition: opacity 0.001ms linear !important;
+    }
+  }

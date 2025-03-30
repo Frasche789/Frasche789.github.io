@@ -1,0 +1,458 @@
+/* 
+ * Control Component Styles
+ * 
+ * Styles for interactive controls like buttons, toggles, and inputs
+ * used throughout the TaskBoard application.
+ */
+
+/* ==========================================================================
+   1. Base Button Styles
+   Core styling for all button variants
+   ========================================================================== */
+   .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-base);
+    line-height: 1.5;
+    cursor: pointer;
+    transition: var(--transition-button);
+    text-align: center;
+    border: 2px solid transparent;
+    min-height: var(--touch-target-size);
+    min-width: var(--touch-target-size);
+    user-select: none;
+  }
+  
+  .button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .button:focus-visible {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  .button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Button with icon */
+  .button__icon {
+    margin-right: var(--space-xs);
+    font-size: 1.25em;
+  }
+  
+  /* ==========================================================================
+     2. Button Variants
+     Different button types for different contexts
+     ========================================================================== */
+  /* Primary Button */
+  .button--primary {
+    background-color: var(--color-action-primary);
+    color: var(--color-text-inverse);
+  }
+  
+  .button--primary:hover {
+    background-color: var(--blue-600);
+  }
+  
+  /* Secondary Button */
+  .button--secondary {
+    background-color: var(--color-action-secondary);
+    color: var(--color-text-inverse);
+  }
+  
+  .button--secondary:hover {
+    background-color: var(--pink-500);
+  }
+  
+  /* Success Button */
+  .button--success {
+    background-color: var(--color-action-success);
+    color: var(--color-text-inverse);
+  }
+  
+  /* Danger Button */
+  .button--danger {
+    background-color: var(--color-action-danger);
+    color: var(--color-text-inverse);
+  }
+  
+  /* Ghost Button */
+  .button--ghost {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: 2px solid var(--color-border-medium);
+  }
+  
+  .button--ghost:hover {
+    background-color: var(--color-bg-tertiary);
+    border-color: var(--color-border-strong);
+  }
+  
+  /* Link Button */
+  .button--link {
+    background-color: transparent;
+    color: var(--color-action-primary);
+    padding: var(--space-xs);
+    text-decoration: none;
+  }
+  
+  .button--link:hover {
+    text-decoration: underline;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* ==========================================================================
+     3. Button Sizes
+     Size variations for different contexts
+     ========================================================================== */
+  .button--sm {
+    font-size: var(--text-sm);
+    padding: var(--space-xs) var(--space-md);
+    min-height: calc(var(--touch-target-size) * 0.75);
+  }
+  
+  .button--lg {
+    font-size: var(--text-lg);
+    padding: var(--space-md) var(--space-xl);
+    min-height: calc(var(--touch-target-size) * 1.25);
+  }
+  
+  .button--full {
+    width: 100%;
+  }
+  
+  /* ==========================================================================
+     4. Archive Toggle Button
+     Special styling for archive toggle
+     ========================================================================== */
+  .archive-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 2px solid var(--color-action-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin: var(--space-md) auto;
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+    transition: background-color var(--transition-speed) var(--transition-function), 
+                transform var(--transition-speed) var(--transition-function);
+    height: var(--touch-target-size);
+    min-width: 240px;
+    max-width: 80%;
+    margin-bottom: var(--space-lg);
+  }
+  
+  .archive-toggle:hover, 
+  .archive-toggle:focus {
+    background-color: var(--color-action-primary);
+    color: var(--color-bg-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+  
+  .archive-toggle:active {
+    transform: translateY(0);
+  }
+  
+  .archive-toggle__icon {
+    margin-right: var(--space-xs);
+  }
+  
+  .archive-toggle__count {
+    margin-left: var(--space-xs);
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    padding: var(--space-xxs) var(--space-xs);
+    border-radius: var(--radius-pill);
+    font-size: var(--text-sm);
+  }
+  
+  /* ==========================================================================
+     5. Container Toggle
+     Toggle component to expand/collapse sections
+     ========================================================================== */
+  .container-toggle {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-md);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    text-align: left;
+    color: var(--color-text-primary);
+  }
+  
+  .toggle-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .toggle-title {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+  }
+  
+  .toggle-icon {
+    font-size: var(--text-md);
+    transition: transform var(--duration-fast) var(--ease-in-out);
+  }
+  
+  .toggle-content.expanded .toggle-icon {
+    transform: rotate(180deg);
+  }
+  
+  /* Focus styles for keyboard users */
+  .container-toggle:focus-visible {
+    outline: 2px dashed var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  /* ==========================================================================
+     6. Checkbox Control
+     Custom styled checkbox
+     ========================================================================== */
+  .checkbox {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: calc(var(--touch-target-size) * 0.75);
+    cursor: pointer;
+    user-select: none;
+    min-height: var(--touch-target-size);
+    font-size: var(--text-base);
+  }
+  
+  .checkbox__input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  
+  .checkbox__mark {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: calc(var(--touch-target-size) * 0.6);
+    width: calc(var(--touch-target-size) * 0.6);
+    background-color: transparent;
+    border: 2px solid var(--color-text-muted);
+    border-radius: var(--radius-sm);
+    transition: var(--transition-standard);
+  }
+  
+  .checkbox__input:checked ~ .checkbox__mark {
+    background-color: var(--color-action-success);
+    border-color: var(--color-action-success);
+  }
+  
+  .checkbox__mark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 50%;
+    top: 40%;
+    width: 30%;
+    height: 50%;
+    border: solid var(--color-text-inverse);
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  
+  .checkbox__input:checked ~ .checkbox__mark:after {
+    display: block;
+  }
+  
+  .checkbox__input:focus-visible ~ .checkbox__mark {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  /* Hover styles */
+  .checkbox:hover .checkbox__mark {
+    border-color: var(--color-text-secondary);
+  }
+  
+  /* ==========================================================================
+     7. Complete Button
+     Special button for task completion
+     ========================================================================== */
+  .complete-btn {
+    width: var(--touch-target-size);
+    height: var(--touch-target-size);
+    min-width: var(--touch-target-size);
+    border-radius: var(--radius-sm);
+    background-color: transparent;
+    border: 2px solid var(--color-text-muted);
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: var(--text-xl);
+    transition: var(--transition-button);
+    flex-shrink: 0;
+  }
+  
+  .complete-btn:hover {
+    background-color: var(--color-action-success);
+    border-color: var(--color-action-success);
+    color: var(--color-text-inverse);
+    transform: scale(1.1);
+  }
+  
+  .complete-btn:focus-visible {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  .complete-btn:active {
+    transform: scale(0.95);
+  }
+  
+  .complete-btn:disabled {
+    background-color: var(--color-action-success);
+    border-color: var(--color-action-success);
+    color: var(--color-text-inverse);
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+  
+  /* Size variations */
+  .complete-btn--sm {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: 1rem;
+  }
+  
+  .complete-btn--lg {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    font-size: 1.5rem;
+    border-width: 3px;
+  }
+  
+  /* ==========================================================================
+     8. Input Controls
+     ========================================================================== */
+  .input {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 2px solid var(--color-border-medium);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-base);
+    line-height: 1.5;
+    width: 100%;
+    min-height: var(--touch-target-size);
+    transition: var(--transition-standard);
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: var(--color-action-primary);
+    box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.25);
+  }
+  
+  .input::placeholder {
+    color: var(--color-text-muted);
+  }
+  
+  .input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  /* Input with icon */
+  .input-group {
+    position: relative;
+  }
+  
+  .input-group .input {
+    padding-left: calc(var(--space-md) * 2 + 1em);
+  }
+  
+  .input-group__icon {
+    position: absolute;
+    left: var(--space-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-muted);
+    pointer-events: none;
+  }
+  
+  /* ==========================================================================
+     9. Responsive Adjustments
+     ========================================================================== */
+  @media (min-width: 768px) {
+    .button {
+      padding: var(--space-sm) var(--space-xl);
+    }
+    
+    .archive-toggle {
+      min-width: 300px;
+      font-size: var(--text-md);
+    }
+    
+    .toggle-title {
+      font-size: var(--text-xl);
+    }
+  }
+  
+  /* ==========================================================================
+     10. Accessibility Enhancements
+     ========================================================================== */
+  @media (prefers-reduced-motion: reduce) {
+    .button:hover,
+    .archive-toggle:hover,
+    .complete-btn:hover {
+      transform: none;
+    }
+    
+    .toggle-icon {
+      transition: none;
+    }
+  }
+  
+  @media (prefers-contrast: more) {
+    .button {
+      border: 2px solid black;
+    }
+    
+    .checkbox__mark {
+      border: 2px solid black;
+    }
+    
+    .complete-btn {
+      border: 2px solid black;
+    }
+    
+    .input {
+      border: 2px solid black;
+    }
+  }

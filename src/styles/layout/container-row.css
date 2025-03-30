@@ -1,0 +1,183 @@
+/* 
+ * Container Row Layout Styles
+ * 
+ * Styles for arranging task containers in rows,
+ * especially for the desktop layout grid.
+ */
+
+/* ==========================================================================
+   1. Container Row Base
+   Default styling for container rows (stacked on mobile)
+   ========================================================================== */
+   .container-row {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+  
+  /* ==========================================================================
+     2. Desktop Grid Layout
+     Side-by-side container layout for desktop views
+     ========================================================================== */
+  .desktop-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+  
+  /* Container alignment in desktop grid */
+  .desktop-grid .task-container {
+    width: 100%;
+    margin: 0;
+  }
+  
+  /* ==========================================================================
+     3. Container Balance
+     Controls for balancing container proportions
+     ========================================================================== */
+  /* Equal width containers */
+  .container-row--equal .task-container {
+    flex: 1;
+  }
+  
+  /* Primary/secondary width containers (60/40) */
+  .container-row--primary-secondary .task-container:first-child {
+    flex: 3;
+  }
+  
+  .container-row--primary-secondary .task-container:last-child {
+    flex: 2;
+  }
+  
+  /* ==========================================================================
+     4. Container Spacing Controls
+     Variations for container gaps
+     ========================================================================== */
+  .container-row--tight {
+    gap: var(--space-md);
+  }
+  
+  .container-row--loose {
+    gap: var(--space-xl);
+  }
+  
+  /* ==========================================================================
+     5. Visual Separation
+     Controls for visual separation between containers
+     ========================================================================== */
+  .container-row--separated .task-container {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  
+  .container-row--connected .task-container {
+    border-radius: 0;
+  }
+  
+  .container-row--connected .task-container:first-child {
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+  }
+  
+  .container-row--connected .task-container:last-child {
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+  }
+  
+  /* ==========================================================================
+     6. Responsive Adjustments
+     Layout changes at different breakpoints
+     ========================================================================== */
+  
+  /* Medium screens (tablets) */
+  @media (min-width: 768px) {
+    .container-row {
+      margin-bottom: var(--space-xl);
+    }
+  }
+  
+  /* Large screens (desktops) */
+  @media (min-width: 1024px) {
+    /* Switch to horizontal row on desktop */
+    .desktop-grid {
+      flex-direction: row;
+      align-items: stretch;
+    }
+    
+    /* Ensure containers take equal space by default */
+    .desktop-grid .task-container {
+      flex: 1;
+      min-width: 0; /* Allows containers to shrink below content size */
+      height: auto; /* Allow containers to stretch to match the tallest */
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Make both containers in the row have the same visual weight */
+    .desktop-grid .current-tasks-container,
+    .desktop-grid .tomorrow-tasks-container {
+      margin: 0;
+    }
+    
+    /* Ensure task lists fill the container height */
+    .desktop-grid .task-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Create more visual separation between desktop grid and other containers */
+    .desktop-grid + .task-container {
+      margin-top: var(--space-xl);
+    }
+  }
+  
+  /* Extra large screens */
+  @media (min-width: 1280px) {
+    .container-row {
+      gap: var(--space-xl);
+      margin-bottom: var(--space-xxl);
+    }
+  }
+  
+  /* ==========================================================================
+     7. Animation Extensions
+     ========================================================================== */
+  /* Staggered container appearance */
+  @keyframes container-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .container-row--animate .task-container {
+    opacity: 0;
+    animation: container-reveal 0.6s var(--ease-out) forwards;
+  }
+  
+  .container-row--animate .task-container:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+  
+  .container-row--animate .task-container:nth-child(2) {
+    animation-delay: 0.3s;
+  }
+  
+  .container-row--animate .task-container:nth-child(3) {
+    animation-delay: 0.5s;
+  }
+  
+  /* Reduce motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .container-row--animate .task-container {
+      animation: none;
+      opacity: 1;
+    }
+  }
