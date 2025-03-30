@@ -3,9 +3,9 @@
  * 
  * A system of container rules that define which tasks belong in which container.
  * These rules are designed to be context-aware, adapting based on:
- * - Time of day (morning vs. afternoon)
  * - Subject schedules (today's classes vs. tomorrow's classes)
  * - Task status (completed vs. not completed)
+ * - Due dates (today, tomorrow, future)
  * 
  * Each rule function produces a predicate function that can be used to filter tasks.
  * Rules compose predicates from the predicate system (predicates.js).
@@ -35,71 +35,70 @@ export function getTimeOfDay(date = new Date()) {
 /**
  * Rule for the current container tasks
  * 
- * Morning: Shows tasks due today AND tasks for today's classes
- * Afternoon: Shows tasks due tomorrow AND tasks for tomorrow's classes
+ * Shows tasks due today AND tasks for today's classes, regardless of time of day
  * 
  * @param {Object} context - Context for rule evaluation
- * @param {string} context.timeOfDay - Current time of day (MORNING or AFTERNOON)
+ * @param {string} context.timeOfDay - Current time of day (not used in updated implementation)
  * @param {Array<Object>} context.todaySubjects - Subjects scheduled for today
- * @param {Array<Object>} context.tomorrowSubjects - Subjects scheduled for tomorrow
  * @returns {function} A predicate function to filter tasks for the current container
  */
-export function currentContainerRule({ timeOfDay, todaySubjects = [], tomorrowSubjects = [] }) {
-  // Use time of day to determine which tasks to show
-  if (timeOfDay === TIME_OF_DAY.MORNING) {
-    // Morning rule: Show today's tasks AND tasks for today's classes
-    return P.matchesAny([
-      // Tasks due today (non-completed)
-      P.matchesAll([P.isDueToday, P.isNotCompleted]),
-      
-      // Tasks for today's classes (not completed, not overdue, not an exam)
-      P.matchesAll([
-        P.forTodaysClasses(todaySubjects),
-        P.isNotCompleted,
-        P.not(P.isOverdue),
-        P.isNotExam
-      ])
-    ]);
-  } else {
-    // Afternoon rule: Show tasks due tomorrow AND tasks for tomorrow's classes
-    return P.matchesAny([
-      // Tasks due tomorrow (non-completed)
-      P.matchesAll([P.isDueTomorrow, P.isNotCompleted]),
-      
-      // Tasks for tomorrow's classes (not completed, not overdue, not an exam)
-      P.matchesAll([
-        P.forTomorrowsClasses(tomorrowSubjects),
-        P.isNotCompleted,
-        P.not(P.isOverdue),
-        P.isNotExam
-      ])
-    ]);
-  }
+export function currentContainerRule({ todaySubjects = [] }) {
+  // Current container always shows today's tasks regardless of time of day
+  return P.matchesAny([
+    // Tasks due today (non-completed)
+    P.matchesAll([P.isDueToday, P.isNotCompleted]),
+    
+    // Tasks for today's classes (not completed, not overdue, not an exam)
+    P.matchesAll([
+      P.forTodaysClasses(todaySubjects),
+      P.isNotCompleted,
+      P.not(P.isOverdue),
+      P.isNotExam
+    ])
+  ]);
+}
+
+/**
+ * Rule for the tomorrow container tasks
+ * 
+ * Shows tasks due tomorrow AND tasks for tomorrow's classes
+ * 
+ * @param {Object} context - Context for rule evaluation
+ * @param {Array<Object>} context.tomorrowSubjects - Subjects scheduled for tomorrow
+ * @returns {function} A predicate function to filter tasks for the tomorrow container
+ */
+export function tomorrowContainerRule({ tomorrowSubjects = [] }) {
+  return P.matchesAny([
+    // Tasks due tomorrow (non-completed)
+    P.matchesAll([P.isDueTomorrow, P.isNotCompleted]),
+    
+    // Tasks for tomorrow's classes (not completed, not overdue, not an exam)
+    P.matchesAll([
+      P.forTomorrowsClasses(tomorrowSubjects),
+      P.isNotCompleted,
+      P.not(P.isOverdue),
+      P.isNotExam
+    ])
+  ]);
 }
 
 /**
  * Rule for the future container tasks
  * Shows tasks that:
  * - Are not completed
- * - Are not in the current container
+ * - Are not due today or tomorrow
  * - Have due dates after tomorrow or no due date
  * 
- * @param {Object} context - Context for rule evaluation
- * @param {string} context.timeOfDay - Current time of day (MORNING or AFTERNOON)
- * @param {Array<Object>} context.todaySubjects - Subjects scheduled for today
- * @param {Array<Object>} context.tomorrowSubjects - Subjects scheduled for tomorrow
  * @returns {function} A predicate function to filter tasks for the future container
  */
-export function futureContainerRule({ timeOfDay, todaySubjects = [], tomorrowSubjects = [] }) {
-  // Get the current container rule for exclusion
-  const currentContainer = currentContainerRule({ timeOfDay, todaySubjects, tomorrowSubjects });
-  
+export function futureContainerRule() {
   return P.matchesAll([
     // Not completed tasks
     P.isNotCompleted,
     
-    // Not in current container
-    P.not(currentContainer),
+    // Not due today or tomorrow
+    P.not(P.isDueToday),
+    P.not(P.isDueTomorrow),
     
     // Due in the future OR has no due date (but not an exam)
     P.matchesAny([
@@ -145,25 +144,19 @@ export function examContainerRule() {
 }
 
 /**
- * Get appropriate display title for the current container based on time of day
- * @param {string} timeOfDay - Current time of day
+ * Get appropriate display title for the current container
  * @returns {string} Display title
  */
-export function getCurrentContainerTitle(timeOfDay) {
-  return timeOfDay === TIME_OF_DAY.MORNING
-    ? "Today's Tasks"
-    : "Tasks for Tomorrow's Classes";
+export function getCurrentContainerTitle() {
+  return "Today's Tasks";
 }
 
 /**
- * Get appropriate empty state message for the current container based on time of day
- * @param {string} timeOfDay - Current time of day
+ * Get appropriate empty state message for the current container
  * @returns {string} Empty state message
  */
-export function getCurrentContainerEmptyMessage(timeOfDay) {
-  return timeOfDay === TIME_OF_DAY.MORNING
-    ? "All tasks for today's classes done!"
-    : "All tasks for tomorrow's classes done!";
+export function getCurrentContainerEmptyMessage() {
+  return "No tasks due today";
 }
 
 /**

@@ -4,187 +4,254 @@
  */
 
 :root {
-  /* Container styling variables by type */
+  /* Container styling system - consolidated variables */
   
-  /* Current tasks container */
-  --container-current-opacity: 1;
-  --container-current-padding: var(--space-lg);
-  --container-current-margin: var(--space-lg) 0;
-  --container-current-border-width: 5px;
-  --container-current-border-color: var(--accent-primary);
-  --container-current-shadow: var(--shadow-lg);
-  --container-current-border-radius: var(--border-radius);
-  --container-current-background: var(--bg-secondary);
+  /* Container emphasis levels - common properties */
+  --container-border-radius: var(--border-radius);
+  --container-background: var(--bg-secondary);
+  --container-title-font-size: 1.5rem;
+  --container-title-margin: 0 0 var(--space-md) 0;
+  --container-transition: all 0.3s var(--transition-function);
   
-  /* Future tasks container */
-  --container-future-opacity: 0.9;
-  --container-future-padding: var(--space-md);
-  --container-future-margin: var(--space-md) 0;
-  --container-future-border-width: 4px;
-  --container-future-border-color: var(--accent-primary);
-  --container-future-shadow: var(--shadow);
-  --container-future-border-radius: var(--border-radius);
-  --container-future-background: var(--bg-secondary);
+  /* High emphasis (Today) */
+  --emphasis-high-opacity: 1;
+  --emphasis-high-padding: var(--space-lg);
+  --emphasis-high-margin: var(--space-lg) 0;
+  --emphasis-high-border-width: 5px;
+  --emphasis-high-border-color: var(--accent-primary);
+  --emphasis-high-shadow: var(--shadow-lg);
+  --emphasis-high-title-size: 1.8rem;
+  --emphasis-high-title-weight: 700;
   
-  /* Archive tasks container */
-  --container-archive-opacity: 0.7;
-  --container-archive-padding: var(--space-sm);
-  --container-archive-margin: var(--space-sm) 0;
-  --container-archive-border-width: 3px;
-  --container-archive-border-color: var(--text-muted);
-  --container-archive-shadow: var(--shadow-sm);
-  --container-archive-border-radius: var(--border-radius);
-  --container-archive-background: var(--bg-secondary);
+  /* Medium-high emphasis (Tomorrow) */
+  --emphasis-medium-high-opacity: 0.95;
+  --emphasis-medium-high-padding: var(--space-lg);
+  --emphasis-medium-high-margin: var(--space-lg) 0;
+  --emphasis-medium-high-border-width: 4px;
+  --emphasis-medium-high-border-color: var(--accent-secondary);
+  --emphasis-medium-high-shadow: var(--shadow);
+  --emphasis-medium-high-title-size: 1.7rem;
+  --emphasis-medium-high-title-weight: 700;
+  
+  /* Medium emphasis (Future) */
+  --emphasis-medium-opacity: 0.9;
+  --emphasis-medium-padding: var(--space-md);
+  --emphasis-medium-margin: var(--space-md) 0;
+  --emphasis-medium-border-width: 3px;
+  --emphasis-medium-border-color: var(--accent-primary);
+  --emphasis-medium-shadow: var(--shadow);
+  --emphasis-medium-title-size: 1.6rem;
+  --emphasis-medium-title-weight: 600;
+  
+  /* Low emphasis (Archive) */
+  --emphasis-low-opacity: 0.8;
+  --emphasis-low-padding: var(--space-sm);
+  --emphasis-low-margin: var(--space-sm) 0;
+  --emphasis-low-border-width: 2px;
+  --emphasis-low-border-color: var(--text-muted);
+  --emphasis-low-shadow: var(--shadow-sm);
+  --emphasis-low-title-size: 1.5rem;
+  --emphasis-low-title-weight: 600;
 
-  /* Task card styling variables by container type */
-  --card-current-padding: var(--space-md);
-  --card-current-margin: var(--space-md) 0;
-  --card-current-shadow: var(--shadow);
+  /* Task card styling variables by emphasis level */
+  --card-high-padding: var(--space-md);
+  --card-high-margin: var(--space-md) 0;
+  --card-high-shadow: var(--shadow);
   
-  --card-future-padding: var(--space-md);
-  --card-future-margin: var(--space-sm) 0;
-  --card-future-shadow: var(--shadow-sm);
+  --card-medium-high-padding: var(--space-md);
+  --card-medium-high-margin: var(--space-md) 0;
+  --card-medium-high-shadow: var(--shadow);
   
-  --card-archive-padding: var(--space-sm);
-  --card-archive-margin: var(--space-sm) 0;
-  --card-archive-shadow: none;
+  --card-medium-padding: var(--space-md);
+  --card-medium-margin: var(--space-sm) 0;
+  --card-medium-shadow: var(--shadow-sm);
+  
+  --card-low-padding: var(--space-sm);
+  --card-low-margin: var(--space-sm) 0;
+  --card-low-shadow: none;
 }
 
-/* Base container class that all containers share */
+/* Base container styles shared by all container types */
 .task-container {
-  border-radius: var(--border-radius);
+  background-color: var(--container-background);
+  border-radius: var(--container-border-radius);
+  width: 100%;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: var(--container-transition);
 }
 
-/* Container type classes */
-.current-tasks-container {
-  opacity: var(--container-current-opacity);
-  padding: var(--container-current-padding);
-  margin: var(--container-current-margin);
-  border-left: var(--container-current-border-width) solid var(--container-current-border-color);
-  box-shadow: var(--container-current-shadow);
-  border-radius: var(--container-current-border-radius);
-  background-color: var(--container-current-background);
-}
-
-.future-tasks-container {
-  opacity: var(--container-future-opacity);
-  padding: var(--container-future-padding);
-  margin: var(--container-future-margin);
-  border-left: var(--container-future-border-width) solid var(--container-future-border-color);
-  box-shadow: var(--container-future-shadow);
-  border-radius: var(--container-future-border-radius);
-  background-color: var(--container-future-background);
-}
-
-.archive-tasks-container {
-  opacity: var(--container-archive-opacity);
-  padding: var(--container-archive-padding);
-  margin: var(--container-archive-margin);
-  border-left: var(--container-archive-border-width) solid var(--container-archive-border-color);
-  box-shadow: var(--container-archive-shadow);
-  border-radius: var(--container-archive-border-radius);
-  background-color: var(--container-archive-background);
-}
-
-/* Container header styles */
-.container-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-md);
-}
-
-.current-tasks-container .container-header h2 {
-  color: var(--text-accent);
-  font-size: 1.25rem;
-}
-
-.future-tasks-container .container-header h2 {
+.task-container-title {
+  font-size: var(--container-title-font-size);
+  font-weight: 600;
+  margin: var(--container-title-margin);
   color: var(--text-primary);
-  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.archive-tasks-container .container-header h2 {
+/* Task list layout */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Emphasis Level Styles */
+
+/* High Emphasis (Today) */
+.container-emphasis-high {
+  opacity: var(--emphasis-high-opacity);
+  padding: var(--emphasis-high-padding);
+  margin: var(--emphasis-high-margin);
+  border-left: var(--emphasis-high-border-width) solid var(--emphasis-high-border-color);
+  box-shadow: var(--emphasis-high-shadow);
+  position: relative;
+  z-index: 3; /* Higher z-index for visual hierarchy */
+}
+
+.container-emphasis-high .task-container-title {
+  font-size: var(--emphasis-high-title-size);
+  font-weight: var(--emphasis-high-title-weight);
+  color: var(--accent-primary);
+}
+
+.container-emphasis-high::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(76, 201, 240, 0.1), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Medium-High Emphasis (Tomorrow) */
+.container-emphasis-medium-high {
+  opacity: var(--emphasis-medium-high-opacity);
+  padding: var(--emphasis-medium-high-padding);
+  margin: var(--emphasis-medium-high-margin);
+  border-left: var(--emphasis-medium-high-border-width) solid var(--emphasis-medium-high-border-color);
+  box-shadow: var(--emphasis-medium-high-shadow);
+  position: relative;
+  z-index: 2;
+}
+
+.container-emphasis-medium-high .task-container-title {
+  font-size: var(--emphasis-medium-high-title-size);
+  font-weight: var(--emphasis-medium-high-title-weight);
+  color: var(--accent-secondary);
+}
+
+.container-emphasis-medium-high::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(240, 184, 76, 0.08), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Medium Emphasis (Future) */
+.container-emphasis-medium {
+  opacity: var(--emphasis-medium-opacity);
+  padding: var(--emphasis-medium-padding);
+  margin: var(--emphasis-medium-margin);
+  border-left: var(--emphasis-medium-border-width) solid var(--emphasis-medium-border-color);
+  box-shadow: var(--emphasis-medium-shadow);
+  position: relative;
+  z-index: 1;
+}
+
+.container-emphasis-medium .task-container-title {
+  font-size: var(--emphasis-medium-title-size);
+  font-weight: var(--emphasis-medium-title-weight);
+}
+
+/* Low Emphasis (Archive) */
+.container-emphasis-low {
+  opacity: var(--emphasis-low-opacity);
+  padding: var(--emphasis-low-padding);
+  margin: var(--emphasis-low-margin);
+  border-left: var(--emphasis-low-border-width) solid var(--emphasis-low-border-color);
+  box-shadow: var(--emphasis-low-shadow);
+  position: relative;
+  z-index: 0;
+}
+
+.container-emphasis-low .task-container-title {
+  font-size: var(--emphasis-low-title-size);
+  font-weight: var(--emphasis-low-title-weight);
   color: var(--text-secondary);
-  font-size: 1rem;
 }
 
-/* Task card styles based on container type */
-.current-tasks-container .task-card {
-  padding: var(--card-current-padding);
-  margin-bottom: var(--card-current-margin);
-  box-shadow: var(--card-current-shadow);
-}
-
-.future-tasks-container .task-card {
-  padding: var(--card-future-padding);
-  margin-bottom: var(--card-future-margin);
-  box-shadow: var(--card-future-shadow);
-}
-
-.archive-tasks-container .task-card {
-  padding: var(--card-archive-padding);
-  margin-bottom: var(--card-archive-margin);
-  box-shadow: var(--card-archive-shadow);
-  filter: grayscale(30%);
-}
-
-/* Empty state styling based on container type */
-.current-tasks-container .empty-state {
-  border: 1px dashed var(--text-secondary);
-}
-
-.future-tasks-container .empty-state {
-  border: 1px dashed var(--text-muted);
-}
-
-.archive-tasks-container .empty-state {
-  border: 1px dotted var(--text-muted);
+/* Empty state styling */
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 150px;
   opacity: 0.7;
 }
 
-/* Media queries for responsiveness */
-@media (min-width: 600px) {
+/* Specific container types - with actual styling */
+.current-tasks-container {
+  background: linear-gradient(180deg, 
+    rgba(13, 27, 42, 0.99) 0%,
+    rgba(27, 38, 59, 0.95) 100%);
+  border-top: 2px solid var(--accent-primary);
+}
+
+.tomorrow-tasks-container {
+  background: linear-gradient(180deg, 
+    rgba(13, 27, 42, 0.97) 0%,
+    rgba(27, 38, 59, 0.9) 100%);
+  border-top: 2px solid var(--accent-secondary);
+}
+
+.future-tasks-container {
+  background: linear-gradient(180deg, 
+    rgba(13, 27, 42, 0.95) 0%,
+    rgba(27, 38, 59, 0.85) 100%);
+  border-top: 1px solid var(--accent-primary);
+}
+
+.archive-tasks-container {
+  background: linear-gradient(180deg, 
+    rgba(13, 27, 42, 0.9) 0%,
+    rgba(27, 38, 59, 0.8) 100%);
+  border-top: 1px solid var(--text-muted);
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
   :root {
-    --container-current-padding: var(--space-xl);
-    --container-future-padding: var(--space-lg);
-    --container-archive-padding: var(--space-md);
+    --emphasis-high-padding: var(--space-xl);
+    --emphasis-medium-high-padding: var(--space-xl);
+    --emphasis-medium-padding: var(--space-lg);
+    --emphasis-low-padding: var(--space-md);
     
-    --card-current-padding: var(--space-lg);
-    --card-future-padding: var(--space-md) var(--space-lg);
-    --card-archive-padding: var(--space-md);
+    --emphasis-high-title-size: 2rem;
+    --emphasis-medium-high-title-size: 1.8rem;
+    --emphasis-medium-title-size: 1.7rem;
+    --emphasis-low-title-size: 1.6rem;
+  }
+  
+  .task-container {
+    border-radius: calc(var(--border-radius) * 1.5);
   }
 }
 
-/* Backwards compatibility classes for transition */
-.container-emphasis-high {
-  opacity: var(--container-current-opacity);
-  padding: var(--container-current-padding);
-  margin: var(--container-current-margin);
-  border-left: var(--container-current-border-width) solid var(--container-current-border-color);
-  box-shadow: var(--container-current-shadow);
-  border-radius: var(--container-current-border-radius);
-  background-color: var(--container-current-background);
-}
-
-.container-emphasis-medium {
-  opacity: var(--container-future-opacity);
-  padding: var(--container-future-padding);
-  margin: var(--container-future-margin);
-  border-left: var(--container-future-border-width) solid var(--container-future-border-color);
-  box-shadow: var(--container-future-shadow);
-  border-radius: var(--container-future-border-radius);
-  background-color: var(--container-future-background);
-}
-
-.container-emphasis-low {
-  opacity: var(--container-archive-opacity);
-  padding: var(--container-archive-padding);
-  margin: var(--container-archive-margin);
-  border-left: var(--container-archive-border-width) solid var(--container-archive-border-color);
-  box-shadow: var(--container-archive-shadow);
-  border-radius: var(--container-archive-border-radius);
-  background-color: var(--container-archive-background);
+/* Accessible focus styles */
+.task-container:focus-within {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }

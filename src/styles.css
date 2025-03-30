@@ -292,6 +292,55 @@ p { margin-bottom: var(--space-md); }
 
 
 /***************************************
+ * 7. RESPONSIVE CONTAINER LAYOUTS
+ ***************************************/
+
+/* Default (mobile): containers stack vertically */
+.container-row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: var(--space-md);
+}
+
+/* Desktop: Today and Tomorrow containers side-by-side */
+@media (min-width: 992px) {
+  .desktop-grid {
+    flex-direction: row;
+    gap: var(--space-lg);
+    align-items: stretch;
+    margin-bottom: var(--space-lg);
+  }
+  
+  .desktop-grid .task-container {
+    flex: 1;
+    min-width: 0; /* Allows containers to shrink below content size */
+    width: calc(50% - (var(--space-lg) / 2)); /* Account for gap */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Make both containers in the row have the same visual weight */
+  .desktop-grid .current-tasks-container,
+  .desktop-grid .tomorrow-tasks-container {
+    margin: 0;
+    height: 100%;
+  }
+  
+  /* Ensure task lists fill the container height */
+  .desktop-grid .task-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Create more visual separation between desktop grid and other containers */
+  .desktop-grid + .task-container {
+    margin-top: var(--space-lg);
+  }
+}
+
+/***************************************
  * 7. TASK CARDS & LISTS
  ***************************************/
 /* Task list container */

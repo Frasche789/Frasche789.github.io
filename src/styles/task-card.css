@@ -9,7 +9,7 @@
 
 :root {
   /* Task card base variables */
-  --task-card-bg-color: var(--bg-secondary);
+  --task-card-bg-color: var(--bg-card);
   --task-card-border-radius: var(--border-radius);
   --task-card-shadow: var(--shadow-sm);
   --task-card-padding: var(--space-md);
@@ -22,6 +22,7 @@
   
   /* Task description styling by emphasis level */
   --task-description-high-font-size: 1.2rem;
+  --task-description-medium-high-font-size: 1.15rem;
   --task-description-medium-font-size: 1.1rem;
   --task-description-low-font-size: 1rem;
   --task-description-font-weight: 700;
@@ -46,6 +47,8 @@
   --task-due-date-font-weight: 600;
   --task-due-today-color: var(--accent-danger);
   --task-due-today-font-weight: 700;
+  --task-due-tomorrow-color: var(--accent-secondary);
+  --task-due-tomorrow-font-weight: 700;
   
   /* Complete button styling */
   --complete-btn-size: 48px;
@@ -80,6 +83,51 @@
   transition: var(--task-card-transition);
 }
 
+/* Container-specific task card styling */
+.container-emphasis-high .task-card {
+  box-shadow: var(--shadow);
+  background-color: var(--bg-card);
+  transform: translateZ(0); /* Force GPU acceleration for smoother animations */
+}
+
+.container-emphasis-medium-high .task-card {
+  box-shadow: var(--shadow-sm);
+  background-color: var(--bg-card);
+  transform: translateZ(0);
+}
+
+.container-emphasis-medium .task-card {
+  box-shadow: var(--shadow-sm);
+  background-color: var(--bg-card);
+}
+
+.container-emphasis-low .task-card {
+  box-shadow: none;
+  background-color: rgba(36, 59, 85, 0.85); /* Slightly more transparent */
+  filter: grayscale(30%);
+}
+
+/* Enhance visual hover feedback based on container emphasis */
+.container-emphasis-high .task-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.container-emphasis-medium-high .task-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.container-emphasis-medium .task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.container-emphasis-low .task-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
 .task-card-inner {
   display: flex;
   flex-direction: row;
@@ -99,36 +147,33 @@
   font-size: var(--task-description-medium-font-size);
   font-weight: var(--task-description-font-weight);
   margin-bottom: var(--space-md);
-  color: var(--task-description-color);
   line-height: var(--task-description-line-height);
-  order: 1;
-  flex-grow: 1;
+  color: var(--task-description-color);
 }
 
-/* Emphasis level variations for task description */
+/* Adjust text size by container emphasis */
 .container-emphasis-high .task-description {
   font-size: var(--task-description-high-font-size);
+  font-weight: 700;
+}
+
+.container-emphasis-medium-high .task-description {
+  font-size: var(--task-description-medium-high-font-size);
+  font-weight: 700;
 }
 
 .container-emphasis-medium .task-description {
   font-size: var(--task-description-medium-font-size);
+  font-weight: 600;
 }
 
 .container-emphasis-low .task-description {
   font-size: var(--task-description-low-font-size);
   font-weight: var(--task-description-low-font-weight);
+  color: var(--text-secondary);
 }
 
-/* Subject/categorization - SECONDARY element in hierarchy */
-.task-card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
-  flex-wrap: wrap;
-  order: 0;
-}
-
+/* Subject badge - SECONDARY element in hierarchy */
 .task-subject {
   display: inline-flex;
   align-items: center;
@@ -137,270 +182,82 @@
   border-radius: var(--task-subject-border-radius);
   font-size: var(--task-subject-font-size);
   font-weight: var(--task-subject-font-weight);
-  text-transform: uppercase;
   color: var(--task-subject-color);
   min-width: var(--task-subject-min-width);
-  height: var(--task-subject-height);
+  min-height: var(--task-subject-height);
+  margin-bottom: var(--space-sm);
   box-shadow: var(--task-subject-shadow);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: transform 0.2s ease;
 }
 
-/* Task type badges - initially hidden, shown based on task type */
-.task-type {
-  display: none;
-}
-
-.task-badge {
-  display: none;
-}
-
-.exam-badge {
-  display: none;
-}
-
-/* Temporal information - TERTIARY element in hierarchy */
-.task-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Due date styles - TERTIARY element in hierarchy */
+.due-date {
   font-size: var(--task-meta-font-size);
-  color: var(--task-meta-color);
-  margin-top: auto;
-  order: 2;
-  opacity: 0.9;
+  color: var(--task-due-date-color);
+  font-weight: var(--task-due-date-font-weight);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
 }
 
-.task-due-date {
+/* Temporal indicators - make these more visually distinct */
+.due-today {
+  color: var(--task-due-today-color);
+  font-weight: var(--task-due-today-font-weight);
   display: inline-flex;
   align-items: center;
-  font-weight: var(--task-due-date-font-weight);
-  color: var(--task-due-date-color);
+  gap: 0.25rem;
 }
 
-.task-due-date-icon {
+.due-today::before {
+  content: "⚠️";
   margin-right: var(--space-xs);
-  font-size: 0.9rem;
 }
 
-.task-date-label {
+.due-tomorrow {
+  color: var(--task-due-tomorrow-color);
+  font-weight: var(--task-due-tomorrow-font-weight);
+  display: inline-flex;
+  align-items: center;
+}
+
+.due-tomorrow::before {
+  content: "⏳";
   margin-right: var(--space-xs);
+}
+
+/* Ensure empty state is user-friendly for neurodivergent users */
+.empty-state {
+  text-align: center;
+  padding: var(--space-lg);
+  font-size: 1.1rem;
+  font-weight: 500;
+  border-radius: var(--border-radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+}
+
+.empty-state::before {
+  content: "✓";
+  font-size: 2rem;
+  margin-bottom: var(--space-md);
   opacity: 0.7;
 }
 
-/* Due date emphasis for urgency */
-.task-due-today {
-  color: var(--task-due-today-color);
-  font-weight: var(--task-due-today-font-weight);
-}
-
-/* Completion status - QUATERNARY element in hierarchy */
-.complete-btn {
-  width: var(--complete-btn-size);
-  height: var(--complete-btn-size);
-  min-width: var(--complete-btn-size);
-  border-radius: 50%;
-  background-color: var(--complete-btn-bg);
-  border: var(--complete-btn-border-width) solid var(--complete-btn-border-color);
-  color: var(--complete-btn-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: var(--complete-btn-font-size);
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy animation */
-  position: relative;
-  overflow: hidden;
-  margin-right: var(--space-md);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.complete-btn:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
-}
-
-.complete-btn:hover {
-  background-color: var(--complete-btn-hover-bg);
-  border-color: var(--complete-btn-hover-bg);
-  color: var(--complete-btn-hover-color);
-  transform: scale(var(--complete-btn-hover-scale));
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.complete-btn:active {
-  transform: scale(var(--complete-btn-active-scale));
-  transition: all 0.1s ease;
-}
-
-.complete-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
-  transform: scale(0);
-  opacity: 0;
-  transition: transform 0.5s ease, opacity 0.5s ease;
-  border-radius: 50%;
-}
-
-.complete-btn:hover::before {
-  transform: scale(1.5);
-  opacity: 0.3;
-}
-
-/* Animation states for completion button */
-.complete-btn.task-completing {
-  animation: completeButtonPulse 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  background-color: var(--accent-success);
-  border-color: var(--accent-success);
-  color: var(--bg-primary);
-}
-
-@keyframes completeButtonPulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 rgba(75, 201, 156, 0);
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .task-card {
+    border-width: 2px;
+    border-style: solid;
   }
-  10% {
-    transform: scale(1.2);
-  }
-  20% {
-    transform: scale(1.1);
-    box-shadow: 0 0 8px rgba(75, 201, 156, 0.3);
-  }
-  30% {
-    transform: scale(1.3);
-  }
-  40% {
-    transform: scale(1.2);
-    box-shadow: 0 0 15px rgba(75, 201, 156, 0.5);
-  }
-  50% {
-    transform: scale(1.4);
-  }
-  60% {
-    transform: scale(1.3);
-    box-shadow: 0 0 20px rgba(75, 201, 156, 0.7);
-  }
-  70% {
-    transform: scale(1.5);
-  }
-  80% {
-    transform: scale(1.4);
-    box-shadow: 0 0 15px rgba(75, 201, 156, 0.5);
-  }
-  90% {
-    transform: scale(1.2);
-    box-shadow: 0 0 8px rgba(75, 201, 156, 0.3);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 rgba(75, 201, 156, 0);
-  }
-}
-
-/* Task type variations - exams, assignments, readings */
-.task-card.task-exam {
-  border-left-color: var(--task-exam-highlight-color);
-}
-
-.task-card.task-exam .exam-badge {
-  display: inline-flex;
-  background-color: var(--task-exam-highlight-color);
-}
-
-.task-card.task-assignment {
-  border-left-color: var(--task-assignment-highlight-color);
-}
-
-.task-card.task-assignment .task-badge {
-  display: inline-flex;
-  background-color: var(--task-assignment-highlight-color);
-}
-
-.task-card.task-reading {
-  border-left-color: var(--task-reading-highlight-color);
-}
-
-/* Completed task styling */
-.completed-task {
-  opacity: 0.6;
-  text-decoration: line-through;
-  background-color: var(--bg-muted);
-  border-left-color: var(--text-muted) !important;
-  transition: all 0.3s ease;
-}
-
-.completed-task .complete-btn {
-  background-color: var(--accent-success);
-  border-color: var(--accent-success);
-  color: var(--bg-primary);
-}
-
-.completed-task .task-description {
-  color: var(--text-muted);
-}
-
-/* Subject color variations */
-.subject-math {
-  border-left-color: var(--subject-math);
-}
-
-.subject-math .task-subject {
-  background-color: var(--subject-math);
-}
-
-.subject-finnish {
-  border-left-color: var(--subject-finnish);
-}
-
-.subject-finnish .task-subject {
-  background-color: var(--subject-finnish);
-}
-
-.subject-english {
-  border-left-color: var(--subject-english);
-}
-
-.subject-english .task-subject {
-  background-color: var(--subject-english);
-}
-
-.subject-history {
-  border-left-color: var(--subject-history);
-}
-
-.subject-history .task-subject {
-  background-color: var(--subject-history);
-}
-
-.subject-civics {
-  border-left-color: var(--subject-civics);
-}
-
-.subject-civics .task-subject {
-  background-color: var(--subject-civics);
-}
-
-/* Reset subject colors for completed tasks */
-.completed-task.subject-math,
-.completed-task.subject-finnish,
-.completed-task.subject-english,
-.completed-task.subject-history,
-.completed-task.subject-civics {
-  border-left-color: var(--text-muted) !important;
-}
-
-/* Media queries for responsive design */
-@media (min-width: 600px) {
-  :root {
-    --task-card-padding: var(--space-lg);
-    --task-description-high-font-size: 1.3rem;
-    --task-description-medium-font-size: 1.2rem;
-    --task-description-low-font-size: 1.1rem;
-    --complete-btn-size: 52px;
+  
+  .task-subject {
+    border: 2px solid var(--bg-primary);
   }
 }
 
@@ -592,5 +449,109 @@
   100% {
     transform: rotate(5deg) scale(1);
     opacity: 1;
+  }
+}
+
+/* Task type variations - exams, assignments, readings */
+.task-card.task-exam {
+  border-left-color: var(--task-exam-highlight-color);
+}
+
+.task-card.task-exam .exam-badge {
+  display: inline-flex;
+  background-color: var(--task-exam-highlight-color);
+}
+
+.task-card.task-assignment {
+  border-left-color: var(--task-assignment-highlight-color);
+}
+
+.task-card.task-assignment .task-badge {
+  display: inline-flex;
+  background-color: var(--task-assignment-highlight-color);
+}
+
+.task-card.task-reading {
+  border-left-color: var(--task-reading-highlight-color);
+}
+
+/* Completed task styling */
+.completed-task {
+  opacity: 0.6;
+  text-decoration: line-through;
+  background-color: var(--bg-muted);
+  border-left-color: var(--text-muted) !important;
+  transition: all 0.3s ease;
+}
+
+.completed-task .complete-btn {
+  background-color: var(--accent-success);
+  border-color: var(--accent-success);
+  color: var(--bg-primary);
+}
+
+.completed-task .task-description {
+  color: var(--text-muted);
+}
+
+/* Subject color variations */
+.subject-math {
+  border-left-color: var(--subject-math);
+}
+
+.subject-math .task-subject {
+  background-color: var(--subject-math);
+}
+
+.subject-finnish {
+  border-left-color: var(--subject-finnish);
+}
+
+.subject-finnish .task-subject {
+  background-color: var(--subject-finnish);
+}
+
+.subject-english {
+  border-left-color: var(--subject-english);
+}
+
+.subject-english .task-subject {
+  background-color: var(--subject-english);
+}
+
+.subject-history {
+  border-left-color: var(--subject-history);
+}
+
+.subject-history .task-subject {
+  background-color: var(--subject-history);
+}
+
+.subject-civics {
+  border-left-color: var(--subject-civics);
+}
+
+.subject-civics .task-subject {
+  background-color: var(--subject-civics);
+}
+
+/* Reset subject colors for completed tasks */
+.completed-task.subject-math,
+.completed-task.subject-finnish,
+.completed-task.subject-english,
+.completed-task.subject-history,
+.completed-task.subject-civics {
+  border-left-color: var(--text-muted) !important;
+}
+
+/* Media queries for responsive design */
+@media (min-width: 600px) {
+  :root {
+    --task-card-padding: var(--space-lg);
+    --task-description-high-font-size: 1.3rem;
+    --task-description-medium-high-font-size: 1.2rem;
+    --task-description-medium-font-size: 1.1rem;
+    --task-description-low-font-size: 1rem;
+    --complete-btn-size: 52px;
   }
 }

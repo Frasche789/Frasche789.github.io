@@ -24,6 +24,7 @@ import * as ContainerRules from '../rules/containerRules';
  */
 export const CONTAINER_TYPE = {
   CURRENT: 'current',
+  TOMORROW: 'tomorrow',
   FUTURE: 'future',
   ARCHIVE: 'archive',
   EXAM: 'exam'
@@ -93,8 +94,11 @@ export function useContainerTasks(containerType = CONTAINER_TYPE.CURRENT) {
       case CONTAINER_TYPE.CURRENT:
         ruleFunction = ContainerRules.currentContainerRule(ruleContext);
         break;
+      case CONTAINER_TYPE.TOMORROW:
+        ruleFunction = ContainerRules.tomorrowContainerRule(ruleContext);
+        break;
       case CONTAINER_TYPE.FUTURE:
-        ruleFunction = ContainerRules.futureContainerRule(ruleContext);
+        ruleFunction = ContainerRules.futureContainerRule();
         break;
       case CONTAINER_TYPE.ARCHIVE:
         ruleFunction = ContainerRules.archiveContainerRule();
@@ -163,6 +167,16 @@ function sortTasksByContainer(tasks, containerType) {
         const aDate = a.due_date ? new Date(a.due_date) : new Date(3000, 0, 1);
         const bDate = b.due_date ? new Date(b.due_date) : new Date(3000, 0, 1);
         return aDate - bDate; // Closest due date first
+      });
+    
+    case CONTAINER_TYPE.TOMORROW:
+      // Tomorrow tasks: sort by creation date (oldest first)
+      return sortedTasks.sort((a, b) => {
+        const aDate = a.date_added ? new Date(a.date_added) : 
+                     (a.due_date ? new Date(a.due_date) : new Date(0));
+        const bDate = b.date_added ? new Date(b.date_added) : 
+                     (b.due_date ? new Date(b.due_date) : new Date(0));
+        return aDate - bDate; // Oldest first
       });
       
     case CONTAINER_TYPE.CURRENT:
