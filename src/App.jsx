@@ -16,7 +16,13 @@ function App() {
           <AppHeader />
           <TimeAwareSubjects />
           <TaskContainer containerType={CONTAINER_TYPE.ARCHIVE} />
-          <TaskContainer containerType={CONTAINER_TYPE.CURRENT} />
+          {/* Today and Tomorrow containers in a responsive grid layout */}
+          <div className="container-row desktop-grid">
+            <TaskContainer containerType={CONTAINER_TYPE.CURRENT} />
+            <TaskContainer containerType={CONTAINER_TYPE.TOMORROW} />
+          </div>
+          
+          {/* Future and Archive containers remain vertical */}
           <TaskContainer containerType={CONTAINER_TYPE.FUTURE} />
         </div>
       </SubjectProvider>

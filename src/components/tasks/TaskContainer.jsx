@@ -12,7 +12,7 @@
  * - Handles container-specific styling and presentation
  * - Supports toggle functionality for expandable containers
  * 
- * @param {string} containerType - "current", "future", or "archive"
+ * @param {string} containerType - "current", "tomorrow", "future", or "archive"
  */
 
 import React, { useState, useMemo } from 'react';
@@ -25,11 +25,19 @@ import { useContainerTasks, CONTAINER_TYPE } from '../../hooks/useContainerTasks
 const CONTAINER_CONFIG = {
   [CONTAINER_TYPE.CURRENT]: {
     className: "current-tasks-container task-container container-emphasis-high",
-    defaultTitle: "Current Tasks",
-    defaultEmptyMessage: "No current tasks",
+    defaultTitle: "Today's Tasks",
+    defaultEmptyMessage: "No tasks due today",
     isExpandable: false,
     defaultExpanded: true,
     emphasisLevel: "high",
+  },
+  [CONTAINER_TYPE.TOMORROW]: {
+    className: "tomorrow-tasks-container task-container container-emphasis-medium-high",
+    defaultTitle: "Tomorrow's Tasks",
+    defaultEmptyMessage: "No tasks due tomorrow",
+    isExpandable: false,
+    defaultExpanded: true,
+    emphasisLevel: "medium-high",
   },
   [CONTAINER_TYPE.FUTURE]: {
     className: "future-tasks-container task-container container-emphasis-medium",
