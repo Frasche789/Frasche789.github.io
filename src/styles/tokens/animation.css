@@ -49,29 +49,6 @@
     --delay-staggered: 100ms;   /* Delay between staggered items */
     --delay-standard: 200ms;    /* Standard delay before starting animations */
     
-    /* ==========================================================================
-       4. TRANSITION PRESETS
-       Common transition combinations
-       ========================================================================== */
-    
-    /* Multi-property transitions */
-    --transition-standard: all var(--duration-normal) var(--ease-in-out);
-    --transition-fade: opacity var(--duration-normal) var(--ease-out);
-    --transition-transform: transform var(--duration-normal) var(--ease-out);
-    --transition-shadow: box-shadow var(--duration-normal) var(--ease-out);
-    --transition-scale: transform var(--duration-fast) var(--ease-bounce);
-    
-    /* Component-specific transitions */
-    --transition-task-card: transform var(--duration-normal) var(--ease-out),
-                           box-shadow var(--duration-normal) var(--ease-out),
-                           opacity var(--duration-normal) var(--ease-out);
-                           
-    --transition-container: opacity var(--duration-normal) var(--ease-in-out),
-                           max-height var(--duration-slow) var(--ease-out);
-                           
-    --transition-button: background-color var(--duration-fast) var(--ease-out),
-                        transform var(--duration-fast) var(--ease-bounce),
-                        box-shadow var(--duration-fast) var(--ease-out);
     
     /* ==========================================================================
        5. ANIMATION KEYFRAMES

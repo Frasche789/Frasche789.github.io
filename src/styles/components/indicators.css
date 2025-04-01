@@ -172,19 +172,19 @@
      Applies subject-specific colors to indicators
      ========================================================================== */
   /* Subject pill colors */
-  .subject-pill--math, .subject-math { background-color: var(--color-subject-math-high); }
-  .subject-pill--finnish, .subject-finnish { background-color: var(--color-subject-finnish-high); }
-  .subject-pill--english, .subject-english { background-color: var(--color-subject-english-high); }
-  .subject-pill--history, .subject-history { background-color: var(--color-subject-history-high); }
-  .subject-pill--civics, .subject-civics { background-color: var(--color-subject-civics-high); }
-  .subject-pill--ethics, .subject-ethics { background-color: var(--color-subject-ethics-high); }
-  .subject-pill--pe, .subject-pe { background-color: var(--color-subject-pe-high); }
-  .subject-pill--music, .subject-music { background-color: var(--color-subject-music-high); }
-  .subject-pill--art, .subject-art { background-color: var(--color-subject-art-high); }
-  .subject-pill--crafts, .subject-crafts { background-color: var(--color-subject-crafts-high); }
-  .subject-pill--eco, .subject-eco { background-color: var(--color-subject-eco-high); }
-  .subject-pill--digi, .subject-digi { background-color: var(--color-subject-digi-high); }
-  .subject-pill--other, .subject-other { background-color: var(--color-subject-other-high); }
+  .subject-pill--math, .subject-math { background: radial-gradient(ellipse, var(--subject-color-math-dark), var(--subject-color-math)); border: 3px solid var(--subject-color-math-dark); }
+  .subject-pill--finnish, .subject-finnish { background: radial-gradient(ellipse, var(--subject-color-finnish-dark), var(--subject-color-finnish)); border: 3px solid var(--subject-color-finnish-dark); }
+  .subject-pill--english, .subject-english { background: radial-gradient(ellipse, var(--subject-color-english-dark), var(--subject-color-english)); border: 3px solid var(--subject-color-english-dark); }
+  .subject-pill--history, .subject-history { background: radial-gradient(ellipse, var(--subject-color-history-dark), var(--subject-color-history)); border: 3px solid var(--subject-color-history-dark); }
+  .subject-pill--civics, .subject-civics { background: radial-gradient(ellipse, var(--subject-color-civics-dark), var(--subject-color-civics)); border: 3px solid var(--subject-color-civics-dark); }
+  .subject-pill--ethics, .subject-ethics { background: radial-gradient(ellipse, var(--subject-color-ethics-dark), var(--subject-color-ethics)); border: 3px solid var(--subject-color-ethics-dark); }
+  .subject-pill--eco, .subject-eco { background: radial-gradient(ellipse, var(--subject-color-eco-dark), var(--subject-color-eco)); border: 3px solid var(--subject-color-eco-dark); }
+  .subject-pill--pe, .subject-pe { background-color: var(--subject-color-pe);}
+  .subject-pill--music, .subject-music { background-color: var(--subject-color-music); }
+  .subject-pill--art, .subject-art { background-color: var(--subject-color-art); }
+  .subject-pill--crafts, .subject-crafts { background-color: var(--subject-color-crafts); }
+  .subject-pill--digi, .subject-digi { background-color: var(--subject-color-digi); }
+  .subject-pill--other, .subject-other { background-color: var(--subject-color-other); }
   
   /* ==========================================================================
      6. Loading Indicators

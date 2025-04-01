@@ -35,25 +35,22 @@ function TaskContainer({
   const getContainerClasses = () => {
     const baseClasses = ['task-container'];
     
-    // Add emphasis level class
+    // Add temporal container class based on container type
     switch(containerType) {
       case CONTAINER_TYPE.CURRENT:
-        baseClasses.push('container-emphasis-high');
+        baseClasses.push('today-container');
         break;
       case CONTAINER_TYPE.TOMORROW:
-        baseClasses.push('container-emphasis-medium-high');
+        baseClasses.push('tomorrow-container');
         break;
       case CONTAINER_TYPE.FUTURE:
-        baseClasses.push('container-emphasis-medium');
+        baseClasses.push('future-container');
         break;
       case CONTAINER_TYPE.ARCHIVE:
       case CONTAINER_TYPE.EXAM:
       default:
-        baseClasses.push('container-emphasis-low');
+        baseClasses.push('archive-container');
     }
-    
-    // Add container type specific class
-    baseClasses.push(`${containerType}-tasks-container`);
     
     // Add loading/error states if needed
     if (isLoading) baseClasses.push('is-loading');

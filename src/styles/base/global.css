@@ -15,9 +15,8 @@
   
   body {
     font-family: var(--font-primary);
-    background-color: var(--color-bg-primary);
-    color: var(--color-text-primary);
-    line-height: var(--leading-normal);
+    color: var(--text-primary);
+    line-height: 1.5;
     overflow-x: hidden;
   }
   
@@ -25,29 +24,29 @@
      Typography base styling
      ========================================================================== */
   h1, h2, h3, h4, h5, h6 {
-    font-weight: var(--weight-bold);
-    color: var(--color-text-primary);
-    margin-bottom: var(--space-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
   }
   
   h1 { 
-    font-size: var(--text-3xl); 
-    font-weight: var(--weight-bold);
+    font-size: 2rem; 
+    font-weight: 700;
   }
   
   h2 { 
-    font-size: var(--text-2xl); 
-    font-weight: var(--weight-semibold);
+    font-size: 1.5rem; 
+    font-weight: 600;
   }
   
   h3 { 
-    font-size: var(--text-xl); 
-    font-weight: var(--weight-semibold);
+    font-size: 1.25rem; 
+    font-weight: 600;
   }
   
   h4 { 
-    font-size: var(--text-lg); 
-    font-weight: var(--weight-semibold);
+    font-size: 1.125rem; 
+    font-weight: 600;
   }
   
   h5 { 
@@ -85,14 +84,6 @@
   }
   
   /* ==========================================================================
-     Selection styling
-     ========================================================================== */
-  ::selection {
-    background-color: var(--color-action-primary);
-    color: var(--color-bg-primary);
-  }
-  
-  /* ==========================================================================
      Form elements base styling
      ========================================================================== */
   input, 
@@ -108,27 +99,6 @@
   select:focus {
     outline: 2px solid var(--color-action-primary);
     outline-offset: 2px;
-  }
-  
-  /* ==========================================================================
-     Custom scrollbar (Webkit browsers)
-     ========================================================================== */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: var(--color-bg-primary);
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-bg-elevated);
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-border-medium);
   }
   
   /* ==========================================================================

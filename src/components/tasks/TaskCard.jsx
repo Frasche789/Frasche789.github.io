@@ -129,57 +129,66 @@ const TaskCard = React.memo(function TaskCard({ task, onComplete, containerType 
   // Determine CSS classes based on task properties and container type
   const cardClasses = useMemo(() => [
     'task-card',
-    `subject-${subject.toLowerCase()}`,
-    type === 'exam' ? 'exam-task' : '',
-    isDueToday && type === 'exam' ? 'exam-due-today' : '',
-    isDueTomorrow && type === 'exam' ? 'exam-due-tomorrow' : '',
-    completed ? 'completed-task' : '',
-    `container-emphasis-${containerType === CONTAINER_TYPE.CURRENT ? 'high' : containerType === CONTAINER_TYPE.FUTURE ? 'medium' : 'low'}`
-  ].filter(Boolean).join(' '), [subject, type, isDueToday, isDueTomorrow, completed, containerType]);
+    `task-card--${subject.toLowerCase()}`,
+    type === 'exam' ? 'task-card--exam' : '',
+    isDueToday && type === 'exam' ? 'task-card--exam-today' : '',
+    isDueTomorrow && type === 'exam' ? 'task-card--exam-tomorrow' : '',
+    completed ? 'task-card--completed' : '',
+    isDueToday ? 'task-card--due-today' : '',
+    isDueTomorrow ? 'task-card--due-tomorrow' : ''
+  ].filter(Boolean).join(' '), [subject, type, isDueToday, isDueTomorrow, completed]);
 
   return (
     <div className={cardClasses} ref={cardRef}>
-      <div className="task-card-inner">
+      <div className="task-card__inner">
         {/* QUATERNARY: Completion status - interactive feedback */}
-        <button 
-          className="complete-btn" 
-          onClick={handleCompleteClick}
-          aria-label={completed ? "Mark as incomplete" : "Mark as complete"}
-          ref={buttonRef}
-        >
-          <span>{completed ? '✓' : ''}</span>
-        </button>
+        {type !== 'exam' && (
+          <button 
+            className="task-card__complete-btn" 
+            onClick={handleCompleteClick}
+            aria-label={completed ? "Mark as incomplete" : "Mark as complete"}
+            ref={buttonRef}
+          >
+          </button>
+        )}
         
-        <div className="task-card-content">
+        <div className="task-card__content">
           {/* PRIMARY: Task description - highest visual prominence */}
-          <div className="task-description">
+          <div className="task-card__description">
             {description}
           </div>
           
           {/* SECONDARY: Subject/categorization - distinctive color, medium emphasis */}
-          <div className="task-card-header">
-            <span className={`task-subject subject-badge ${subject.toLowerCase()}`}>
+          <div className="task-card__header">
+            {type !== 'exam' && <span className={`task-card__subject task-card__subject--${subject.toLowerCase()}`}>
               {subject}
-            </span>
+            </span>}
             
-            {/* Task type badge removed as requested */}
+            {/* Exam badge with specific styling */}
+            {type === 'exam' && (
+              <span className={`task-card__type task-card__type--${type} ${isDueToday ? 'task-card--due-today' : ''}`}>
+                {subject}-EXAM
+              </span>
+            )}
           </div>
           
           {/* TERTIARY: Temporal information - smaller size, lighter color */}
-          <div className="task-meta">
-            <span className="task-date">
-              <span className="task-date-label">Assigned</span> {formattedAssignedDate}
-            </span>
+          <div className="task-card__meta">
+            {type !== 'exam' && (
+              <span className="task-card__date">
+                <span className="task-card__date-label">Assigned</span> {formattedAssignedDate}
+              </span>
+            )}
             
             {due_date && (
-              <span className={`task-due-date ${isDueToday ? 'task-due-today' : ''}`}>
-                <span className="task-date-label">Due</span> {formattedDueDate}
+              <span className={`task-card__due-date ${isDueToday ? 'task-card--due-today' : ''}`}>
+                <span className="task-card__date-label">Due</span> {formattedDueDate}
               </span>
             )}
           </div>
           
           {/* Completion status visual indicator */}
-          {completed && <div className="completed-stamp">Completed</div>}
+          {completed && <div className="task-card__completed-stamp">Completed</div>}
         </div>
       </div>
     </div>

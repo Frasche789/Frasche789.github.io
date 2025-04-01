@@ -65,7 +65,6 @@ export const CONTAINER_TYPE = {
   TOMORROW: 'tomorrow',
   FUTURE: 'future',
   ARCHIVE: 'archive',
-  EXAM: 'exam'
 };
 
 // Cache for containerData to prevent recreating the same objects
@@ -85,10 +84,6 @@ const containerDataCache = {
   [CONTAINER_TYPE.ARCHIVE]: {
     title: "🗄️ Archive",
     emptyMessage: "No completed tasks yet"
-  },
-  [CONTAINER_TYPE.EXAM]: {
-    title: "Exams",
-    emptyMessage: "No upcoming exams"
   }
 };
 
@@ -154,8 +149,6 @@ export function useContainerTasks(containerType = CONTAINER_TYPE.CURRENT) {
         return ContainerRules.futureContainerRule();
       case CONTAINER_TYPE.ARCHIVE:
         return ContainerRules.archiveContainerRule();
-      case CONTAINER_TYPE.EXAM:
-        return ContainerRules.examContainerRule();
       default:
         console.warn(`Unknown container type: ${containerType}, defaulting to current container`);
         return ContainerRules.currentContainerRule(ruleContext);
@@ -243,14 +236,6 @@ function sortTasksByContainer(tasks, containerType) {
         return aDate - bDate; // Soonest first
       });
       
-    case CONTAINER_TYPE.EXAM:
-      // Exam tasks: sort by due date (closest first)
-      return sortedTasks.sort((a, b) => {
-        const aDate = a.due_date ? new Date(a.due_date) : new Date(3000, 0, 1);
-        const bDate = b.due_date ? new Date(b.due_date) : new Date(3000, 0, 1);
-        return aDate - bDate; // Closest due date first
-      });
-    
     case CONTAINER_TYPE.TOMORROW:
       // Tomorrow tasks: sort by creation date (oldest first)
       return sortedTasks.sort((a, b) => {

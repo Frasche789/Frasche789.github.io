@@ -1,246 +1,167 @@
 /* 
- * Color System for TaskBoard
+ * TaskBoard Color System
  * 
- * A comprehensive, semantic color system for the ADHD-optimized TaskBoard application.
- * Organized in layers from primitive color values to contextual applications.
+ * Strategic organization by PURPOSE rather than technical structure:
+ * 1. Base colors - Direct color values
+ * 2. Temporal sequence - Today → Tomorrow → Future → Archive
+ * 3. Subject identification - Consistent recognition
+ * 4. Task status - Completion and urgency states
  */
 
  :root {
   /* ==========================================================================
-     1. COLOR PRIMITIVES
-     Base color values without semantic meaning - never use directly in components
+     1. BASE COLORS
+     Primary palette with no semantic meaning (implementation details)
      ========================================================================== */
   
-  /* Core blue theme palette */
-  --blue-50: #f0f9ff;
-  --blue-100: #e0f2fe;
-  --blue-200: #bae6fd;
-  --blue-300: #7dd3fc;
-  --blue-400: #38bdf8;
-  --blue-500: #0ea5e9;
-  --blue-600: #0284c7;
-  --blue-700: #0369a1;
-  --blue-800: #075985;
-  --blue-900: #0c4a6e;
-  --blue-950: #082f49;
-  
-  /* Neutral gray palette */
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-400: #94a3b8;
-  --gray-500: #64748b;
-  --gray-600: #475569;
-  --gray-700: #334155;
-  --gray-800: #1e293b;
-  --gray-900: #0f172a;
-  --gray-950: #010724;
-  
-  /* Subject colors - vibrant, distinctive hues optimized for dark theme */
-  --hue-math: #4cc9f0;      /* Bright blue */
-  --hue-finnish: #90e0ef;   /* Light blue */
-  --hue-english: #f72585;   /* Magenta */
-  --hue-history: #b5179e;   /* Purple */
-  --hue-civics: #7209b7;    /* Deep purple */
-  --hue-ethics: #6a00f4;    /* Violet */
-  --hue-pe: #480ca8;        /* Indigo */
-  --hue-music: #d100d1;     /* Hot pink */
-  --hue-art: #f15bb5;       /* Pink */
-  --hue-crafts: #fee440;    /* Yellow */
-  --hue-eco: #06d6a0;       /* Teal */
-  --hue-digi: #118ab2;      /* Cyan */
-  --hue-other: #9ca0a3;     /* Gray (matches text-muted) */
-
-  /* ==========================================================================
-     2. SEMANTIC COLOR ASSIGNMENTS
-     Semantic meaning applied to color values - use these in components
-     ========================================================================== */
-  
-  /* Background colors */
-  --color-bg-primary: #080E21;          /* Main background */
-  --color-bg-secondary: #111936;        /* Card backgrounds, raised elements */
-  --color-bg-tertiary: #1E2A4A;         /* Container backgrounds */
-  --color-bg-elevated: #2A3A64;         /* Hoverable elements */
+  /* Dark theme background/surface colors */
+  --color-blue-black: #080E21;    /* Darkest background */
+  --color-dark-blue: #111936;     /* Container backgrounds */
+  --color-navy: #1E2A4A;          /* Card backgrounds */
+  --color-slate: #2A3A64;         /* Interactive elements */
   
   /* Text colors */
-  --color-text-primary: #E6EDF8;        /* Main text */
-  --color-text-secondary: #B0C5E5;      /* Secondary text */
-  --color-text-muted: #6D82A8;          /* Muted text */
-  --color-text-inverse: #FFFFFF;        /* Text on accent backgrounds */
+  --color-white: #FFFFFF;
+  --color-ice: #E6EDF8;           /* Primary text */
+  --color-powder: #B0C5E5;        /* Secondary text */
+  --color-steel: #6D82A8;         /* Tertiary/muted text */
   
-  /* Border colors */
-  --color-border-light: #2A3A64;        /* Subtle borders */
-  --color-border-medium: #1E2A4A;       /* Standard borders */
-  --color-border-strong: #080E21;       /* Emphasized borders */
+  /* ==========================================================================
+     2. TEMPORAL SEQUENCE COLORS
+     Color communicates time priority (warm/energetic → cool/distant)
+     ========================================================================== */
+  
+  /* Container accent colors - temperature indicates priority */
+  --color-today: #FF7D3B;         /* Warm orange - immediate attention */
+  --color-tomorrow: #7C4CE8;      /* Cool purple - soon but not urgent */
+  --color-future: #4C7FE8;        /* Medium blue - less urgent */
+  --color-archive: #2A3A64;       /* Dark blue - completed/inactive */
+  
+  /* Container background gradients */
+  --gradient-today: linear-gradient(135deg, rgba(255, 125, 59, 0.15), rgba(255, 125, 59, 0.05));
+  --gradient-tomorrow: linear-gradient(135deg, rgba(76, 127, 232, 0.15), rgba(76, 127, 232, 0.05)); 
+  --gradient-future: linear-gradient(135deg, rgba(124, 76, 232, 0.15), rgba(124, 76, 232, 0.05));
+  --gradient-archive: linear-gradient(135deg, rgba(42, 58, 100, 0.15), rgba(42, 58, 100, 0.05));
+  
+  /* Application semantic colors */
+  --bg-app: var(--color-blue-black);
+  --bg-container: var(--color-dark-blue);
+  --bg-card: var(--color-navy);
+  --bg-interactive: var(--color-slate);
+  
+  /* Text semantic colors */
+  --text-primary: var(--color-ice);
+  --text-secondary: var(--color-powder);
+  --text-muted: var(--color-steel);
+  --text-on-color: var(--color-white);
+  
+  /* Temporal background colors */
+  --bg-today: var(--gradient-today);
+  --bg-tomorrow: var(--gradient-tomorrow);
+  --bg-future: var(--gradient-future);
+  --bg-archive: var(--gradient-archive);
+  
+  /* Primary action color */
+  --color-primary: #4C7FE8;
+  
+  /* ==========================================================================
+     3. SUBJECT COLORS
+     Vibrant, distinctive colors for consistent subject recognition
+     ========================================================================== */
+  
+  --subject-color-math: #1982c4;        /* Blue */
+  --subject-color-finnish: #FF595E;     /* Red */
+  --subject-color-english: #FF924C;     /* Orange */
+  --subject-color-history: #FFCA3A;     /* Yellow */
+  --subject-color-civics: #8AC926;      /* Lime */
+  --subject-color-ethics: #6A4C93;      /* Violet */
+  --subject-color-pe: #565AA0;          /* Indigo */
+  --subject-color-music: #805D93;       /* Purple */
+  --subject-color-art: #805D93;         /* Purple */
+  --subject-color-crafts: #744253;      /* Burgundy */
+  --subject-color-eco: #169873;         /* Teal */
+  --subject-color-digi: #565ba0;        /* Indigo */
+  --subject-color-other: #6D82A8;       /* Gray */
+
+  /* Subject color variations - light */
+  --subject-color-math-light: #6ab2df;  /* Light blue */
+  --subject-color-finnish-light: #ff9296;  /* Light red */
+  --subject-color-english-light: #fda46c;  /* Light orange */
+  --subject-color-history-light: #ffd86c;  /* Light yellow */
+  --subject-color-civics-light: #b2d677;  /* Light lime */
+  --subject-color-ethics-light: #9072d3;  /* Light violet */
+  --subject-color-pe-light: #878ac4;      /* Light indigo */
+  --subject-color-music-light: #52ad49;   /* Light green */
+  --subject-color-art-light: #ac86c0;     /* Light purple */
+  --subject-color-crafts-light: #a37182;  /* Light burgundy */
+  --subject-color-eco-light: #42d3aa;    /* Light teal */
+  --subject-color-digi-light: #8e93da;   /* Light indigo */
+  --subject-color-other-light: #9fb4db;   /* Light gray */
+
+  /* Subject color variations - dark */
+  --subject-color-math-dark: #05598d;    /* Dark blue */
+  --subject-color-finnish-dark: #af4145;  /* Dark red */
+  --subject-color-english-dark: #d4763b;  /* Dark orange */
+  --subject-color-history-dark: #caa02b;  /* Dark yellow */
+  --subject-color-civics-dark: #65941a;  /* Dark lime */
+  --subject-color-ethics-dark: #422d61;  /* Dark violet */
+  --subject-color-pe-dark: #353870;      /* Dark indigo */
+  --subject-color-music-dark: #11520b;   /* Dark green */
+  --subject-color-art-dark: #4f345e;     /* Dark purple */
+  --subject-color-crafts-dark: #4b2230;  /* Dark burgundy */
+  --subject-color-eco-dark: #169873;    /* Dark teal */
+  --subject-color-digi-dark: #565ba09d;   /* Dark indigo */
+  --subject-color-other-dark: #6d82a89d;   /* Dark gray */
+  
+  /* ==========================================================================
+     4. FUNCTIONAL/STATUS COLORS
+     Action and state indicators
+     ========================================================================== */
   
   /* Action colors */
-  --color-action-primary: #25f7e6;      /* Primary buttons, links */
-  --color-action-secondary: #47D6FF;    /* Secondary actions */
-  --color-action-success: #56F287;      /* Success states */
-  --color-action-danger: #FF5D5D;       /* Error states, destructive actions */
-  --color-action-warning: #FFD343;    /* Warning indicators */
-
+  --color-success: #169873;       /* Completions/confirmations (using Eco teal) */
+  --color-danger: #FF595E;        /* Errors/warnings (using Finnish red) */
+  --color-warning: #FFCA3A;       /* Alerts (using History yellow) */
+  
+  /* Task status colors */
+  --color-task-normal: #1982C4;   /* Regular tasks */
+  --color-task-exam: #FF595E;     /* Exams (same as danger) */
+  --color-task-exam-today: #ff3a40;   /* Today's exams (more intense) */
+  --color-task-exam-tomorrow: #ff9e00; /* Tomorrow's exams (amber) */
+  
   /* ==========================================================================
-     3. COMPONENT-SPECIFIC COLORS
-     Specific applications of color for particular components and states
+     5. SEMANTIC MAPPINGS
+     Connect raw colors to semantic interface elements
      ========================================================================== */
   
-  /* Task type indicators */
-  --color-task-homework: var(--color-action-primary);
-  --color-task-exam: var(--color-action-danger);
-  --color-task-exam-today: #ff5a5f;
-  --color-task-exam-tomorrow: #ff9e00;
-  
-  /* Background gradient stops for container styling */
-  --color-gradient-top: rgba(2, 6, 23, 0.99);      /* Top of container gradient */
-  --color-gradient-bottom: rgba(30, 41, 59, 0.92); /* Bottom of container gradient */
+  /* Borders and shadows */
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-medium: rgba(255, 255, 255, 0.15);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  --glow-primary: 0 0 8px rgba(25, 130, 196, 0.5);
+  --glow-danger: 0 0 8px rgba(255, 89, 94, 0.5);
 }
 
 /* ==========================================================================
-   4. EMPHASIS LEVEL VARIATIONS
-   Color variations for different emphasis levels
+   6. MEDIA-SPECIFIC ADJUSTMENTS
+   Special cases for accessibility or device considerations
    ========================================================================== */
 
-/* High emphasis colors (Today's tasks) */
-:root {
-  /* Subject colors at high emphasis */
-  --color-subject-math-high: var(--hue-math);
-  --color-subject-finnish-high: var(--hue-finnish);
-  --color-subject-english-high: var(--hue-english);
-  --color-subject-history-high: var(--hue-history);
-  --color-subject-civics-high: var(--hue-civics);
-  --color-subject-ethics-high: var(--hue-ethics);
-  --color-subject-pe-high: var(--hue-pe);
-  --color-subject-music-high: var(--hue-music);
-  --color-subject-art-high: var(--hue-art);
-  --color-subject-crafts-high: var(--hue-crafts);
-  --color-subject-eco-high: var(--hue-eco);
-  --color-subject-digi-high: var(--hue-digi);
-  --color-subject-other-high: var(--hue-other);
-  
-  /* Text colors at high emphasis */
-  --color-text-primary-high: var(--color-text-primary);
-  --color-text-secondary-high: var(--color-text-secondary);
-  
-  /* Container colors at high emphasis */
-  --color-container-border-high: var(--color-action-primary);
-  --color-container-bg-high: linear-gradient(180deg, 
-    rgba(2, 6, 23, 0.99) 0%,
-    rgba(30, 41, 59, 0.95) 100%);
-}
-
-/* Medium emphasis colors (Tomorrow/Future tasks) */
-:root {
-  /* Subject colors at medium emphasis */
-  --color-subject-math-medium: var(--hue-math);
-  --color-subject-finnish-medium: var(--hue-finnish);
-  --color-subject-english-medium: var(--hue-english);
-  --color-subject-history-medium: var(--hue-history);
-  --color-subject-civics-medium: var(--hue-civics);
-  --color-subject-ethics-medium: var(--hue-ethics);
-  --color-subject-pe-medium: var(--hue-pe);
-  --color-subject-music-medium: var(--hue-music);
-  --color-subject-art-medium: var(--hue-art);
-  --color-subject-crafts-medium: var(--hue-crafts);
-  --color-subject-eco-medium: var(--hue-eco);
-  --color-subject-digi-medium: var(--hue-digi);
-  --color-subject-other-medium: var(--hue-other);
-  
-  /* Container colors at medium emphasis */
-  --color-container-border-medium: var(--color-action-secondary);
-  --color-container-bg-medium: linear-gradient(180deg, 
-    rgba(2, 6, 23, 0.97) 0%,
-    rgba(30, 41, 59, 0.9) 100%);
-}
-
-/* Low emphasis colors (Archive tasks) */
-:root {
-  /* Subject colors at low emphasis - muted with transparency */
-  --color-subject-math-low: rgba(76, 201, 240, 0.8);
-  --color-subject-finnish-low: rgba(144, 224, 239, 0.8);
-  --color-subject-english-low: rgba(247, 37, 133, 0.8);
-  --color-subject-history-low: rgba(181, 23, 158, 0.8);
-  --color-subject-civics-low: rgba(114, 9, 183, 0.8);
-  --color-subject-ethics-low: rgba(106, 0, 244, 0.8);
-  --color-subject-pe-low: rgba(72, 12, 168, 0.8);
-  --color-subject-music-low: rgba(209, 0, 209, 0.8);
-  --color-subject-art-low: rgba(241, 91, 181, 0.8);
-  --color-subject-crafts-low: rgba(254, 228, 64, 0.8);
-  --color-subject-eco-low: rgba(6, 214, 160, 0.8);
-  --color-subject-digi-low: rgba(17, 138, 178, 0.8);
-  --color-subject-other-low: rgba(156, 160, 163, 0.8);
-  
-  /* Container colors at low emphasis */
-  --color-container-border-low: var(--color-border-light);
-  --color-container-bg-low: linear-gradient(180deg, 
-    rgba(2, 6, 23, 0.9) 0%,
-    rgba(30, 41, 59, 0.8) 100%);
-}
-
-/* ==========================================================================
-   5. LEGACY COMPATIBILITY VARIABLES
-   Support for components not yet updated to the new system
-   ========================================================================== */
-
-:root {
-  /* Background colors - dark blue theme */
-  --bg-primary: var(--color-bg-primary);
-  --bg-secondary: var(--color-bg-secondary);
-  --bg-card: var(--color-bg-tertiary);
-  --bg-card-hover: var(--color-bg-elevated);
-  
-  /* Text colors */
-  --text-primary: var(--color-text-primary);
-  --text-secondary: var(--color-text-secondary);
-  --text-muted: var(--color-text-muted);
-  --text-accent: var(--color-text-primary);
-  
-  /* Accent colors */
-  --accent-primary: var(--color-action-primary);
-  --accent-secondary: var(--color-action-secondary);
-  --accent-success: var(--color-action-success);
-  --accent-danger: var(--color-action-danger);
-  --accent-warning: var(--color-action-warning);
-  
-  /* Subject colors */
-  --subject-math: var(--color-subject-math-high);
-  --subject-finnish: var(--color-subject-finnish-high);
-  --subject-english: var(--color-subject-english-high);
-  --subject-history: var(--color-subject-history-high);
-  --subject-civics: var(--color-subject-civics-high);
-  --subject-ethics: var(--color-subject-ethics-high);
-  --subject-pe: var(--color-subject-pe-high);
-  --subject-music: var(--color-subject-music-high);
-  --subject-art: var(--color-subject-art-high);
-  --subject-crafts: var(--color-subject-crafts-high);
-  --subject-eco: var(--color-subject-eco-high);
-  --subject-digi: var(--color-subject-digi-high);
-  --subject-other: var(--color-subject-other-high);
-}
-
-/* ==========================================================================
-   6. HIGH CONTRAST MODE OVERRIDES
-   Higher contrast alternatives for accessibility
-   ========================================================================== */
-
+/* High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
-    /* Increase contrast for text */
-    --color-text-primary: white;
-    --color-text-secondary: #e0e0e0;
-    --color-text-muted: #bfbfbf;
+    --text-primary: var(--color-white);
+    --text-secondary: #e0e0e0;
+    --text-muted: #bfbfbf;
     
-    /* Increase contrast for borders */
-    --color-border-light: #666666;
-    --color-border-medium: #999999;
-    --color-border-strong: white;
+    --border-light: #666666;
+    --border-medium: #999999;
     
-    /* Make action colors more distinct */
-    --color-action-primary: #0080ff;
-    --color-action-secondary: #ff0080;
-    --color-action-success: #00cc00;
-    --color-action-danger: #ff0000;
-    --color-action-warning: #ffcc00;
+    --color-primary: #0080ff;
+    --color-success: #00cc00;
+    --color-danger: #ff0000;
+    --color-warning: #ffcc00;
   }
 }
