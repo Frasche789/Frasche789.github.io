@@ -14,7 +14,7 @@ This document outlines the architectural foundation for visual task management a
 2. **Declarative Rule Definition**
    - Rules defined as composable predicates
    - Container membership determined by rule evaluation
-   - Rules adapt to contextual data (time, user state)
+   - Rules adapt to contextual data (time, user state, etc.)
 
 3. **Progressive Complexity**
    - Core architecture supports simple to complex implementations
