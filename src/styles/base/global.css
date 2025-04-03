@@ -1,0 +1,140 @@
+/* 
+ * Global Styles for TaskBoard
+ * 
+ * Global element styles and base document styling.
+ * Applies design tokens to HTML elements.
+ */
+
+/* ==========================================================================
+   Document styling
+   ========================================================================== */
+   html {
+    font-size: 16px; /* Base font size */
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: var(--font-primary);
+    color: var(--text-primary);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  
+  /* ==========================================================================
+     Typography base styling
+     ========================================================================== */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+  }
+  
+  h1 { 
+    font-size: 2rem; 
+    font-weight: 700;
+  }
+  
+  h2 { 
+    font-size: 1.5rem; 
+    font-weight: 600;
+  }
+  
+  h3 { 
+    font-size: 1.25rem; 
+    font-weight: 600;
+  }
+  
+  h4 { 
+    font-size: 1.125rem; 
+    font-weight: 600;
+  }
+  
+  h5 { 
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
+  }
+  
+  h6 { 
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+  }
+  
+  p { 
+    margin-bottom: var(--space-md);
+    max-width: 70ch; /* Optimal reading width */
+  }
+  
+  a {
+    color: var(--color-action-primary);
+    text-decoration: none;
+    transition: var(--transition-standard);
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  a:focus {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  small {
+    font-size: var(--text-sm);
+  }
+  
+  /* ==========================================================================
+     Form elements base styling
+     ========================================================================== */
+  input, 
+  textarea, 
+  select, 
+  button {
+    font-family: var(--font-primary);
+    font-size: var(--text-base);
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: 2px solid var(--color-action-primary);
+    outline-offset: 2px;
+  }
+  
+  /* ==========================================================================
+     Container and content wrappers
+     ========================================================================== */
+  .app {
+    max-width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-md);
+  }
+  
+  /* Main content container */
+  .container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--space-md);
+  }
+  
+  /* ==========================================================================
+     Responsive adjustments
+     ========================================================================== */
+  @media (min-width: 768px) {
+    .app {
+      padding: var(--space-lg);
+    }
+    
+    .container {
+      padding: var(--space-lg);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .app {
+      padding: var(--space-xl);
+    }
+  }

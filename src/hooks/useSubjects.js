@@ -1,18 +1,67 @@
 // Hook to access subject information
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { db } from '../services/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+
+// Create a debug logger that only logs in development and prevents duplicate logs
+const createLogger = (namespace) => {
+  const logged = new Set();
+  
+  return (message, data = null, forceLog = false) => {
+    // Only log in development or if forced
+    if (process.env.NODE_ENV !== 'development' && !forceLog) return;
+    
+    // Create a key from the message to track duplicates
+    const key = `${namespace}:${message}`;
+    
+    // Skip duplicate logs unless forced
+    if (logged.has(key) && !forceLog) return;
+    
+    // Add to logged set to prevent duplicates
+    logged.add(key);
+    
+    // Log with proper formatting
+    if (data) {
+      console.log(`[${namespace}] ${message}`, data);
+    } else {
+      console.log(`[${namespace}] ${message}`);
+    }
+  };
+};
+
+// Create subject logger
+const subjectLogger = createLogger('Subjects');
 
 export function useSubjects() {
   const [subjects, setSubjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const fetchAttempts = useRef(0);
+  const hasLoggedToday = useRef(false);
+  const hasLoggedTomorrow = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
     
     async function fetchSubjects() {
+      // Avoid refetching if we already have subjects
+      if (subjects.length > 0) {
+        subjectLogger('Using cached subjects data');
+        return;
+      }
+      
+      // Track fetch attempts to prevent excessive retries
+      fetchAttempts.current += 1;
+      
+      if (fetchAttempts.current > 3) {
+        subjectLogger('Too many fetch attempts, aborting', null, true);
+        setError('Unable to load subjects after multiple attempts');
+        setIsLoading(false);
+        return;
+      }
+      
       try {
+        subjectLogger(`Fetching subjects (attempt ${fetchAttempts.current})`);
         setIsLoading(true);
         const subjectsCollection = collection(db, 'subjects');
         const subjectsSnapshot = await getDocs(subjectsCollection);
@@ -20,7 +69,7 @@ export function useSubjects() {
         if (!isMounted) return;
         
         if (subjectsSnapshot.empty) {
-          console.error('No subjects found in Firestore');
+          subjectLogger('No subjects found in Firestore', null, true);
           setError('No subjects found in database');
           setSubjects([]);
           return;
@@ -31,14 +80,14 @@ export function useSubjects() {
           ...doc.data()
         }));
         
-        // Only log once during development
-        console.log('Fetched subjects:', subjectsData.length);
+        // Only log once
+        subjectLogger(`Fetched ${subjectsData.length} subjects successfully`);
         
         setSubjects(subjectsData);
         setError(null);
       } catch (err) {
         if (!isMounted) return;
-        console.error('Error fetching subjects:', err);
+        subjectLogger('Error fetching subjects', err, true);
         setError(`Failed to load subjects: ${err.message}`);
         // Set subjects to empty array to prevent undefined issues
         setSubjects([]);
@@ -55,7 +104,7 @@ export function useSubjects() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [subjects.length]);
 
   // Get subjects scheduled for today - memoized to prevent recalculations
   const todaySubjects = useMemo(() => {
@@ -68,15 +117,21 @@ export function useSubjects() {
     const todayDay = daysOfWeek[today.getDay()];
     
     // Only log this once
-    console.log(`Today is ${todayDay}`);
+    if (!hasLoggedToday.current) {
+      subjectLogger(`Today is ${todayDay}`);
+      hasLoggedToday.current = true;
+    }
     
     // Filter subjects scheduled for today
     const result = subjects.filter(subject => 
       subject.schedule && subject.schedule[todayDay] === true
     );
     
-    console.log(`Found ${result.length} subjects for today:`, 
-                result.map(s => s.name || s.id).join(', '));
+    // Only log this once
+    if (!hasLoggedToday.current || result.length === 0) {
+      subjectLogger(`Found ${result.length} subjects for today`, 
+                  result.map(s => s.name || s.id).join(', '));
+    }
     
     return result;
   }, [subjects, error]);
@@ -94,15 +149,21 @@ export function useSubjects() {
     const tomorrowDay = daysOfWeek[tomorrow.getDay()];
     
     // Only log this once
-    console.log(`Tomorrow is ${tomorrowDay}`);
+    if (!hasLoggedTomorrow.current) {
+      subjectLogger(`Tomorrow is ${tomorrowDay}`);
+      hasLoggedTomorrow.current = true;
+    }
     
     // Filter subjects scheduled for tomorrow
     const result = subjects.filter(subject => 
       subject.schedule && subject.schedule[tomorrowDay] === true
     );
     
-    console.log(`Found ${result.length} subjects for tomorrow:`, 
-                result.map(s => s.name || s.id).join(', '));
+    // Only log this once
+    if (!hasLoggedTomorrow.current || result.length === 0) {
+      subjectLogger(`Found ${result.length} subjects for tomorrow`, 
+                  result.map(s => s.name || s.id).join(', '));
+    }
     
     return result;
   }, [subjects, error]);

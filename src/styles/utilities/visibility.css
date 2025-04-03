@@ -1,0 +1,282 @@
+/* 
+ * Visibility Utilities
+ * 
+ * Utility classes for controlling the visibility, display, and 
+ * positioning of elements in a standardized way.
+ */
+
+/* ==========================================================================
+   1. Display Utilities
+   Control the display property of elements
+   ========================================================================== */
+   .display-none { display: none; }
+   .display-block { display: block; }
+   .display-inline { display: inline; }
+   .display-inline-block { display: inline-block; }
+   .display-flex { display: flex; }
+   .display-inline-flex { display: inline-flex; }
+   .display-grid { display: grid; }
+   .display-contents { display: contents; }
+   
+   /* ==========================================================================
+      2. Visibility Utilities
+      Control the visibility of elements without changing document flow
+      ========================================================================== */
+   .visible { visibility: visible; }
+   .invisible { visibility: hidden; }
+   .collapse { visibility: collapse; }
+   
+   /* ==========================================================================
+      3. Opacity Utilities
+      Control the opacity of elements
+      ========================================================================== */
+   .opacity-0 { opacity: 0; }
+   .opacity-25 { opacity: 0.25; }
+   .opacity-50 { opacity: 0.5; }
+   .opacity-75 { opacity: 0.75; }
+   .opacity-100 { opacity: 1; }
+   
+   /* ==========================================================================
+      4. Position Utilities
+      Control the positioning of elements
+      ========================================================================== */
+   .position-static { position: static; }
+   .position-relative { position: relative; }
+   .position-absolute { position: absolute; }
+   .position-fixed { position: fixed; }
+   .position-sticky { position: sticky; }
+   
+   /* Position coordinates */
+   .top-0 { top: 0; }
+   .right-0 { right: 0; }
+   .bottom-0 { bottom: 0; }
+   .left-0 { left: 0; }
+   
+   .top-auto { top: auto; }
+   .right-auto { right: auto; }
+   .bottom-auto { bottom: auto; }
+   .left-auto { left: auto; }
+   
+   /* Z-index utilities */
+   .z-below { z-index: var(--z-below); }
+   .z-normal { z-index: var(--z-normal); }
+   .z-above { z-index: var(--z-above); }
+   .z-sticky { z-index: var(--z-sticky); }
+   .z-header { z-index: var(--z-header); }
+   .z-dropdown { z-index: var(--z-dropdown); }
+   .z-modal { z-index: var(--z-modal); }
+   .z-toast { z-index: var(--z-toast); }
+   .z-tooltip { z-index: var(--z-tooltip); }
+   
+   /* ==========================================================================
+      5. Overflow Utilities
+      Control how content overflows its container
+      ========================================================================== */
+   .overflow-auto { overflow: auto; }
+   .overflow-hidden { overflow: hidden; }
+   .overflow-visible { overflow: visible; }
+   .overflow-scroll { overflow: scroll; }
+   
+   .overflow-x-auto { overflow-x: auto; }
+   .overflow-x-hidden { overflow-x: hidden; }
+   .overflow-x-visible { overflow-x: visible; }
+   .overflow-x-scroll { overflow-x: scroll; }
+   
+   .overflow-y-auto { overflow-y: auto; }
+   .overflow-y-hidden { overflow-y: hidden; }
+   .overflow-y-visible { overflow-y: visible; }
+   .overflow-y-scroll { overflow-y: scroll; }
+   
+   /* ==========================================================================
+      6. Accessibility Utilities
+      Helpers for accessibility-focused visibility control
+      ========================================================================== */
+   /* Visually hide an element but keep it accessible to screen readers */
+   .sr-only {
+     position: absolute;
+     width: 1px;
+     height: 1px;
+     padding: 0;
+     margin: -1px;
+     overflow: hidden;
+     clip: rect(0, 0, 0, 0);
+     white-space: nowrap;
+     border-width: 0;
+   }
+   
+   /* Make an element visible again from .sr-only when focused */
+   .sr-only-focusable:not(:focus) {
+     position: absolute;
+     width: 1px;
+     height: 1px;
+     padding: 0;
+     margin: -1px;
+     overflow: hidden;
+     clip: rect(0, 0, 0, 0);
+     white-space: nowrap;
+     border-width: 0;
+   }
+   
+   /* ==========================================================================
+      7. Responsive Visibility Utilities
+      Control visibility based on screen size
+      ========================================================================== */
+   /* Hide on mobile (visible from tablet up) */
+   .hidden-mobile {
+     display: none;
+   }
+   
+   /* Hide on tablet and desktop (visible only on mobile) */
+   .mobile-only {
+     display: block;
+   }
+   
+   /* Hide on tablet (visible on mobile and desktop) */
+   .hidden-tablet {
+     display: block;
+   }
+   
+   /* Hide on desktop (visible on mobile and tablet) */
+   .hidden-desktop {
+     display: block;
+   }
+   
+   /* Responsive breakpoints */
+   @media (min-width: 768px) {
+     .hidden-mobile {
+       display: block;
+     }
+     
+     .mobile-only {
+       display: none;
+     }
+     
+     .hidden-tablet {
+       display: none;
+     }
+     
+     .tablet-only {
+       display: block;
+     }
+   }
+   
+   @media (min-width: 1024px) {
+     .hidden-desktop {
+       display: none;
+     }
+     
+     .desktop-only {
+       display: block;
+     }
+     
+     .hidden-tablet {
+       display: block;
+     }
+     
+     .tablet-only {
+       display: none;
+     }
+   }
+   
+   /* ==========================================================================
+      8. Print Visibility Utilities
+      Control what is visible when printing
+      ========================================================================== */
+   .print-only {
+     display: none;
+   }
+   
+   .hide-on-print {
+     display: block;
+   }
+   
+   @media print {
+     .print-only {
+       display: block;
+     }
+     
+     .hide-on-print {
+       display: none;
+     }
+   }
+   
+   /* ==========================================================================
+      9. State-based Visibility
+      Toggle visibility based on states
+      ========================================================================== */
+   /* Hidden by default, shown when parent has .is-active */
+   .parent-active-show {
+     display: none;
+   }
+   
+   .is-active > .parent-active-show,
+   .is-active .parent-active-show {
+     display: block;
+   }
+   
+   /* Shown by default, hidden when parent has .is-active */
+   .parent-active-hide {
+     display: block;
+   }
+   
+   .is-active > .parent-active-hide,
+   .is-active .parent-active-hide {
+     display: none;
+   }
+   
+   /* For use with JavaScript toggle */
+   .is-hidden {
+     display: none;
+   }
+   
+   .is-visible {
+     display: block;
+   }
+   
+   /* ==========================================================================
+      10. Container-specific Visibility
+      Control visibility within specific containers
+      ========================================================================== */
+   /* Hide in completed tasks container */
+   .archive-container .hide-in-archive {
+     display: none;
+   }
+   
+   /* Show only in completed tasks container */
+   .show-in-archive {
+     display: none;
+   }
+   
+   .archive-container .show-in-archive {
+     display: block;
+   }
+   
+   /* ==========================================================================
+      11. Animation State Visibility
+      Control visibility during animations
+      ========================================================================== */
+   .enter {
+     opacity: 0;
+     transition: opacity var(--duration-normal) var(--ease-out);
+   }
+   
+   .enter-active {
+     opacity: 1;
+   }
+   
+   .exit {
+     opacity: 1;
+     transition: opacity var(--duration-normal) var(--ease-in);
+   }
+   
+   .exit-active {
+     opacity: 0;
+   }
+   
+   /* Disable transitions for reduced motion preference */
+   @media (prefers-reduced-motion: reduce) {
+     .enter,
+     .exit {
+       transition: none;
+     }
+   }

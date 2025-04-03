@@ -1,0 +1,167 @@
+/* 
+ * TaskBoard Color System
+ * 
+ * Strategic organization by PURPOSE rather than technical structure:
+ * 1. Base colors - Direct color values
+ * 2. Temporal sequence - Today → Tomorrow → Future → Archive
+ * 3. Subject identification - Consistent recognition
+ * 4. Task status - Completion and urgency states
+ */
+
+ :root {
+  /* ==========================================================================
+     1. BASE COLORS
+     Primary palette with no semantic meaning (implementation details)
+     ========================================================================== */
+  
+  /* Dark theme background/surface colors */
+  --color-blue-black: #080E21;    /* Darkest background */
+  --color-dark-blue: #111936;     /* Container backgrounds */
+  --color-navy: #1E2A4A;          /* Card backgrounds */
+  --color-slate: #2A3A64;         /* Interactive elements */
+  
+  /* Text colors */
+  --color-white: #FFFFFF;
+  --color-ice: #E6EDF8;           /* Primary text */
+  --color-powder: #B0C5E5;        /* Secondary text */
+  --color-steel: #6D82A8;         /* Tertiary/muted text */
+  
+  /* ==========================================================================
+     2. TEMPORAL SEQUENCE COLORS
+     Color communicates time priority (warm/energetic → cool/distant)
+     ========================================================================== */
+  
+  /* Container accent colors - temperature indicates priority */
+  --color-today: #FF7D3B;         /* Warm orange - immediate attention */
+  --color-tomorrow: #7C4CE8;      /* Cool purple - soon but not urgent */
+  --color-future: #4C7FE8;        /* Medium blue - less urgent */
+  --color-archive: #2A3A64;       /* Dark blue - completed/inactive */
+  
+  /* Container background gradients */
+  --gradient-today: linear-gradient(135deg, rgba(255, 125, 59, 0.15), rgba(255, 125, 59, 0.05));
+  --gradient-tomorrow: linear-gradient(135deg, rgba(76, 127, 232, 0.15), rgba(76, 127, 232, 0.05)); 
+  --gradient-future: linear-gradient(135deg, rgba(124, 76, 232, 0.15), rgba(124, 76, 232, 0.05));
+  --gradient-archive: linear-gradient(135deg, rgba(42, 58, 100, 0.15), rgba(42, 58, 100, 0.05));
+  
+  /* Application semantic colors */
+  --bg-app: var(--color-blue-black);
+  --bg-container: var(--color-dark-blue);
+  --bg-card: var(--color-navy);
+  --bg-interactive: var(--color-slate);
+  
+  /* Text semantic colors */
+  --text-primary: var(--color-ice);
+  --text-secondary: var(--color-powder);
+  --text-muted: var(--color-steel);
+  --text-on-color: var(--color-white);
+  
+  /* Temporal background colors */
+  --bg-today: var(--gradient-today);
+  --bg-tomorrow: var(--gradient-tomorrow);
+  --bg-future: var(--gradient-future);
+  --bg-archive: var(--gradient-archive);
+  
+  /* Primary action color */
+  --color-primary: #4C7FE8;
+  
+  /* ==========================================================================
+     3. SUBJECT COLORS
+     Vibrant, distinctive colors for consistent subject recognition
+     ========================================================================== */
+  
+  --subject-color-math: #1982c4;        /* Blue */
+  --subject-color-finnish: #FF595E;     /* Red */
+  --subject-color-english: #FF924C;     /* Orange */
+  --subject-color-history: #FFCA3A;     /* Yellow */
+  --subject-color-civics: #8AC926;      /* Lime */
+  --subject-color-ethics: #6A4C93;      /* Violet */
+  --subject-color-pe: #565AA0;          /* Indigo */
+  --subject-color-music: #805D93;       /* Purple */
+  --subject-color-art: #805D93;         /* Purple */
+  --subject-color-crafts: #744253;      /* Burgundy */
+  --subject-color-eco: #169873;         /* Teal */
+  --subject-color-digi: #565ba0;        /* Indigo */
+  --subject-color-other: #6D82A8;       /* Gray */
+
+  /* Subject color variations - light */
+  --subject-color-math-light: #6ab2df;  /* Light blue */
+  --subject-color-finnish-light: #ff9296;  /* Light red */
+  --subject-color-english-light: #fda46c;  /* Light orange */
+  --subject-color-history-light: #ffd86c;  /* Light yellow */
+  --subject-color-civics-light: #b2d677;  /* Light lime */
+  --subject-color-ethics-light: #9072d3;  /* Light violet */
+  --subject-color-pe-light: #878ac4;      /* Light indigo */
+  --subject-color-music-light: #52ad49;   /* Light green */
+  --subject-color-art-light: #ac86c0;     /* Light purple */
+  --subject-color-crafts-light: #a37182;  /* Light burgundy */
+  --subject-color-eco-light: #42d3aa;    /* Light teal */
+  --subject-color-digi-light: #8e93da;   /* Light indigo */
+  --subject-color-other-light: #9fb4db;   /* Light gray */
+
+  /* Subject color variations - dark */
+  --subject-color-math-dark: #05598d;    /* Dark blue */
+  --subject-color-finnish-dark: #af4145;  /* Dark red */
+  --subject-color-english-dark: #d4763b;  /* Dark orange */
+  --subject-color-history-dark: #caa02b;  /* Dark yellow */
+  --subject-color-civics-dark: #65941a;  /* Dark lime */
+  --subject-color-ethics-dark: #422d61;  /* Dark violet */
+  --subject-color-pe-dark: #353870;      /* Dark indigo */
+  --subject-color-music-dark: #11520b;   /* Dark green */
+  --subject-color-art-dark: #4f345e;     /* Dark purple */
+  --subject-color-crafts-dark: #4b2230;  /* Dark burgundy */
+  --subject-color-eco-dark: #169873;    /* Dark teal */
+  --subject-color-digi-dark: #565ba09d;   /* Dark indigo */
+  --subject-color-other-dark: #6d82a89d;   /* Dark gray */
+  
+  /* ==========================================================================
+     4. FUNCTIONAL/STATUS COLORS
+     Action and state indicators
+     ========================================================================== */
+  
+  /* Action colors */
+  --color-success: #169873;       /* Completions/confirmations (using Eco teal) */
+  --color-danger: #FF595E;        /* Errors/warnings (using Finnish red) */
+  --color-warning: #FFCA3A;       /* Alerts (using History yellow) */
+  
+  /* Task status colors */
+  --color-task-normal: #1982C4;   /* Regular tasks */
+  --color-task-exam: #FF595E;     /* Exams (same as danger) */
+  --color-task-exam-today: #ff3a40;   /* Today's exams (more intense) */
+  --color-task-exam-tomorrow: #ff9e00; /* Tomorrow's exams (amber) */
+  
+  /* ==========================================================================
+     5. SEMANTIC MAPPINGS
+     Connect raw colors to semantic interface elements
+     ========================================================================== */
+  
+  /* Borders and shadows */
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-medium: rgba(255, 255, 255, 0.15);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  --glow-primary: 0 0 8px rgba(25, 130, 196, 0.5);
+  --glow-danger: 0 0 8px rgba(255, 89, 94, 0.5);
+}
+
+/* ==========================================================================
+   6. MEDIA-SPECIFIC ADJUSTMENTS
+   Special cases for accessibility or device considerations
+   ========================================================================== */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: var(--color-white);
+    --text-secondary: #e0e0e0;
+    --text-muted: #bfbfbf;
+    
+    --border-light: #666666;
+    --border-medium: #999999;
+    
+    --color-primary: #0080ff;
+    --color-success: #00cc00;
+    --color-danger: #ff0000;
+    --color-warning: #ffcc00;
+  }
+}

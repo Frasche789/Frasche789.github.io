@@ -81,6 +81,26 @@ export function isDueFuture(task) {
 }
 
 /**
+ * Checks if a task is due the day after tomorrow.
+ * @param {Object} task - The task object to check
+ * @returns {boolean} True if the task is due the day after tomorrow
+ */
+export function isDueDayAfterTomorrow(task) {
+  if (!task || !task.due_date) return false;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  
+  const dueDate = new Date(task.due_date);
+  dueDate.setHours(0, 0, 0, 0);
+  
+  return dueDate.getTime() === dayAfterTomorrow.getTime();
+}
+
+/**
  * Checks if a task has no due date.
  * @param {Object} task - The task object to check
  * @returns {boolean} True if the task has no due date
@@ -135,6 +155,28 @@ export function isExam(task) {
  */
 export function isNotExam(task) {
   return !isExam(task);
+}
+
+/**
+ * Checks if a task is a homework or homework-related.
+ * @param {Object} task - The task object to check
+ * @returns {boolean} True if the task is homework-related
+ */
+export function isHomework(task) {
+  if (!task) return false;
+  
+  // Check if task type is homework or title/description contains homework-related keywords
+  return task.type === 'homework' || 
+         (task.title && task.title.toLowerCase().includes('homework'));
+}
+
+/**
+ * Checks if a task is not a homework.
+ * @param {Object} task - The task object to check
+ * @returns {boolean} True if the task is not homework-related
+ */
+export function isNotHomework(task) {
+  return !isHomework(task);
 }
 
 // ==========================================

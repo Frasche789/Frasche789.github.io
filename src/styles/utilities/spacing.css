@@ -1,0 +1,298 @@
+/* 
+ * Spacing Utilities
+ * 
+ * Utility classes for controlling margins, padding, and spacing
+ * in a standardized and responsive way.
+ */
+
+/* ==========================================================================
+   1. Margin Utilities
+   Apply standardized margins to any element
+   ========================================================================== */
+/* Margin - all sides */
+.m-0 { margin: 0; }
+.m-xxxs { margin: var(--space-xxxs); }
+.m-xxs { margin: var(--space-xxs); }
+.m-xs { margin: var(--space-xs); }
+.m-sm { margin: var(--space-sm); }
+.m-md { margin: var(--space-md); }
+.m-lg { margin: var(--space-lg); }
+.m-xl { margin: var(--space-xl); }
+.m-xxl { margin: var(--space-xxl); }
+.m-xxxl { margin: var(--space-xxxl); }
+.m-auto { margin: auto; }
+
+/* Margin - vertical (top & bottom) */
+.my-0 { margin-top: 0; margin-bottom: 0; }
+.my-xxxs { margin-top: var(--space-xxxs); margin-bottom: var(--space-xxxs); }
+.my-xxs { margin-top: var(--space-xxs); margin-bottom: var(--space-xxs); }
+.my-xs { margin-top: var(--space-xs); margin-bottom: var(--space-xs); }
+.my-sm { margin-top: var(--space-sm); margin-bottom: var(--space-sm); }
+.my-md { margin-top: var(--space-md); margin-bottom: var(--space-md); }
+.my-lg { margin-top: var(--space-lg); margin-bottom: var(--space-lg); }
+.my-xl { margin-top: var(--space-xl); margin-bottom: var(--space-xl); }
+.my-xxl { margin-top: var(--space-xxl); margin-bottom: var(--space-xxl); }
+.my-xxxl { margin-top: var(--space-xxxl); margin-bottom: var(--space-xxxl); }
+.my-auto { margin-top: auto; margin-bottom: auto; }
+
+/* Margin - horizontal (left & right) */
+.mx-0 { margin-left: 0; margin-right: 0; }
+.mx-xxxs { margin-left: var(--space-xxxs); margin-right: var(--space-xxxs); }
+.mx-xxs { margin-left: var(--space-xxs); margin-right: var(--space-xxs); }
+.mx-xs { margin-left: var(--space-xs); margin-right: var(--space-xs); }
+.mx-sm { margin-left: var(--space-sm); margin-right: var(--space-sm); }
+.mx-md { margin-left: var(--space-md); margin-right: var(--space-md); }
+.mx-lg { margin-left: var(--space-lg); margin-right: var(--space-lg); }
+.mx-xl { margin-left: var(--space-xl); margin-right: var(--space-xl); }
+.mx-xxl { margin-left: var(--space-xxl); margin-right: var(--space-xxl); }
+.mx-xxxl { margin-left: var(--space-xxxl); margin-right: var(--space-xxxl); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* Margin - top */
+.mt-0 { margin-top: 0; }
+.mt-xxxs { margin-top: var(--space-xxxs); }
+.mt-xxs { margin-top: var(--space-xxs); }
+.mt-xs { margin-top: var(--space-xs); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mt-xl { margin-top: var(--space-xl); }
+.mt-xxl { margin-top: var(--space-xxl); }
+.mt-xxxl { margin-top: var(--space-xxxl); }
+.mt-auto { margin-top: auto; }
+
+/* Margin - right */
+.mr-0 { margin-right: 0; }
+.mr-xxxs { margin-right: var(--space-xxxs); }
+.mr-xxs { margin-right: var(--space-xxs); }
+.mr-xs { margin-right: var(--space-xs); }
+.mr-sm { margin-right: var(--space-sm); }
+.mr-md { margin-right: var(--space-md); }
+.mr-lg { margin-right: var(--space-lg); }
+.mr-xl { margin-right: var(--space-xl); }
+.mr-xxl { margin-right: var(--space-xxl); }
+.mr-xxxl { margin-right: var(--space-xxxl); }
+.mr-auto { margin-right: auto; }
+
+/* Margin - bottom */
+.mb-0 { margin-bottom: 0; }
+.mb-xxxs { margin-bottom: var(--space-xxxs); }
+.mb-xxs { margin-bottom: var(--space-xxs); }
+.mb-xs { margin-bottom: var(--space-xs); }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+.mb-xl { margin-bottom: var(--space-xl); }
+.mb-xxl { margin-bottom: var(--space-xxl); }
+.mb-xxxl { margin-bottom: var(--space-xxxl); }
+.mb-auto { margin-bottom: auto; }
+
+/* Margin - left */
+.ml-0 { margin-left: 0; }
+.ml-xxxs { margin-left: var(--space-xxxs); }
+.ml-xxs { margin-left: var(--space-xxs); }
+.ml-xs { margin-left: var(--space-xs); }
+.ml-sm { margin-left: var(--space-sm); }
+.ml-md { margin-left: var(--space-md); }
+.ml-lg { margin-left: var(--space-lg); }
+.ml-xl { margin-left: var(--space-xl); }
+.ml-xxl { margin-left: var(--space-xxl); }
+.ml-xxxl { margin-left: var(--space-xxxl); }
+.ml-auto { margin-left: auto; }
+
+/* ==========================================================================
+   2. Padding Utilities
+   Apply standardized padding to any element
+   ========================================================================== */
+/* Padding - all sides */
+.p-0 { padding: 0; }
+.p-xxxs { padding: var(--space-xxxs); }
+.p-xxs { padding: var(--space-xxs); }
+.p-xs { padding: var(--space-xs); }
+.p-sm { padding: var(--space-sm); }
+.p-md { padding: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
+.p-xl { padding: var(--space-xl); }
+.p-xxl { padding: var(--space-xxl); }
+.p-xxxl { padding: var(--space-xxxl); }
+
+/* Padding - vertical (top & bottom) */
+.py-0 { padding-top: 0; padding-bottom: 0; }
+.py-xxxs { padding-top: var(--space-xxxs); padding-bottom: var(--space-xxxs); }
+.py-xxs { padding-top: var(--space-xxs); padding-bottom: var(--space-xxs); }
+.py-xs { padding-top: var(--space-xs); padding-bottom: var(--space-xs); }
+.py-sm { padding-top: var(--space-sm); padding-bottom: var(--space-sm); }
+.py-md { padding-top: var(--space-md); padding-bottom: var(--space-md); }
+.py-lg { padding-top: var(--space-lg); padding-bottom: var(--space-lg); }
+.py-xl { padding-top: var(--space-xl); padding-bottom: var(--space-xl); }
+.py-xxl { padding-top: var(--space-xxl); padding-bottom: var(--space-xxl); }
+.py-xxxl { padding-top: var(--space-xxxl); padding-bottom: var(--space-xxxl); }
+
+/* Padding - horizontal (left & right) */
+.px-0 { padding-left: 0; padding-right: 0; }
+.px-xxxs { padding-left: var(--space-xxxs); padding-right: var(--space-xxxs); }
+.px-xxs { padding-left: var(--space-xxs); padding-right: var(--space-xxs); }
+.px-xs { padding-left: var(--space-xs); padding-right: var(--space-xs); }
+.px-sm { padding-left: var(--space-sm); padding-right: var(--space-sm); }
+.px-md { padding-left: var(--space-md); padding-right: var(--space-md); }
+.px-lg { padding-left: var(--space-lg); padding-right: var(--space-lg); }
+.px-xl { padding-left: var(--space-xl); padding-right: var(--space-xl); }
+.px-xxl { padding-left: var(--space-xxl); padding-right: var(--space-xxl); }
+.px-xxxl { padding-left: var(--space-xxxl); padding-right: var(--space-xxxl); }
+
+/* Padding - top */
+.pt-0 { padding-top: 0; }
+.pt-xxxs { padding-top: var(--space-xxxs); }
+.pt-xxs { padding-top: var(--space-xxs); }
+.pt-xs { padding-top: var(--space-xs); }
+.pt-sm { padding-top: var(--space-sm); }
+.pt-md { padding-top: var(--space-md); }
+.pt-lg { padding-top: var(--space-lg); }
+.pt-xl { padding-top: var(--space-xl); }
+.pt-xxl { padding-top: var(--space-xxl); }
+.pt-xxxl { padding-top: var(--space-xxxl); }
+
+/* Padding - right */
+.pr-0 { padding-right: 0; }
+.pr-xxxs { padding-right: var(--space-xxxs); }
+.pr-xxs { padding-right: var(--space-xxs); }
+.pr-xs { padding-right: var(--space-xs); }
+.pr-sm { padding-right: var(--space-sm); }
+.pr-md { padding-right: var(--space-md); }
+.pr-lg { padding-right: var(--space-lg); }
+.pr-xl { padding-right: var(--space-xl); }
+.pr-xxl { padding-right: var(--space-xxl); }
+.pr-xxxl { padding-right: var(--space-xxxl); }
+
+/* Padding - bottom */
+.pb-0 { padding-bottom: 0; }
+.pb-xxxs { padding-bottom: var(--space-xxxs); }
+.pb-xxs { padding-bottom: var(--space-xxs); }
+.pb-xs { padding-bottom: var(--space-xs); }
+.pb-sm { padding-bottom: var(--space-sm); }
+.pb-md { padding-bottom: var(--space-md); }
+.pb-lg { padding-bottom: var(--space-lg); }
+.pb-xl { padding-bottom: var(--space-xl); }
+.pb-xxl { padding-bottom: var(--space-xxl); }
+.pb-xxxl { padding-bottom: var(--space-xxxl); }
+
+/* Padding - left */
+.pl-0 { padding-left: 0; }
+.pl-xxxs { padding-left: var(--space-xxxs); }
+.pl-xxs { padding-left: var(--space-xxs); }
+.pl-xs { padding-left: var(--space-xs); }
+.pl-sm { padding-left: var(--space-sm); }
+.pl-md { padding-left: var(--space-md); }
+.pl-lg { padding-left: var(--space-lg); }
+.pl-xl { padding-left: var(--space-xl); }
+.pl-xxl { padding-left: var(--space-xxl); }
+.pl-xxxl { padding-left: var(--space-xxxl); }
+
+/* ==========================================================================
+   3. Gap Utilities
+   Control the spacing between elements in flex/grid layouts
+   ========================================================================== */
+.gap-0 { gap: 0; }
+.gap-xxxs { gap: var(--space-xxxs); }
+.gap-xxs { gap: var(--space-xxs); }
+.gap-xs { gap: var(--space-xs); }
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.gap-lg { gap: var(--space-lg); }
+.gap-xl { gap: var(--space-xl); }
+.gap-xxl { gap: var(--space-xxl); }
+.gap-xxxl { gap: var(--space-xxxl); }
+
+/* Gap - column */
+.gap-x-0 { column-gap: 0; }
+.gap-x-xxxs { column-gap: var(--space-xxxs); }
+.gap-x-xxs { column-gap: var(--space-xxs); }
+.gap-x-xs { column-gap: var(--space-xs); }
+.gap-x-sm { column-gap: var(--space-sm); }
+.gap-x-md { column-gap: var(--space-md); }
+.gap-x-lg { column-gap: var(--space-lg); }
+.gap-x-xl { column-gap: var(--space-xl); }
+.gap-x-xxl { column-gap: var(--space-xxl); }
+.gap-x-xxxl { column-gap: var(--space-xxxl); }
+
+/* Gap - row */
+.gap-y-0 { row-gap: 0; }
+.gap-y-xxxs { row-gap: var(--space-xxxs); }
+.gap-y-xxs { row-gap: var(--space-xxs); }
+.gap-y-xs { row-gap: var(--space-xs); }
+.gap-y-sm { row-gap: var(--space-sm); }
+.gap-y-md { row-gap: var(--space-md); }
+.gap-y-lg { row-gap: var(--space-lg); }
+.gap-y-xl { row-gap: var(--space-xl); }
+.gap-y-xxl { row-gap: var(--space-xxl); }
+.gap-y-xxxl { row-gap: var(--space-xxxl); }
+
+/* ==========================================================================
+   4. Space Between Utilities
+   Add consistent spacing between child elements
+   ========================================================================== */
+.space-y > * + * {
+  margin-top: var(--space-md);
+}
+
+.space-y-xxxs > * + * { margin-top: var(--space-xxxs); }
+.space-y-xxs > * + * { margin-top: var(--space-xxs); }
+.space-y-xs > * + * { margin-top: var(--space-xs); }
+.space-y-sm > * + * { margin-top: var(--space-sm); }
+.space-y-md > * + * { margin-top: var(--space-md); }
+.space-y-lg > * + * { margin-top: var(--space-lg); }
+.space-y-xl > * + * { margin-top: var(--space-xl); }
+.space-y-xxl > * + * { margin-top: var(--space-xxl); }
+.space-y-xxxl > * + * { margin-top: var(--space-xxxl); }
+
+.space-x > * + * {
+  margin-left: var(--space-md);
+}
+
+.space-x-xxxs > * + * { margin-left: var(--space-xxxs); }
+.space-x-xxs > * + * { margin-left: var(--space-xxs); }
+.space-x-xs > * + * { margin-left: var(--space-xs); }
+.space-x-sm > * + * { margin-left: var(--space-sm); }
+.space-x-md > * + * { margin-left: var(--space-md); }
+.space-x-lg > * + * { margin-left: var(--space-lg); }
+.space-x-xl > * + * { margin-left: var(--space-xl); }
+.space-x-xxl > * + * { margin-left: var(--space-xxl); }
+.space-x-xxxl > * + * { margin-left: var(--space-xxxl); }
+
+/* ==========================================================================
+   5. Responsive Space Adjustments
+   Adjust spacing for different screen sizes
+   ========================================================================== */
+@media (min-width: 768px) {
+  /* Add tablet-specific spacing adjustments */
+  .md\:m-0 { margin: 0; }
+  .md\:m-md { margin: var(--space-md); }
+  .md\:m-lg { margin: var(--space-lg); }
+  .md\:m-xl { margin: var(--space-xl); }
+  
+  .md\:p-0 { padding: 0; }
+  .md\:p-md { padding: var(--space-md); }
+  .md\:p-lg { padding: var(--space-lg); }
+  .md\:p-xl { padding: var(--space-xl); }
+  
+  .md\:gap-md { gap: var(--space-md); }
+  .md\:gap-lg { gap: var(--space-lg); }
+  .md\:gap-xl { gap: var(--space-xl); }
+}
+
+@media (min-width: 1024px) {
+  /* Add desktop-specific spacing adjustments */
+  .lg\:m-0 { margin: 0; }
+  .lg\:m-lg { margin: var(--space-lg); }
+  .lg\:m-xl { margin: var(--space-xl); }
+  .lg\:m-xxl { margin: var(--space-xxl); }
+  
+  .lg\:p-0 { padding: 0; }
+  .lg\:p-lg { padding: var(--space-lg); }
+  .lg\:p-xl { padding: var(--space-xl); }
+  .lg\:p-xxl { padding: var(--space-xxl); }
+  
+  .lg\:gap-lg { gap: var(--space-lg); }
+  .lg\:gap-xl { gap: var(--space-xl); }
+  .lg\:gap-xxl { gap: var(--space-xxl); }
+}

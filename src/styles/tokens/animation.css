@@ -1,0 +1,279 @@
+/* 
+ * Animation System for TaskBoard
+ * 
+ * A comprehensive animation system for the TaskBoard application.
+ * Organized in layers from timing functions to complete animations.
+ * All animations respect user preferences for reduced motion.
+ */
+
+ :root {
+    /* ==========================================================================
+       1. TIMING FUNCTIONS
+       Easing curves for natural movement
+       ========================================================================== */
+    
+    /* Standard easing functions */
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Specialized easing functions */
+    --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);   /* Bouncy finish */
+    --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);   /* Elastic effect */
+    --ease-precise: cubic-bezier(0.25, 0.1, 0.25, 1);         /* Precise movements */
+    --ease-snappy: cubic-bezier(0.05, 0.7, 0.1, 1.0);         /* Quick start, gentle end */
+    
+    /* ==========================================================================
+       2. DURATION TOKENS
+       Standardized animation durations
+       ========================================================================== */
+    
+    --duration-instant: 50ms;      /* Imperceptible, for micro-interactions */
+    --duration-fast: 150ms;        /* Quick transitions */
+    --duration-normal: 300ms;      /* Standard transitions */
+    --duration-slow: 500ms;        /* Deliberate transitions */
+    --duration-slower: 750ms;      /* Extended animations */
+    --duration-slowest: 1000ms;    /* Full animations */
+    
+    /* Special durations for specific animations */
+    --duration-task-complete: 1800ms;  /* Task completion animation */
+    --duration-task-appear: 400ms;     /* Task appearing animation */
+    --duration-container-toggle: 250ms; /* Container expanding/collapsing */
+    
+    /* ==========================================================================
+       3. DELAY TOKENS
+       Standard delay times for sequenced animations
+       ========================================================================== */
+    
+    --delay-minimal: 50ms;      /* Slight delay for closely sequenced items */
+    --delay-staggered: 100ms;   /* Delay between staggered items */
+    --delay-standard: 200ms;    /* Standard delay before starting animations */
+    
+    
+    /* ==========================================================================
+       5. ANIMATION KEYFRAMES
+       Defined keyframe animations
+       ========================================================================== */
+    
+    /* Animation properties (used with the keyframes defined below) */
+    --animation-pulse: pulse var(--duration-slowest) var(--ease-in-out) infinite;
+    --animation-pulse-urgent: pulse-urgent var(--duration-slower) var(--ease-in-out) infinite;
+    --animation-fade-in: fade-in var(--duration-normal) var(--ease-out) forwards;
+    --animation-slide-in: slide-in var(--duration-normal) var(--ease-out) forwards;
+    --animation-slide-up: slide-up var(--duration-normal) var(--ease-out) forwards;
+    --animation-scale-in: scale-in var(--duration-normal) var(--ease-bounce) forwards;
+    --animation-task-complete: task-complete var(--duration-task-complete) var(--ease-in-out) forwards;
+    --animation-stamp-appear: stamp-appear var(--duration-normal) var(--ease-bounce) forwards;
+    
+    /* ==========================================================================
+       6. MOTION SENSITIVITY ADJUSTMENTS
+       Variables that get modified based on motion preferences
+       ========================================================================== */
+    
+    /* These variables are modified in the @media query below */
+    --motion-safe-duration-scale: 1;
+    --motion-safe-transition-scale: var(--transition-standard);
+    --motion-safe-animation-pulse: var(--animation-pulse);
+    --motion-safe-animation-complete: var(--animation-task-complete);
+  }
+  
+  /* ==========================================================================
+     7. KEYFRAME DEFINITIONS
+     The actual @keyframes definitions for animations
+     ========================================================================== */
+  
+  /* Gentle pulsing animation for badges/indicators */
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(var(--pulse-color, 242, 95, 92), 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 6px rgba(var(--pulse-color, 242, 95, 92), 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(var(--pulse-color, 242, 95, 92), 0);
+    }
+  }
+  
+  /* More intense pulsing for urgent items */
+  @keyframes pulse-urgent {
+    0% {
+      box-shadow: 0 0 0 0 rgba(var(--pulse-color, 255, 90, 95), 0.6);
+    }
+    70% {
+      box-shadow: 0 0 0 8px rgba(var(--pulse-color, 255, 90, 95), 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(var(--pulse-color, 255, 90, 95), 0);
+    }
+  }
+  
+  /* Fade in animation */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  /* Slide in animation (from below) */
+  @keyframes slide-in {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Slide up animation (from current position) */
+  @keyframes slide-up {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-8px);
+    }
+  }
+  
+  /* Scale in animation */
+  @keyframes scale-in {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  /* Task completion animation */
+  @keyframes task-complete {
+    0% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+    15% {
+      transform: scale(0.98) rotate(-2deg) translate(2px, -2px);
+      border-radius: calc(var(--radius-md) + 2px);
+      box-shadow: var(--shadow-sm), inset 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+    30% {
+      transform: scale(0.95) rotate(3deg) translate(-4px, 2px) skew(2deg, 0deg);
+      border-radius: calc(var(--radius-md) + 4px);
+      box-shadow: var(--shadow-sm), inset 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+    45% {
+      transform: scale(0.9) rotate(-3deg) translate(6px, -1px) skew(-3deg, 2deg);
+      border-radius: calc(var(--radius-md) + 8px);
+      box-shadow: var(--shadow-md), inset 0 0 15px rgba(0, 0, 0, 0.4);
+    }
+    60% {
+      transform: scale(0.8) rotate(5deg) translate(-5px, 3px) skew(5deg, -3deg);
+      border-radius: calc(var(--radius-md) + 12px);
+      box-shadow: var(--shadow-md), inset 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+    75% {
+      transform: scale(0.75) rotate(-8deg) translate(7px, -2px) skew(-7deg, 4deg);
+      border-radius: calc(var(--radius-md) + 16px);
+      box-shadow: var(--shadow-lg), inset 0 0 25px rgba(0, 0, 0, 0.6);
+    }
+    85% {
+      transform: scale(0.7) rotate(10deg) translate(-8px, 5px) skew(10deg, -5deg);
+      border-radius: calc(var(--radius-md) + 20px);
+      box-shadow: var(--shadow-lg), inset 0 0 30px rgba(0, 0, 0, 0.7);
+    }
+    95% {
+      transform: scale(0.6) rotate(-5deg) translate(4px, -3px) skew(-5deg, 2deg);
+      border-radius: calc(var(--radius-md) + 25px);
+      box-shadow: var(--shadow-lg), inset 0 0 35px rgba(0, 0, 0, 0.8);
+    }
+    100% {
+      transform: scale(0.65) rotate(2deg);
+      opacity: 0.9;
+      border-radius: calc(var(--radius-md) + 20px);
+      box-shadow: var(--shadow-md), inset 0 0 30px rgba(0, 0, 0, 0.7);
+    }
+  }
+  
+  /* Completed stamp animation */
+  @keyframes stamp-appear {
+    0% {
+      transform: rotate(5deg) scale(0);
+      opacity: 0;
+    }
+    70% {
+      transform: rotate(5deg) scale(1.3);
+    }
+    85% {
+      transform: rotate(5deg) scale(0.9);
+    }
+    100% {
+      transform: rotate(5deg) scale(1);
+      opacity: 1;
+    }
+  }
+  
+  /* Rotating loading indicator */
+  @keyframes rotating {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  /* ==========================================================================
+     8. MOTION PREFERENCE ADAPTATIONS
+     Reduces or disables animations for users who prefer reduced motion
+     ========================================================================== */
+  
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      /* Scale down all durations */
+      --motion-safe-duration-scale: 0.01;
+      
+      /* Replace standard transition with minimal one */
+      --motion-safe-transition-scale: opacity 0.01ms linear;
+      
+      /* Disable pulse animations */
+      --motion-safe-animation-pulse: none;
+      
+      /* Minimal completion animation */
+      --motion-safe-animation-complete: fade-out 0.01ms linear forwards;
+      
+      /* Apply scaled durations to all timing variables */
+      --duration-instant: calc(var(--duration-instant) * var(--motion-safe-duration-scale));
+      --duration-fast: calc(var(--duration-fast) * var(--motion-safe-duration-scale));
+      --duration-normal: calc(var(--duration-normal) * var(--motion-safe-duration-scale));
+      --duration-slow: calc(var(--duration-slow) * var(--motion-safe-duration-scale));
+      --duration-slower: calc(var(--duration-slower) * var(--motion-safe-duration-scale));
+      --duration-slowest: calc(var(--duration-slowest) * var(--motion-safe-duration-scale));
+      --duration-task-complete: calc(var(--duration-task-complete) * var(--motion-safe-duration-scale));
+      --duration-task-appear: calc(var(--duration-task-appear) * var(--motion-safe-duration-scale));
+      --duration-container-toggle: calc(var(--duration-container-toggle) * var(--motion-safe-duration-scale));
+    }
+    
+    /* Override transitions */
+    *, *::before, *::after {
+      transition: var(--motion-safe-transition-scale) !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+    
+    /* Define minimal fade-out animation */
+    @keyframes fade-out {
+      to { opacity: 0.6; }
+    }
+  }
+  
+  /* ==========================================================================
+     9. LEGACY COMPATIBILITY VARIABLES
+     Support for components not yet updated to the new system
+     ========================================================================== */
+  
+  :root {
+    /* Legacy transition variables */
+    --transition-speed: var(--duration-normal);
+    --transition-function: var(--ease-in-out);
+  }

@@ -13,9 +13,32 @@
  * @returns {Object} Context data for rule evaluation
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSubjects } from './useSubjects';
-import { TIME_OF_DAY } from '../rules/containerRules';
+
+// Create a performance monitoring utility for hook calls
+const createPerformanceMonitor = (namespace) => {
+  const callCounts = new Map();
+  const logThreshold = 5; // Only log issues after this many calls
+  
+  return {
+    trackCall: (name) => {
+      if (process.env.NODE_ENV !== 'development') return;
+      
+      const count = (callCounts.get(name) || 0) + 1;
+      callCounts.set(name, count);
+      
+      if (count === logThreshold) {
+        console.warn(`[${namespace}] Performance warning: ${name} called ${count} times`);
+      }
+    },
+    reset: () => {
+      callCounts.clear();
+    }
+  };
+};
+
+const rulePerformance = createPerformanceMonitor('RuleContext');
 
 /**
  * Hook that provides contextual data for rule evaluation
@@ -28,6 +51,9 @@ import { TIME_OF_DAY } from '../rules/containerRules';
  * @property {string|null} error - Error message if any
  */
 export function useRuleContext() {
+  // For debugging - track how often this hook is called
+  rulePerformance.trackCall('useRuleContext');
+  
   // Get subject data from useSubjects hook
   const { 
     todaySubjects, 
@@ -36,53 +62,15 @@ export function useRuleContext() {
     error: subjectsError 
   } = useSubjects();
   
-  // State to store and update current time
-  const [currentTime, setCurrentTime] = useState(new Date());
-  
-  // Determine time of day (morning or afternoon) based on current hour
-  const timeOfDay = useMemo(() => {
-    const hour = currentTime.getHours();
-    return hour < 12 ? TIME_OF_DAY.MORNING : TIME_OF_DAY.AFTERNOON;
-  }, [currentTime]);
-  
-  // Update time every 10 minutes to ensure accurate time-of-day tracking
-  useEffect(() => {
-    // Update immediately to ensure correct initial state
-    setCurrentTime(new Date());
-    
-    // Set up interval for updates
-    const intervalId = setInterval(() => {
-      const newTime = new Date();
-      setCurrentTime(newTime);
-      
-      // Log time transitions for debugging
-      const newHour = newTime.getHours();
-      if (newHour === 12 && newTime.getMinutes() < 10) {
-        console.log('Time transition: Switching from morning to afternoon mode');
-      }
-    }, 10 * 60 * 1000); // 10 minutes
-    
-    return () => clearInterval(intervalId); // Cleanup on unmount
-  }, []);
-  
   // Memoize the full context object to prevent unnecessary re-renders
   const contextValue = useMemo(() => {
     return {
-      timeOfDay,
-      currentTime,
       todaySubjects: todaySubjects || [],
       tomorrowSubjects: tomorrowSubjects || [],
       isLoading: subjectsLoading,
       error: subjectsError
     };
-  }, [
-    timeOfDay,
-    currentTime, 
-    todaySubjects, 
-    tomorrowSubjects, 
-    subjectsLoading, 
-    subjectsError
-  ]);
+  }, [todaySubjects, tomorrowSubjects, subjectsLoading, subjectsError]);
   
   return contextValue;
 }

@@ -1,0 +1,78 @@
+/* 
+ * TaskBoard Main CSS
+ * A comprehensive styling system for the ADHD-optimized Task Board application
+ * 
+ * This file imports all other CSS modules and serves as the entry point
+ * for the application's styling system.
+ */
+
+/* ==========================================================================
+   1. DESIGN TOKENS
+   ========================================================================== */
+
+/* Import color variables */
+@import './tokens/colors.css';
+
+/* Import spacing variables */
+@import './tokens/spacing.css';
+
+/* Import typography variables */
+@import './tokens/typography.css';
+
+/* Import animation variables */
+@import './tokens/animation.css';
+
+/* ==========================================================================
+   2. BASE STYLES
+   ========================================================================== */
+
+/* CSS reset and normalizer */
+@import './base/reset.css';
+
+/* Global element styles */
+@import './base/global.css';
+
+/* Accessibility enhancements */
+@import './base/accessibility.css';
+
+/* ==========================================================================
+   3. COMPONENT STYLES
+   ========================================================================== */
+
+/* Task card component */
+@import './components/task-card.css';
+
+/* Task container component */
+@import './components/task-container.css';
+
+/* Control elements (buttons, toggles, checkboxes) */
+@import './components/controls.css';
+
+/* Indicator elements (badges, pills, status indicators) */
+@import './components/indicators.css';
+
+/* ==========================================================================
+   4. LAYOUT STYLES
+   ========================================================================== */
+
+/* App layout grid */
+@import './layout/app-layout.css';
+
+/* Container row layout */
+@import './layout/container-row.css';
+
+/* Responsive layout adaptations */
+@import './layout/responsive.css';
+
+/* ==========================================================================
+   5. UTILITY CLASSES
+   ========================================================================== */
+
+/* Visual emphasis utilities */
+@import './utilities/emphasis.css';
+
+/* Spacing utilities */
+@import './utilities/spacing.css';
+
+/* Visibility utilities */
+@import './utilities/visibility.css';

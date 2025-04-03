@@ -6,17 +6,55 @@
  * 
  * Features:
  * - Filters tasks for a specified container ('current', 'future', 'archive', 'exam')
- * - Uses rule context to adapt filtering based on time of day and subject schedules
+ * - Uses rule context to adapt filtering based on subject schedules
  * - Handles loading and error states from multiple data sources
  * - Optimizes performance with memoization
  * 
  * @returns {Object} Filtered tasks and state for the specified container
  */
 
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, useRef, useEffect } from 'react';
 import { TaskContext } from '../context/TaskContext';
 import { useRuleContext } from './useRuleContext';
 import * as ContainerRules from '../rules/containerRules';
+
+// Create a performance monitoring utility
+const createPerformanceMonitor = (namespace) => {
+  const callCounts = new Map();
+  const filterCounts = new Map();
+  const logThreshold = 3; // Only log issues after this many calls
+  
+  return {
+    trackCall: (name, containerType) => {
+      if (process.env.NODE_ENV !== 'development') return;
+      
+      const key = `${name}-${containerType}`;
+      const count = (callCounts.get(key) || 0) + 1;
+      callCounts.set(key, count);
+      
+      if (count === logThreshold) {
+        console.warn(`[${namespace}] Performance warning: ${name} for ${containerType} called ${count} times`);
+      }
+    },
+    trackFilter: (containerType, taskCount) => {
+      if (process.env.NODE_ENV !== 'development') return;
+      
+      const key = `filter-${containerType}`;
+      const count = (filterCounts.get(key) || 0) + 1;
+      filterCounts.set(key, count);
+      
+      if (count === logThreshold) {
+        console.warn(`[${namespace}] Filter warning: ${containerType} filtered ${taskCount} tasks ${count} times`);
+      }
+    },
+    reset: () => {
+      callCounts.clear();
+      filterCounts.clear();
+    }
+  };
+};
+
+const taskPerformance = createPerformanceMonitor('ContainerTasks');
 
 /**
  * Container type constants
@@ -27,7 +65,26 @@ export const CONTAINER_TYPE = {
   TOMORROW: 'tomorrow',
   FUTURE: 'future',
   ARCHIVE: 'archive',
-  EXAM: 'exam'
+};
+
+// Cache for containerData to prevent recreating the same objects
+const containerDataCache = {
+  [CONTAINER_TYPE.CURRENT]: {
+    title: "🌞 Today",
+    emptyMessage: "Nothing left to do today!"
+  },
+  [CONTAINER_TYPE.TOMORROW]: {
+    title: "🌄 Tomorrow",
+    emptyMessage: "No tasks for tomorrow"
+  },
+  [CONTAINER_TYPE.FUTURE]: {
+    title: "📆 Later",
+    emptyMessage: "No upcoming tasks"
+  },
+  [CONTAINER_TYPE.ARCHIVE]: {
+    title: "🗄️ Archive",
+    emptyMessage: "No completed tasks yet"
+  }
 };
 
 /**
@@ -39,16 +96,25 @@ export const CONTAINER_TYPE = {
  * @property {string|null} error - Error message if any
  * @property {Function} completeTask - Function to mark a task as complete
  * @property {Function} uncompleteTask - Function to mark a task as incomplete
- * @property {string} title - Container title (for 'current' container only)
- * @property {string} emptyMessage - Empty state message (for 'current' container only)
+ * @property {string} title - Container title
+ * @property {string} emptyMessage - Empty state message
  */
 export function useContainerTasks(containerType = CONTAINER_TYPE.CURRENT) {
+  // Track for performance analysis
+  taskPerformance.trackCall('useContainerTasks', containerType);
+  
+  // Track render counts
+  const renderCount = useRef(0);
+  renderCount.current++;
+  
+  // Track previous task counts for performance logging
+  const prevTaskCount = useRef(0);
+  
   // Get tasks data from TaskContext
   const { tasks, loading: tasksLoading, error: tasksError, completeTask, uncompleteTask } = useContext(TaskContext);
   
   // Get contextual data for rule evaluation
   const { 
-    timeOfDay, 
     todaySubjects, 
     tomorrowSubjects, 
     isLoading: contextLoading, 
@@ -59,27 +125,35 @@ export function useContainerTasks(containerType = CONTAINER_TYPE.CURRENT) {
   const isLoading = tasksLoading || contextLoading;
   const error = tasksError || contextError;
   
-  // Container-specific data (title, empty message for current container)
-  const containerData = useMemo(() => {
-    if (containerType === CONTAINER_TYPE.CURRENT) {
-      return {
-        title: ContainerRules.getCurrentContainerTitle(timeOfDay),
-        emptyMessage: ContainerRules.getCurrentContainerEmptyMessage(timeOfDay)
-      };
-    }
-    
-    return {
-      title: "",
-      emptyMessage: ""
-    };
-  }, [containerType, timeOfDay]);
+  // Use cached container data instead of recreating it each time
+  const containerData = containerDataCache[containerType] || {
+    title: "",
+    emptyMessage: ""
+  };
   
-  // Create rule context for container rules
+  // Create rule context for container rules - memoized
   const ruleContext = useMemo(() => ({
-    timeOfDay,
     todaySubjects,
     tomorrowSubjects
-  }), [timeOfDay, todaySubjects, tomorrowSubjects]);
+  }), [todaySubjects, tomorrowSubjects]);
+  
+  // Memoize rule function selection to prevent recreating functions on each render
+  const ruleFunction = useMemo(() => {
+    // Select the rule based on container type
+    switch (containerType) {
+      case CONTAINER_TYPE.CURRENT:
+        return ContainerRules.currentContainerRule(ruleContext);
+      case CONTAINER_TYPE.TOMORROW:
+        return ContainerRules.tomorrowContainerRule(ruleContext);
+      case CONTAINER_TYPE.FUTURE:
+        return ContainerRules.futureContainerRule();
+      case CONTAINER_TYPE.ARCHIVE:
+        return ContainerRules.archiveContainerRule();
+      default:
+        console.warn(`Unknown container type: ${containerType}, defaulting to current container`);
+        return ContainerRules.currentContainerRule(ruleContext);
+    }
+  }, [containerType, ruleContext]);
   
   // Filter and sort tasks based on container type
   const filteredTasks = useMemo(() => {
@@ -88,27 +162,13 @@ export function useContainerTasks(containerType = CONTAINER_TYPE.CURRENT) {
       return [];
     }
     
-    // Get the appropriate rule function based on container type
-    let ruleFunction;
-    switch (containerType) {
-      case CONTAINER_TYPE.CURRENT:
-        ruleFunction = ContainerRules.currentContainerRule(ruleContext);
-        break;
-      case CONTAINER_TYPE.TOMORROW:
-        ruleFunction = ContainerRules.tomorrowContainerRule(ruleContext);
-        break;
-      case CONTAINER_TYPE.FUTURE:
-        ruleFunction = ContainerRules.futureContainerRule();
-        break;
-      case CONTAINER_TYPE.ARCHIVE:
-        ruleFunction = ContainerRules.archiveContainerRule();
-        break;
-      case CONTAINER_TYPE.EXAM:
-        ruleFunction = ContainerRules.examContainerRule();
-        break;
-      default:
-        console.warn(`Unknown container type: ${containerType}, defaulting to current container`);
-        ruleFunction = ContainerRules.currentContainerRule(ruleContext);
+    // Track for performance analysis
+    taskPerformance.trackFilter(containerType, tasks.length);
+    
+    // Log if task count has changed significantly
+    if (Math.abs(tasks.length - prevTaskCount.current) > 5) {
+      console.log(`[ContainerTasks] Task count changed from ${prevTaskCount.current} to ${tasks.length}`);
+      prevTaskCount.current = tasks.length;
     }
     
     // Apply the rule and return filtered tasks
@@ -116,7 +176,22 @@ export function useContainerTasks(containerType = CONTAINER_TYPE.CURRENT) {
     
     // Sort tasks appropriately based on container type
     return sortTasksByContainer(filtered, containerType);
-  }, [tasks, containerType, isLoading, error, ruleContext]);
+  }, [tasks, containerType, isLoading, error, ruleFunction]);
+  
+  // Reset performance monitoring on mount
+  useEffect(() => {
+    // Only reset once on initial mount
+    if (renderCount.current === 1) {
+      taskPerformance.reset();
+    }
+    
+    // Log high render counts (could indicate a performance issue)
+    if (renderCount.current === 10) {
+      console.warn(`[ContainerTasks] High render count for ${containerType}: ${renderCount.current}`);
+    }
+    
+    return () => {};
+  }, [containerType]);
   
   return {
     tasks: filteredTasks,
@@ -161,14 +236,6 @@ function sortTasksByContainer(tasks, containerType) {
         return aDate - bDate; // Soonest first
       });
       
-    case CONTAINER_TYPE.EXAM:
-      // Exam tasks: sort by due date (closest first)
-      return sortedTasks.sort((a, b) => {
-        const aDate = a.due_date ? new Date(a.due_date) : new Date(3000, 0, 1);
-        const bDate = b.due_date ? new Date(b.due_date) : new Date(3000, 0, 1);
-        return aDate - bDate; // Closest due date first
-      });
-    
     case CONTAINER_TYPE.TOMORROW:
       // Tomorrow tasks: sort by creation date (oldest first)
       return sortedTasks.sort((a, b) => {
@@ -181,13 +248,19 @@ function sortTasksByContainer(tasks, containerType) {
       
     case CONTAINER_TYPE.CURRENT:
     default:
-      // Current container: prioritize today's tasks first, then sort by creation date
+      // Current tasks: sort by priority then due date
       return sortedTasks.sort((a, b) => {
-        const aDate = a.date_added ? new Date(a.date_added) : 
-                     (a.due_date ? new Date(a.due_date) : new Date(0));
-        const bDate = b.date_added ? new Date(b.date_added) : 
-                     (b.due_date ? new Date(b.due_date) : new Date(0));
-        return aDate - bDate; // Oldest first
+        // First sort by priority (higher is more important)
+        const aPriority = a.priority || 0;
+        const bPriority = b.priority || 0;
+        if (bPriority !== aPriority) {
+          return bPriority - aPriority;
+        }
+        
+        // Then sort by due date (soonest first)
+        const aDate = a.due_date ? new Date(a.due_date) : new Date(3000, 0, 1);
+        const bDate = b.due_date ? new Date(b.due_date) : new Date(3000, 0, 1);
+        return aDate - bDate;
       });
   }
 }
