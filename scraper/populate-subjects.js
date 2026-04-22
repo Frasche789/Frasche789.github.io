@@ -4,13 +4,28 @@ const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } = require('firebase/firestore');
 
 // Firebase configuration
+const requiredFirebaseEnv = [
+  'FIREBASE_API_KEY',
+  'FIREBASE_AUTH_DOMAIN',
+  'FIREBASE_PROJECT_ID',
+  'FIREBASE_STORAGE_BUCKET',
+  'FIREBASE_MESSAGING_SENDER_ID',
+  'FIREBASE_APP_ID'
+];
+
+const missingFirebaseEnv = requiredFirebaseEnv.filter((envName) => !process.env[envName]);
+
+if (missingFirebaseEnv.length > 0) {
+  throw new Error(`Missing required Firebase environment variables: ${missingFirebaseEnv.join(', ')}`);
+}
+
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY || "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN || "questboard-17337.firebaseapp.com",
-  projectId: process.env.FIREBASE_PROJECT_ID || "questboard-17337",
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "questboard-17337.appspot.com",
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "427884628874",
-  appId: process.env.FIREBASE_APP_ID || "1:427884628874:web:d2e7a64b45c9edce9d5673"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID
 };
 
 // Initialize Firebase
@@ -110,7 +125,7 @@ async function populateSubjects() {
     console.log(`Parsed ${subjects.length} subjects from schedule data`);
     
     // Optional: Clear existing subjects collection
-    const shouldClearCollection = true;
+    const shouldClearCollection = false;
     if (shouldClearCollection) {
       console.log('Clearing existing subjects collection...');
       const existingDocs = await getDocs(collection(db, 'subjects'));

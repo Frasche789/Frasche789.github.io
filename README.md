@@ -29,8 +29,8 @@ An ADHD/autism-friendly task management system designed specifically for neurodi
 ### Backend Integration
 
 - **Firebase/Firestore**: Real-time database integration maintaining compatibility with existing data schema
-- **Authentication**: Support for student identification and progress tracking
-- **Persistent Storage**: Local storage for streak tracking and scroll position memory
+- **Authentication**: Support for student identification and progress tracking - missing
+- **Persistent Storage**: Local storage for streak tracking and scroll position memory - missing
 
 ## Accessibility Considerations
 

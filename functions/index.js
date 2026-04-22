@@ -28,12 +28,26 @@ exports.getTasks = onRequest({
   maxInstances: 10,
 }, async (request, response) => {
   try {
+    if (request.method !== "GET") {
+      response.status(405).json({error: "Method not allowed"});
+      return;
+    }
+
+    const authHeader = request.get("authorization") || "";
+    if (!authHeader.startsWith("Bearer ")) {
+      response.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const idToken = authHeader.slice(7).trim();
+    await admin.auth().verifyIdToken(idToken);
+
     logger.info("Fetching tasks from Firestore");
-    
+
     const db = admin.firestore();
     const tasksRef = db.collection("tasks");
     const snapshot = await tasksRef.get();
-    
+
     const tasks = [];
     snapshot.forEach((doc) => {
       tasks.push({
@@ -41,9 +55,14 @@ exports.getTasks = onRequest({
         ...doc.data(),
       });
     });
-    
+
     response.status(200).json(tasks);
   } catch (error) {
+    if (typeof error.code === "string" && error.code.startsWith("auth/")) {
+      response.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
     logger.error("Error fetching tasks:", error);
     response.status(500).json({error: "Failed to fetch tasks"});
   }

@@ -1,9 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Temporarily allowing complete access for debugging purposes
+    // Public demo access: readable, but not writable
     match /{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if false;
     }
     
   }

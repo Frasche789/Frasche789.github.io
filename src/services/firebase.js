@@ -1,19 +1,27 @@
-// src/firebase.js - Firebase configuration and initialization WITHOUT fallbacks
+// src/firebase.js - Firebase configuration and initialization
 // Supports module imports
 
 // Firebase module imports 
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Firebase configuration hardcoded for development - critical for direct deployment
+// Firebase configuration from environment variables (CRA)
 const firebaseConfig = {
-  apiKey: "AIzaSyAkWib8nvqf4l__I9cu63_ykzbL2UEQLwo",
-  authDomain: "questboard-17337.firebaseapp.com",
-  projectId: "questboard-17337",
-  storageBucket: "questboard-17337.appspot.com",
-  messagingSenderId: "427884628874",
-  appId: "1:427884628874:web:d2e7a64b45c9edce9d5673"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
+
+const missingFirebaseConfig = Object.entries(firebaseConfig)
+  .filter(([, value]) => !value)
+  .map(([key]) => key);
+
+if (missingFirebaseConfig.length > 0) {
+  throw new Error(`Missing Firebase config values: ${missingFirebaseConfig.join(', ')}`);
+}
 
 // Initialize Firebase only once
 const app = initializeApp(firebaseConfig);
