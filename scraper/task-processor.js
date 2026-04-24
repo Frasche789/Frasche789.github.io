@@ -172,80 +172,72 @@ function calculateHomeworkDueDate(subject, dateAdded) {
   }
 }
 
-// Process raw extracted data
-function processExtractedData(subjectsData) {
-  const processedTasks = [];
+// Process the raw /overview JSON from the Wilma API.
+// overview.Groups[] contains course groups, each with Homework[] and Exams[].
+function processOverviewData(overview) {
+  if (!overview || !Array.isArray(overview.Groups)) {
+    throw new Error('Invalid overview data: expected Groups array');
+  }
 
-  // Process each subject
-  for (const subjectInfo of subjectsData) {
-    const { subject, data } = subjectInfo;
-    
-    if (!data) continue;
-    
-    // Process homework
-    for (const homework of data.homework || []) {
-      // For homework, we store the date added (when it was posted) in the date field
-      const dateAdded = normalizeDate(homework.date_added);
-      // Clean up the description by removing extra whitespace and limiting length to 1000 characters
-      const cleanDescription = homework.description ? 
-        homework.description.trim().replace(/\s+/g, ' ').substring(0, 1000) : 
-        '';
-        
-      if (!cleanDescription) {
-        continue; // Skip entries with empty descriptions
-      }
-      
-      // Calculate due date for homework based on subject and date added
+  const processedTasks = [];
+  const today = getTodayIsoDate();
+
+  for (const group of overview.Groups) {
+    const subject = translateSubjectName(group.CourseName);
+
+    // Process homework entries
+    for (const hw of group.Homework || []) {
+      const description = (hw.Homework || '').replace(/\s+/g, ' ').trim();
+      if (!description) continue;
+
+      const dateAdded = normalizeDate(hw.Date);
       const dueDate = calculateHomeworkDueDate(subject, dateAdded);
-      
-      // Create a task object - now using ISO dates and including calculated due_date
+
       processedTasks.push({
         id: generateUniqueId(subject, dateAdded, 'homework'),
-        date_added: dateAdded, // Date the homework was posted (in ISO format)
-        due_date: dueDate,     // Calculated due date for the homework
-        subject: subject,
-        description: cleanDescription,
-        topic: homework.topic,
+        date_added: dateAdded,
+        due_date: dueDate,
+        subject,
+        description: description.substring(0, 1000),
         type: 'homework',
         status: 'open',
         student_id: 1,
       });
     }
-    
-    // Process exams - for exams, the due_date is the exam date
-    for (const exam of data.futureExams || []) {
-      const examDate = normalizeDate(exam.due_date);
-      // Clean up the description by removing extra whitespace and limiting length to 1000 characters
-      const cleanDescription = exam.description ? 
-        exam.description.trim().replace(/\s+/g, ' ').substring(0, 1000) : 
-        '';
-        
-      if (!cleanDescription) {
-        continue; // Skip entries with empty descriptions
-      }
-      
-      // Create a task object - now using ISO dates
+
+    // Process upcoming exams (skip graded exams and past dates)
+    for (const exam of group.Exams || []) {
+      if (exam.Grade != null && String(exam.Grade).trim() !== '') continue;
+
+      const examDate = normalizeDate(exam.Date);
+      if (examDate < today) continue;
+
+      const description = [exam.Caption, exam.Topic]
+        .filter(Boolean)
+        .join(': ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!description) continue;
+
       processedTasks.push({
         id: generateUniqueId(subject, examDate, 'exam'),
-        due_date: examDate, // Exam date (in ISO format)
-        subject: subject,
-        description: cleanDescription,
-        topic: exam.topic,
+        due_date: examDate,
+        subject,
+        description: description.substring(0, 1000),
+        topic: (exam.Topic || '').trim(),
         type: 'exam',
         status: 'open',
         student_id: 1,
       });
     }
   }
-  
+
   return processedTasks;
 }
 
 // Export the module functions
 module.exports = {
-  processExtractedData,
+  processOverviewData,
   translateSubjectName,
   normalizeDate,
-  generateUniqueId,
-  calculateHomeworkDueDate
 };
