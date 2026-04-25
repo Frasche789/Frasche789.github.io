@@ -4,7 +4,7 @@ service cloud.firestore {
     // Public demo access: readable, but not writable
     match /{document=**} {
       allow read: if true;
-      allow write: if false;
+      allow write: if true;
     }
     
   }
